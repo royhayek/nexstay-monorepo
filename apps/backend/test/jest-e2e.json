@@ -1,0 +1,32 @@
+{
+  "moduleFileExtensions": [
+    "js",
+    "json",
+    "ts"
+  ],
+  "rootDir": ".",
+  "testEnvironment": "node",
+  "testRegex": ".e2e-spec.ts$",
+  "transform": {
+    "^.+\\.(t|j)s$": "ts-jest"
+  },
+  "collectCoverageFrom": [
+    "src/**/*.(t|j)s",
+    "!src/**/*.spec.ts",
+    "!src/**/*.e2e-spec.ts",
+    "!src/**/node_modules/**",
+    "!src/**/dist/**",
+    "!src/**/coverage/**",
+    "!src/**/test/**",
+    "!src/**/__mocks__/**",
+    "!src/**/migrations/**",
+    "!src/**/seeds/**",
+    "!src/main.ts"
+  ],
+  "coverageDirectory": "./coverage/e2e",
+  "coverageReporters": ["text", "lcov", "json-summary", "html"],
+  "testTimeout": 120000,
+  "forceExit": true,
+  "detectOpenHandles": true,
+  "maxWorkers": 1
+}

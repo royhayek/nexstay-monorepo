@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Invoice {{invoice.invoiceNumber}}</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: #f9f9f9;
+        }
+        
+        .invoice-container {
+            max-width: 800px;
+            margin: 20px auto;
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 40px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #e9ecef;
+        }
+        
+        .company-info h1 {
+            color: #2c3e50;
+            font-size: 28px;
+            margin-bottom: 5px;
+        }
+        
+        .company-info p {
+            color: #6c757d;
+            margin: 3px 0;
+        }
+        
+        .invoice-details {
+            text-align: right;
+        }
+        
+        .invoice-number {
+            font-size: 24px;
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+        
+        .invoice-date {
+            color: #6c757d;
+            margin: 5px 0;
+        }
+        
+        .status {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+            text-transform: uppercase;
+            margin-top: 10px;
+        }
+        
+        .status.paid { background: #d4edda; color: #155724; }
+        .status.pending { background: #fff3cd; color: #856404; }
+        .status.draft { background: #e2e3e5; color: #383d41; }
+        .status.overdue { background: #f8d7da; color: #721c24; }
+        
+        .billing-info {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+            margin: 30px 0;
+        }
+        
+        .billing-section h3 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+            font-size: 16px;
+            border-bottom: 1px solid #e9ecef;
+            padding-bottom: 5px;
+        }
+        
+        .billing-section p {
+            margin: 5px 0;
+            color: #495057;
+        }
+        
+        .items-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 30px 0;
+        }
+        
+        .items-table th {
+            background: #f8f9fa;
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+            color: #2c3e50;
+            border-bottom: 2px solid #dee2e6;
+        }
+        
+        .items-table td {
+            padding: 15px;
+            border-bottom: 1px solid #dee2e6;
+        }
+        
+        .items-table tr:hover {
+            background: #f8f9fa;
+        }
+        
+        .quantity, .unit-price, .amount {
+            text-align: right;
+        }
+        
+        .totals {
+            max-width: 400px;
+            margin-left: auto;
+            margin-top: 20px;
+        }
+        
+        .total-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #e9ecef;
+        }
+        
+        .total-row.grand-total {
+            font-size: 18px;
+            font-weight: bold;
+            color: #2c3e50;
+            border-bottom: 2px solid #2c3e50;
+            border-top: 2px solid #2c3e50;
+            margin-top: 10px;
+        }
+        
+        .notes {
+            margin: 40px 0;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 6px;
+            border-left: 4px solid #007bff;
+        }
+        
+        .notes h4 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+        
+        .footer {
+            margin-top: 50px;
+            padding-top: 20px;
+            border-top: 1px solid #e9ecef;
+            text-align: center;
+            color: #6c757d;
+            font-size: 14px;
+        }
+        
+        @media print {
+            body { background: white; }
+            .invoice-container { 
+                box-shadow: none; 
+                margin: 0; 
+                border-radius: 0; 
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="invoice-container">
+        <!-- Header -->
+        <div class="header">
+            <div class="company-info">
+                <h1>{{invoice.fromAddress.name}}</h1>
+                {{#if invoice.fromAddress.address}}
+                <p>{{invoice.fromAddress.address.line1}}</p>
+                {{#if invoice.fromAddress.address.line2}}
+                <p>{{invoice.fromAddress.address.line2}}</p>
+                {{/if}}
+                <p>{{invoice.fromAddress.address.city}}, {{invoice.fromAddress.address.state}} {{invoice.fromAddress.address.postalCode}}</p>
+                <p>{{invoice.fromAddress.address.country}}</p>
+                {{/if}}
+                <p>{{invoice.fromAddress.email}}</p>
+                {{#if invoice.fromAddress.phone}}
+                <p>{{invoice.fromAddress.phone}}</p>
+                {{/if}}
+            </div>
+            <div class="invoice-details">
+                <div class="invoice-number">{{invoice.invoiceNumber}}</div>
+                <div class="invoice-date">Issue Date: {{formatDate invoice.createdAt}}</div>
+                {{#if invoice.dueDate}}
+                <div class="invoice-date">Due Date: {{formatDate invoice.dueDate}}</div>
+                {{/if}}
+                <span class="status {{invoice.status}}">{{invoice.status}}</span>
+            </div>
+        </div>
+
+        <!-- Billing Information -->
+        <div class="billing-info">
+            <div class="billing-section">
+                <h3>Bill To:</h3>
+                <p><strong>{{invoice.toAddress.name}}</strong></p>
+                <p>{{invoice.toAddress.email}}</p>
+                {{#if invoice.toAddress.phone}}
+                <p>{{invoice.toAddress.phone}}</p>
+                {{/if}}
+                {{#if invoice.toAddress.address}}
+                <p>{{invoice.toAddress.address.line1}}</p>
+                {{#if invoice.toAddress.address.line2}}
+                <p>{{invoice.toAddress.address.line2}}</p>
+                {{/if}}
+                <p>{{invoice.toAddress.address.city}}, {{invoice.toAddress.address.state}} {{invoice.toAddress.address.postalCode}}</p>
+                <p>{{invoice.toAddress.address.country}}</p>
+                {{/if}}
+            </div>
+            {{#if includePaymentInfo}}
+            {{#if invoice.paymentInfo}}
+            <div class="billing-section">
+                <h3>Payment Information:</h3>
+                {{#if invoice.paymentInfo.paidAt}}
+                <p>Paid on: {{formatDate invoice.paymentInfo.paidAt}}</p>
+                {{/if}}
+                {{#if invoice.paymentInfo.paymentMethod}}
+                <p>Payment Method: {{invoice.paymentInfo.paymentMethod}}</p>
+                {{/if}}
+                {{#if invoice.paymentInfo.paidAmount}}
+                <p>Amount Paid: {{formatCurrency invoice.paymentInfo.paidAmount invoice.pricing.currency}}</p>
+                {{/if}}
+            </div>
+            {{/if}}
+            {{/if}}
+        </div>
+
+        <!-- Line Items -->
+        <table class="items-table">
+            <thead>
+                <tr>
+                    <th>Description</th>
+                    <th class="quantity">Qty</th>
+                    <th class="unit-price">Unit Price</th>
+                    <th class="amount">Amount</th>
+                </tr>
+            </thead>
+            <tbody>
+                {{#each invoice.lineItems}}
+                <tr>
+                    <td>{{this.description}}</td>
+                    <td class="quantity">{{this.quantity}}</td>
+                    <td class="unit-price">{{formatCurrency this.unitPrice ../invoice.pricing.currency}}</td>
+                    <td class="amount">{{formatCurrency this.amount ../invoice.pricing.currency}}</td>
+                </tr>
+                {{/each}}
+            </tbody>
+        </table>
+
+        <!-- Totals -->
+        <div class="totals">
+            <div class="total-row">
+                <span>Subtotal:</span>
+                <span>{{formatCurrency invoice.pricing.subtotal invoice.pricing.currency}}</span>
+            </div>
+            
+            {{#each invoice.pricing.discounts}}
+            <div class="total-row">
+                <span>{{this.description}} ({{#if (eq this.type 'percentage')}}{{this.value}}%{{else}}{{formatCurrency this.value ../invoice.pricing.currency}}{{/if}}):</span>
+                <span>-{{formatCurrency this.amount ../invoice.pricing.currency}}</span>
+            </div>
+            {{/each}}
+            
+            {{#each invoice.pricing.taxes}}
+            <div class="total-row">
+                <span>{{this.name}} ({{this.rate}}%):</span>
+                <span>{{formatCurrency this.amount ../invoice.pricing.currency}}</span>
+            </div>
+            {{/each}}
+            
+            <div class="total-row grand-total">
+                <span>Total:</span>
+                <span>{{formatCurrency invoice.pricing.totalAmount invoice.pricing.currency}}</span>
+            </div>
+        </div>
+
+        <!-- Notes -->
+        {{#if invoice.notes}}
+        <div class="notes">
+            <h4>Notes:</h4>
+            <p>{{invoice.notes}}</p>
+        </div>
+        {{/if}}
+
+        <!-- Footer -->
+        <div class="footer">
+            <p>Thank you for your business!</p>
+            <p>This invoice was generated on {{formatDate 'now'}}</p>
+        </div>
+    </div>
+</body>
+</html>

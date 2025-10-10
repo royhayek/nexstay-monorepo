@@ -1,0 +1,19 @@
+{
+  "upload": {
+    "success": "File uploaded successfully",
+    "failed": "File upload failed",
+    "invalidFileType": "Invalid file type. Only {{types}} are allowed",
+    "fileTooLarge": "File size exceeds the maximum limit of {{maxSize}}",
+    "processing": "Processing uploaded file..."
+  },
+  "delete": {
+    "success": "File deleted successfully",
+    "failed": "Failed to delete file",
+    "notFound": "File not found"
+  },
+  "errors": {
+    "fileNotFound": "The requested file was not found",
+    "unauthorizedAccess": "You don't have permission to access this file",
+    "invalidKey": "Invalid file key provided"
+  }
+}

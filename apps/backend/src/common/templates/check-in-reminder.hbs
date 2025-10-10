@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <title>Check-in Reminder - {{propertyName}}</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #333; background-color: #f5f5f5; margin: 0; padding: 0;">
+  <div style="max-width: 600px; margin: 20px auto; background-color: #ffffff; border-radius: 12px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); overflow: hidden;">
+    
+    <!-- Header -->
+    <div style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: white; padding: 30px 24px; text-align: center;">
+      <div style="font-size: 48px; margin-bottom: 8px;">⏰</div>
+      <h1 style="margin: 0; font-size: 28px; font-weight: 600;">Check-in Reminder</h1>
+      <p style="margin: 8px 0 0 0; font-size: 16px; opacity: 0.9;">Your stay begins soon!</p>
+    </div>
+    
+    <!-- Content -->
+    <div style="padding: 32px 24px;">
+      <p style="font-size: 18px; margin-bottom: 8px; font-weight: 600;">Hello {{guestName}},</p>
+      <p style="font-size: 16px; color: #666; margin-bottom: 24px;">
+        Your check-in date is approaching! We wanted to make sure you have everything you need for a smooth arrival.
+      </p>
+      
+      <!-- Check-in Details -->
+      <div style="background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); border-radius: 12px; padding: 24px; margin: 24px 0;">
+        <h3 style="margin: 0 0 16px 0; color: #92400e; font-size: 20px; text-align: center;">📍 Check-in Information</h3>
+        
+        <div style="border-bottom: 1px solid #fbbf24; padding-bottom: 16px; margin-bottom: 16px;">
+          <strong style="color: #92400e;">Property:</strong><br/>
+          <span style="font-size: 16px; color: #451a03;">{{propertyName}}</span>
+        </div>
+        
+        <div style="border-bottom: 1px solid #fbbf24; padding-bottom: 16px; margin-bottom: 16px;">
+          <strong style="color: #92400e;">Check-in Date:</strong><br/>
+          <span style="font-size: 18px; color: #451a03; font-weight: bold;">{{checkInDate}}</span>
+        </div>
+        
+        <div style="border-bottom: 1px solid #fbbf24; padding-bottom: 16px; margin-bottom: 16px;">
+          <strong style="color: #92400e;">Host:</strong><br/>
+          <span style="font-size: 16px; color: #451a03;">{{hostName}}</span>
+        </div>
+        
+        {{#if confirmationCode}}
+        <div style="background-color: #fff; border: 2px solid #f59e0b; border-radius: 8px; padding: 16px; text-align: center;">
+          <strong style="color: #92400e; font-size: 14px;">Your Confirmation Code:</strong><br/>
+          <span style="font-size: 24px; font-weight: bold; color: #f59e0b; font-family: monospace;">{{confirmationCode}}</span>
+          <p style="margin: 8px 0 0 0; color: #92400e; font-size: 12px;">You'll need this for check-in</p>
+        </div>
+        {{/if}}
+      </div>
+      
+      <!-- Pre-Check-in Checklist -->
+      <div style="background-color: #ecfdf5; border: 1px solid #a7f3d0; border-radius: 12px; padding: 24px; margin: 24px 0;">
+        <h3 style="margin: 0 0 16px 0; color: #047857; font-size: 20px;">✅ Pre-Check-in Checklist</h3>
+        
+        <div style="margin-bottom: 16px;">
+          <div style="display: flex; align-items: flex-start; margin-bottom: 12px;">
+            <span style="color: #047857; font-size: 18px; margin-right: 12px; margin-top: 2px;">☐</span>
+            <div>
+              <strong style="color: #047857;">Contact your host</strong><br/>
+              <span style="color: #065f46; font-size: 14px;">Confirm check-in time and any special instructions</span>
+            </div>
+          </div>
+          
+          <div style="display: flex; align-items: flex-start; margin-bottom: 12px;">
+            <span style="color: #047857; font-size: 18px; margin-right: 12px; margin-top: 2px;">☐</span>
+            <div>
+              <strong style="color: #047857;">Review house rules</strong><br/>
+              <span style="color: #065f46; font-size: 14px;">Make sure you're familiar with the property guidelines</span>
+            </div>
+          </div>
+          
+          <div style="display: flex; align-items: flex-start; margin-bottom: 12px;">
+            <span style="color: #047857; font-size: 18px; margin-right: 12px; margin-top: 2px;">☐</span>
+            <div>
+              <strong style="color: #047857;">Prepare your ID</strong><br/>
+              <span style="color: #065f46; font-size: 14px;">Have your identification ready for check-in</span>
+            </div>
+          </div>
+          
+          <div style="display: flex; align-items: flex-start; margin-bottom: 12px;">
+            <span style="color: #047857; font-size: 18px; margin-right: 12px; margin-top: 2px;">☐</span>
+            <div>
+              <strong style="color: #047857;">Plan your arrival</strong><br/>
+              <span style="color: #065f46; font-size: 14px;">Check directions and parking information</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Contact Host -->
+      <div style="background-color: #f0f9ff; border: 1px solid #bae6fd; border-radius: 8px; padding: 20px; margin: 24px 0; text-align: center;">
+        <h4 style="margin: 0 0 8px 0; color: #0369a1;">💬 Need to Contact Your Host?</h4>
+        <p style="margin: 0; color: #0369a1;">
+          {{hostName}} is ready to help make your check-in smooth. Don't hesitate to reach out with any questions!
+        </p>
+      </div>
+      
+      <!-- Action Button -->
+      {{#if actionUrl}}
+      <div style="text-align: center; margin: 32px 0;">
+        <a href="{{actionUrl}}" style="display: inline-block; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; text-decoration: none; padding: 16px 32px; border-radius: 8px; font-weight: 600; font-size: 16px;">
+          View Booking Details
+        </a>
+      </div>
+      {{/if}}
+      
+      <!-- Emergency Contact -->
+      <div style="background-color: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; padding: 20px; margin: 24px 0;">
+        <h4 style="margin: 0 0 8px 0; color: #dc2626;">🆘 Emergency Contact</h4>
+        <p style="margin: 0; color: #dc2626; font-size: 14px;">
+          If you encounter any issues during check-in or need immediate assistance, 
+          our 24/7 support team is available to help. Contact us through the app or website.
+        </p>
+      </div>
+      
+      <p style="color: #666; font-size: 14px; margin-top: 32px; text-align: center;">
+        We hope you have a wonderful stay! Safe travels and enjoy your time at {{propertyName}}.
+      </p>
+    </div>
+    
+    <!-- Footer -->
+    <div style="background-color: #f8f9fa; padding: 24px; text-align: center; border-top: 1px solid #e9ecef;">
+      <p style="margin: 0; color: #666; font-size: 14px;">
+        Have a great stay!<br/>
+        <strong>The Airbnb Clone Team</strong>
+      </p>
+    </div>
+  </div>
+</body>
+</html>

@@ -1,0 +1,19 @@
+{
+  "upload": {
+    "success": "Fichier téléchargé avec succès",
+    "failed": "Échec du téléchargement du fichier",
+    "invalidFileType": "Type de fichier invalide. Seuls {{types}} sont autorisés",
+    "fileTooLarge": "La taille du fichier dépasse la limite maximale de {{maxSize}}",
+    "processing": "Traitement du fichier téléchargé..."
+  },
+  "delete": {
+    "success": "Fichier supprimé avec succès",
+    "failed": "Échec de la suppression du fichier",
+    "notFound": "Fichier introuvable"
+  },
+  "errors": {
+    "fileNotFound": "Le fichier demandé n'a pas été trouvé",
+    "unauthorizedAccess": "Vous n'avez pas l'autorisation d'accéder à ce fichier",
+    "invalidKey": "Clé de fichier invalide fournie"
+  }
+}

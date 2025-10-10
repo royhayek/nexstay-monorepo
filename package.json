@@ -1,0 +1,21 @@
+{
+  "name": "nexstay-monorepo",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "turbo run dev",
+    "build": "turbo run build",
+    "lint": "turbo run lint",
+    "test": "turbo run test",
+    "mobile": "turbo run dev --filter=@nexstay/mobile",
+    "dashboard": "turbo run dev --filter=@nexstay/dashboard",
+    "backend": "turbo run dev --filter=@nexstay/backend"
+  },
+  "devDependencies": {
+    "turbo": "^2.5.8"
+  },
+  "packageManager": "npm@10.0.0"
+}
