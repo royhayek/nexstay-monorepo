@@ -1,4 +1,5 @@
 import axios, { AxiosError, AxiosInstance, AxiosRequestConfig, AxiosResponse } from "axios";
+import NetInfo from "@react-native-community/netinfo";
 import { tokenManager } from "../utils/auth";
 import { API_CONFIG } from "./config";
 import { handleApiError } from "./error-handler";
@@ -76,6 +77,18 @@ axiosInstance.interceptors.response.use(
       originalRequest._retry = true;
 
       try {
+        // Check network status before attempting refresh
+        const networkState = await NetInfo.fetch();
+        const isOffline = !networkState.isConnected || networkState.isInternetReachable === false;
+
+        if (isOffline) {
+          // Don't attempt refresh when offline
+          if (__DEV__) {
+            console.warn("🔄 Token refresh skipped - device is offline");
+          }
+          throw new Error("No internet connection. Please check your network and try again.");
+        }
+
         // If a refresh is already in progress, wait for it
         if (refreshPromise) {
           const newAccessToken = await refreshPromise;
@@ -136,11 +149,11 @@ axiosInstance.interceptors.response.use(
           originalRequest.headers!.Authorization = `Bearer ${newAccessToken}`;
           return axiosInstance(originalRequest);
         }
-      } catch (error) {
-        // You might want to emit an event or use a navigation service here
-        // to redirect to login screen
+      } catch {
+        // Token refresh failed, error is already logged in the refresh promise
+        // User will need to login again
         if (__DEV__) {
-          console.error("🔄 Token refresh failed, redirecting to login");
+          console.error("🔄 Token refresh failed, user needs to re-authenticate");
         }
       }
     }

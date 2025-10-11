@@ -34,6 +34,7 @@ import { isDevelopment } from "@/utils/environment";
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { Alert } from "react-native";
 import { useAppStateAuth } from "./use-app-state-auth";
+import { useNetwork } from "./use-network";
 
 // Use generated API response types directly
 
@@ -84,6 +85,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<UserDataDto | null>(null);
   const [showLoginModal, setShowLoginModal] = useState(false);
 
+  // Get network status
+  const { isOffline } = useNetwork();
+
   // Setup app state monitoring for token validation on resume
   useAppStateAuth({
     minIntervalMs: 30000, // Check at most once every 30 seconds
@@ -95,6 +99,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setShowLoginModal(true);
     },
   });
+
+  /**
+   * Check if network is available before performing auth operation
+   * Throws an error if offline
+   */
+  const checkNetworkOrThrow = () => {
+    if (isOffline) {
+      throw new Error(
+        "No internet connection. Please check your network and try again."
+      );
+    }
+  };
 
   // Generated API hooks
   const checkIdentifierMutation = useAuthPublicControllerCheckIdentifier();
@@ -195,6 +211,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // New authentication flow methods
   const checkIdentifier = async (identifier: string): Promise<CheckIdentifierResponseDto> => {
     try {
+      checkNetworkOrThrow();
+
       const response = await checkIdentifierMutation.mutateAsync({
         data: { identifier: identifier.trim() },
       });
@@ -207,6 +225,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signupVerifyContact = async (identifier: string): Promise<SignupInitiateResponseDto> => {
     try {
+      checkNetworkOrThrow();
+
       const response = await signupVerifyContactMutation.mutateAsync({
         data: { identifier: identifier.trim() },
       });
@@ -229,6 +249,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const verify = async (method: "email" | "phone", identifier: string, code: string): Promise<VerifyResponseDto> => {
     try {
+      checkNetworkOrThrow();
+
       const response = await verifyMutation.mutateAsync({
         data: { method, identifier: identifier.trim(), code },
       });
@@ -241,6 +263,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const completeProfile = async (profileData: SignupCompleteProfileDto): Promise<SignupCompleteResponseDto> => {
     try {
+      checkNetworkOrThrow();
+
       const response = await completeProfileMutation.mutateAsync({
         data: profileData,
       });
@@ -269,6 +293,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signinInitiate = async (identifier: string): Promise<SigninInitiateResponseDto> => {
     try {
+      checkNetworkOrThrow();
+
       const response = await signinInitiateMutation.mutateAsync({
         data: { identifier: identifier.trim() },
       });
@@ -295,6 +321,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     requestSmsCode?: boolean
   ): Promise<SigninPasswordResponseDto> => {
     try {
+      checkNetworkOrThrow();
+
       const response = await signinPasswordMutation.mutateAsync({
         data: { sessionToken, password, requestSmsCode },
       });
@@ -331,6 +359,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signinVerifyDevice = async (sessionToken: string, code: string): Promise<SigninCompleteResponseDto> => {
     try {
+      checkNetworkOrThrow();
+
       const response = await signinVerifyDeviceMutation.mutateAsync({
         data: { sessionToken, code },
       });
@@ -359,6 +389,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // Password Reset Flow
   const requestReset = async (method: "email" | "phone", identifier: string): Promise<RequestResetResponseDto> => {
     try {
+      checkNetworkOrThrow();
+
       const response = await requestResetMutation.mutateAsync({
         data: { method, identifier: identifier.trim() },
       });
@@ -385,6 +417,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     code: string
   ): Promise<VerifyResetResponseDto> => {
     try {
+      checkNetworkOrThrow();
+
       const response = await verifyResetMutation.mutateAsync({
         data: { method, identifier: identifier.trim(), code },
       });
@@ -397,6 +431,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const resetPassword = async (resetToken: string, newPassword: string): Promise<ResetPasswordResponseDto> => {
     try {
+      checkNetworkOrThrow();
+
       const response = await resetPasswordMutation.mutateAsync({
         data: { resetToken, newPassword },
       });
@@ -413,6 +449,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     contact: string
   ): Promise<AddSecondaryContactResponseDto> => {
     try {
+      checkNetworkOrThrow();
+
       const contactData = contactType === "email" ? { contactType, email: contact } : { contactType, phone: contact };
 
       const response = await addSecondaryContactMutation.mutateAsync({
@@ -438,6 +476,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // Request Verification Code (General)
   const requestVerify = async (method: "email" | "phone", identifier: string): Promise<RequestVerifyResponseDto> => {
     try {
+      checkNetworkOrThrow();
+
       const response = await requestVerifyMutation.mutateAsync({
         data: { method, identifier: identifier.trim() },
       });

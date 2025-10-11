@@ -17,8 +17,10 @@ import { useEffect } from "react";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 
+import { OfflineIndicator } from "@/components/OfflineIndicator";
 import { AuthProvider } from "@/hooks/use-auth";
 import { BottomSheetProvider } from "@/hooks/use-bottom-sheet";
+import { NetworkProvider } from "@/hooks/use-network";
 import { SharedTransitionProvider } from "@/hooks/use-shared-transition";
 import { ThemePreferenceProvider, useThemePreference } from "@/hooks/use-theme-preference";
 import "@/unistyles";
@@ -131,13 +133,16 @@ export default function RootLayout() {
       <SafeAreaProvider>
         <QueryClientProvider client={queryClient}>
           <ThemePreferenceProvider>
-            <AuthProvider>
-              <BottomSheetProvider>
-                <SharedTransitionProvider>
-                  <RootLayoutNav />
-                </SharedTransitionProvider>
-              </BottomSheetProvider>
-            </AuthProvider>
+            <NetworkProvider>
+              <AuthProvider>
+                <BottomSheetProvider>
+                  <SharedTransitionProvider>
+                    <RootLayoutNav />
+                    <OfflineIndicator />
+                  </SharedTransitionProvider>
+                </BottomSheetProvider>
+              </AuthProvider>
+            </NetworkProvider>
           </ThemePreferenceProvider>
         </QueryClientProvider>
       </SafeAreaProvider>
