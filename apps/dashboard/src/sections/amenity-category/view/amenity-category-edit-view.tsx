@@ -3,7 +3,7 @@
 import { paths } from 'src/routes/paths';
 
 import { DashboardContent } from 'src/layouts/dashboard';
-import { useAmenityCategoriesControllerFindByIdV1 } from 'src/api/queries/amenity-categories/amenity-categories';
+import { useAmenityCategoriesAdminControllerFindById } from 'src/api/queries/admin/amenity-categories-management/amenity-categories-management';
 
 import { CustomBreadcrumbs } from 'src/components/custom-breadcrumbs';
 
@@ -16,7 +16,7 @@ type Props = {
 };
 
 export function AmenityCategoryEditView({ id }: Props) {
-  const { data: currentCategory, isLoading } = useAmenityCategoriesControllerFindByIdV1(id);
+  const { data: currentCategory, isLoading } = useAmenityCategoriesAdminControllerFindById(id);
 
   return (
     <DashboardContent>

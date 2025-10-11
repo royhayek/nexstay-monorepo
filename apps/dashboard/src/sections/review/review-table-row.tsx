@@ -103,7 +103,7 @@ export function ReviewTableRow({ row, detailsHref }: Props) {
             sx={{ cursor: 'pointer' }}
           >
             <Typography variant="body2" sx={{ fontWeight: 'fontWeightMedium' }}>
-              Property #{row.property_id.slice(-8)}
+              Property #{row.propertyId.slice(-8)}
             </Typography>
           </Link>
         </TableCell>

@@ -1,3 +1,5 @@
+'use client';
+
 import type { EditorToolbarProps } from '../types';
 
 import { useState } from 'react';

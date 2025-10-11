@@ -8,11 +8,10 @@ import type { Theme, Components, ComponentsVariants } from '@mui/material/styles
  */
 
 export type BadgeExtendVariant = {
-  always: true;
+  available: true;
   busy: true;
-  online: true;
+  away: true;
   offline: true;
-  invisible: true;
 };
 
 /* **********************************************************************
@@ -20,7 +19,7 @@ export type BadgeExtendVariant = {
  * **********************************************************************/
 const statusVariants = [
   {
-    props: (props) => ['online', 'always', 'busy', 'offline'].includes(props.variant as string),
+    props: (props) => ['available', 'busy', 'away', 'offline'].includes(props.variant as string),
     style: ({ theme }) => ({
       width: 10,
       height: 10,
@@ -38,17 +37,9 @@ const statusVariants = [
     }),
   },
   {
-    props: (props) => props.variant === 'online',
+    props: (props) => props.variant === 'available',
     style: ({ theme }) => ({
       backgroundColor: theme.vars.palette.success.main,
-    }),
-  },
-  {
-    props: (props) => props.variant === 'always',
-    style: ({ theme }) => ({
-      backgroundColor: theme.vars.palette.warning.main,
-      '&::before': { width: 2, height: 4, transform: 'translate(1px, -1px)' },
-      '&::after': { width: 2, height: 4, transform: 'translate(0, 1px) rotate(125deg)' },
     }),
   },
   {
@@ -66,7 +57,7 @@ const statusVariants = [
     }),
   },
   {
-    props: (props) => props.variant === 'invisible',
+    props: (props) => props.variant === 'away',
     style: {
       display: 'none',
     },

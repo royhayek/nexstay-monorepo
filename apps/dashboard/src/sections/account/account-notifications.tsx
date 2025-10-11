@@ -1,4 +1,5 @@
 import type { CardProps } from '@mui/material/Card';
+import type { OtpMethodAvailabilityDto } from 'src/api/models/admin';
 
 import { useEffect } from 'react';
 import { useForm, Controller } from 'react-hook-form';
@@ -11,11 +12,11 @@ import Button from '@mui/material/Button';
 import ListItemText from '@mui/material/ListItemText';
 import FormControlLabel from '@mui/material/FormControlLabel';
 
-import { type OtpMethodAvailabilityDto, OtpMethodAvailabilityDtoMethod } from 'src/api/models';
+import { OtpMethodAvailabilityDtoMethod } from 'src/api/models/admin';
 import {
-  useUsersControllerGetPreferencesV1,
-  useUsersControllerUpdatePreferencesV1,
-} from 'src/api/queries/users/users';
+  useUsersAdminControllerGetUserPreferences,
+  useUsersAdminControllerUpdateUserPreferences,
+} from 'src/api/queries/admin/users-management/users-management';
 
 import { toast } from 'src/components/snackbar';
 import { Form } from 'src/components/hook-form';
@@ -44,9 +45,11 @@ const NOTIFICATIONS = [
 
 // ----------------------------------------------------------------------
 
-export function AccountNotifications({ sx, ...other }: CardProps) {
-  const { data: preferencesData } = useUsersControllerGetPreferencesV1();
-  const { mutate: updatePreferences } = useUsersControllerUpdatePreferencesV1();
+export function AccountNotifications({ id, sx, ...other }: CardProps) {
+  const { data: preferencesData } = useUsersAdminControllerGetUserPreferences(id!, {
+    query: { enabled: !!id },
+  });
+  const { mutate: updatePreferences } = useUsersAdminControllerUpdateUserPreferences();
 
   const availableMethodsData = preferencesData?.data?.availableMethods || [];
 
@@ -58,7 +61,7 @@ export function AccountNotifications({ sx, ...other }: CardProps) {
     );
 
   const methods = useForm({
-    defaultValues: { selected: [selectedOtpMethod] },
+    defaultValues: { selected: selectedOtpMethod ? [selectedOtpMethod] : [] },
   });
 
   const {
@@ -72,13 +75,25 @@ export function AccountNotifications({ sx, ...other }: CardProps) {
   const values = watch();
 
   useEffect(() => {
-    setValue('selected', [selectedOtpMethod]);
+    if (selectedOtpMethod) {
+      setValue('selected', [selectedOtpMethod], { shouldValidate: true });
+    } else {
+      setValue('selected', [], { shouldValidate: true });
+    }
   }, [selectedOtpMethod, setValue]);
 
   const onSubmit = handleSubmit(async (payload) => {
     try {
+      console.log('payload', payload);
+
+      if (!payload.selected || payload.selected.length === 0) {
+        toast.error('Please select at least one OTP method');
+        return;
+      }
+
       updatePreferences(
         {
+          id: id!,
           data: {
             language: preferencesData?.data.language,
             otpNotificationMethod: payload.selected[0],

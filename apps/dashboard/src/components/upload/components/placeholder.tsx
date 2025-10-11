@@ -11,6 +11,8 @@ import { UploadIllustration } from 'src/assets/illustrations';
 
 export type UploadPlaceholderProps = React.ComponentProps<'div'> & {
   sx?: SxProps<Theme>;
+  title?: string;
+  description?: string;
 };
 
 const uploadPlaceholderClasses = {
@@ -20,7 +22,13 @@ const uploadPlaceholderClasses = {
   description: createClasses('upload__placeholder__description'),
 };
 
-export function UploadPlaceholder({ sx, className, ...other }: UploadPlaceholderProps) {
+export function UploadPlaceholder({ 
+  sx, 
+  className, 
+  title = "Drop or select file",
+  description = "Drop files here or click to browse through your machine.",
+  ...other 
+}: UploadPlaceholderProps) {
   return (
     <PlaceholderRoot
       className={mergeClasses([uploadPlaceholderClasses.root, className])}
@@ -29,11 +37,17 @@ export function UploadPlaceholder({ sx, className, ...other }: UploadPlaceholder
     >
       <UploadIllustration hideBackground sx={{ width: 200 }} />
       <PlaceholderContent>
-        <div className={uploadPlaceholderClasses.title}>Drop or select file</div>
+        <div className={uploadPlaceholderClasses.title}>{title}</div>
         <div className={uploadPlaceholderClasses.description}>
-          Drop files here or click to
-          <span>browse</span>
-          through your machine.
+          {description.includes('browse') ? (
+            <>
+              {description.split('browse')[0]}
+              <span>browse</span>
+              {description.split('browse')[1]}
+            </>
+          ) : (
+            description
+          )}
         </div>
       </PlaceholderContent>
     </PlaceholderRoot>

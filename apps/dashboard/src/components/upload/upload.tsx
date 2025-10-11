@@ -29,6 +29,8 @@ export function Upload({
   onRemoveAll,
   className,
   multiple = false,
+  placeholderTitle,
+  placeholderDescription,
   ...other
 }: UploadProps) {
   const { getRootProps, getInputProps, isDragActive, isDragReject, fileRejections } = useDropzone({
@@ -44,44 +46,21 @@ export function Upload({
 
   const hasError = isDragReject || !!error;
 
-  const renderMultiPreview = () =>
-    hasFiles && (
-      <>
-        <MultiFilePreview files={value} thumbnail={thumbnail} onRemove={onRemove} sx={{ my: 3 }} />
-
-        {(onRemoveAll || onUpload) && (
-          <Box sx={{ gap: 1.5, display: 'flex', justifyContent: 'flex-end' }}>
-            {onRemoveAll && (
-              <Button color="inherit" variant="outlined" size="small" onClick={onRemoveAll}>
-                Remove all
-              </Button>
-            )}
-
-            {onUpload && (
-              <Button
-                size="small"
-                variant="contained"
-                onClick={onUpload}
-                startIcon={<Iconify icon="eva:cloud-upload-fill" />}
-              >
-                Upload
-              </Button>
-            )}
-          </Box>
-        )}
-      </>
-    );
-
   return (
     <Box
       className={mergeClasses([uploadClasses.upload, className])}
       sx={[{ width: 1, position: 'relative' }, ...(Array.isArray(sx) ? sx : [sx])]}
     >
+      {/* Multi files preview */}
+      {multiple && hasFiles && (
+        <MultiFilePreview files={value} thumbnail={thumbnail} onRemove={onRemove} sx={{ mb: 3 }} />
+      )}
+
       <Box
         {...getRootProps()}
         sx={[
           (theme) => ({
-            p: 5,
+            p: hasFiles && multiple ? 3 : 5,
             outline: 'none',
             borderRadius: 1,
             cursor: 'pointer',
@@ -98,14 +77,26 @@ export function Upload({
               borderColor: 'error.main',
               bgcolor: varAlpha(theme.vars.palette.error.mainChannel, 0.08),
             }),
-            ...(hasFile && { padding: '28% 0' }),
+            ...(hasFile && !multiple && { padding: '28% 0' }),
           }),
         ]}
       >
         <input {...getInputProps()} />
 
+        {/* Placeholder for empty state or when files exist but we still want to show drop area */}
+        {((!hasFile && !multiple) || !hasFiles) ? (
+          <UploadPlaceholder title={placeholderTitle} description={placeholderDescription} />
+        ) : (
+          hasFiles && multiple && (
+            <UploadPlaceholder 
+              title={placeholderTitle || "Add more files"} 
+              description={placeholderDescription || "Drop additional files here or click to browse"}
+            />
+          )
+        )}
+        
         {/* Single file */}
-        {hasFile ? <SingleFilePreview file={value as File} /> : <UploadPlaceholder />}
+        {hasFile && !multiple && <SingleFilePreview file={value as File} />}
       </Box>
 
       {/* Single file */}
@@ -119,8 +110,27 @@ export function Upload({
 
       {!!fileRejections.length && <RejectionFiles files={fileRejections} />}
 
-      {/* Multi files */}
-      {renderMultiPreview()}
+      {/* Upload/Remove buttons for multi files */}
+      {multiple && hasFiles && (onRemoveAll || onUpload) && (
+        <Box sx={{ gap: 1.5, display: 'flex', justifyContent: 'flex-end', mt: 3 }}>
+          {onRemoveAll && (
+            <Button color="inherit" variant="outlined" size="small" onClick={onRemoveAll}>
+              Remove all
+            </Button>
+          )}
+
+          {onUpload && (
+            <Button
+              size="small"
+              variant="contained"
+              onClick={onUpload}
+              startIcon={<Iconify icon="eva:cloud-upload-fill" />}
+            >
+              Upload
+            </Button>
+          )}
+        </Box>
+      )}
     </Box>
   );
 }

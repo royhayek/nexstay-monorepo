@@ -1,45 +1,37 @@
 'use client';
 
-import type { ReviewDataDto } from 'src/api/models';
-import type { TableHeadCellProps } from 'src/components/table';
+import type { ReviewAdminDto } from 'src/api/models/admin';
+import type { DynamicTableColumn } from 'src/components/dynamic-table';
 
-import { varAlpha } from 'minimal-shared/utils';
+import { useMemo, useCallback } from 'react';
 import { useSetState } from 'minimal-shared/hooks';
-import { useMemo, useState, useEffect, useCallback } from 'react';
 
 import Box from '@mui/material/Box';
-import Tab from '@mui/material/Tab';
-import Tabs from '@mui/material/Tabs';
-import Card from '@mui/material/Card';
-import Table from '@mui/material/Table';
-import TableBody from '@mui/material/TableBody';
-import LinearProgress from '@mui/material/LinearProgress';
+import Link from '@mui/material/Link';
+import Stack from '@mui/material/Stack';
+import Avatar from '@mui/material/Avatar';
+import Rating from '@mui/material/Rating';
+import Typography from '@mui/material/Typography';
+import ListItemText from '@mui/material/ListItemText';
 
 import { paths } from 'src/routes/paths';
+import { useRouter } from 'src/routes/hooks';
+import { RouterLink } from 'src/routes/components';
+
+import { fDate, fTime } from 'src/utils/format-time';
 
 import { DashboardContent } from 'src/layouts/dashboard';
-import { useReviewsControllerGetAllReviewsAdminV1 } from 'src/api/queries/reviews/reviews';
+import { useReviewsAdminControllerGetAllReviews } from 'src/api/queries/admin/reviews-management/reviews-management';
 
 import { Label } from 'src/components/label';
-import { Scrollbar } from 'src/components/scrollbar';
+import { useTable } from 'src/components/table';
+import { DynamicTable } from 'src/components/dynamic-table';
 import { CustomBreadcrumbs } from 'src/components/custom-breadcrumbs';
-import {
-  useTable,
-  emptyRows,
-  TableNoData,
-  TableEmptyRows,
-  TableHeadCustom,
-  TablePaginationCustom,
-} from 'src/components/table';
 
-import { ReviewTableRow } from '../review-table-row';
-import { ReviewTableToolbar } from '../review-table-toolbar';
-import { ReviewTableFiltersResult } from '../review-table-filters-result';
-
-interface IReviewTableFilters {
+interface ReviewTableFilter extends Record<string, unknown> {
   search: string;
-  reviewType: 'all' | string;
-  rating: 'all' | string;
+  reviewType: string;
+  rating: string;
 }
 
 // ----------------------------------------------------------------------
@@ -51,7 +43,6 @@ const REVIEW_TYPE_OPTIONS = [
 ];
 
 const RATING_OPTIONS = [
-  { value: 'all', label: 'All Ratings' },
   { value: '5', label: '5 Stars' },
   { value: '4', label: '4+ Stars' },
   { value: '3', label: '3+ Stars' },
@@ -59,80 +50,214 @@ const RATING_OPTIONS = [
   { value: '1', label: '1+ Stars' },
 ];
 
-const TABLE_HEAD: TableHeadCellProps[] = [
-  { id: 'reviewer', label: 'Reviewer', width: 200 },
-  { id: 'reviewee', label: 'Reviewee', width: 200 },
-  { id: 'property', label: 'Property', width: 180 },
-  { id: 'review_type', label: 'Type', width: 120 },
-  { id: 'overall_rating', label: 'Rating', width: 100 },
-  { id: 'accuracy', label: 'Accuracy', width: 100 },
-  { id: 'communication', label: 'Communication', width: 120 },
-  { id: 'cleanliness', label: 'Cleanliness', width: 120 },
-  { id: 'location', label: 'Location', width: 100 },
-  { id: 'value', label: 'Value', width: 100 },
-  { id: 'createdAt', label: 'Date', width: 140 },
-  { id: '', width: 88 },
+const getReviewTypeColor = (reviewType: string) => {
+  switch (reviewType) {
+    case 'guest_to_host':
+      return 'info';
+    case 'host_to_guest':
+      return 'success';
+    default:
+      return 'default';
+  }
+};
+
+const TABLE_COLUMNS: DynamicTableColumn<ReviewAdminDto>[] = [
+  {
+    id: 'reviewerId',
+    label: 'Reviewer',
+    width: 200,
+    render: (review) => (
+      <Box sx={{ gap: 2, display: 'flex', alignItems: 'center' }}>
+        <Avatar sx={{ width: 40, height: 40 }}>R</Avatar>
+        <Stack sx={{ typography: 'body2', flex: '1 1 auto', alignItems: 'flex-start' }}>
+          <Typography variant="subtitle2" noWrap>
+            Reviewer
+          </Typography>
+          <Box component="span" sx={{ color: 'text.disabled', typography: 'caption' }}>
+            ID: {review.reviewerId.slice(-8)}
+          </Box>
+        </Stack>
+      </Box>
+    ),
+  },
+  {
+    id: 'revieweeId',
+    label: 'Reviewee',
+    width: 200,
+    render: (review) => (
+      <Box sx={{ gap: 2, display: 'flex', alignItems: 'center' }}>
+        <Avatar sx={{ width: 40, height: 40 }}>R</Avatar>
+        <Stack sx={{ typography: 'body2', flex: '1 1 auto', alignItems: 'flex-start' }}>
+          <Typography variant="subtitle2" noWrap>
+            Reviewee
+          </Typography>
+          <Box component="span" sx={{ color: 'text.disabled', typography: 'caption' }}>
+            ID: {review.revieweeId.slice(-8)}
+          </Box>
+        </Stack>
+      </Box>
+    ),
+  },
+  {
+    id: 'propertyId',
+    label: 'Property',
+    width: 180,
+    render: (review) => (
+      <Link
+        component={RouterLink}
+        href={paths.dashboard.properties.details(review.propertyId)}
+        color="inherit"
+        sx={{ cursor: 'pointer' }}
+      >
+        <Typography variant="body2" sx={{ fontWeight: 'fontWeightMedium' }}>
+          Property #{review.propertyId.slice(-8)}
+        </Typography>
+      </Link>
+    ),
+  },
+  {
+    id: 'reviewType',
+    label: 'Type',
+    width: 120,
+    render: (review) => (
+      <Label variant="soft" color={getReviewTypeColor(review.reviewType)}>
+        {review.reviewType.replace(/_/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase())}
+      </Label>
+    ),
+  },
+  {
+    id: 'overallRating',
+    label: 'Rating',
+    width: 140,
+    render: (review) => (
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+        <Rating
+          value={review.overallRating || 0}
+          precision={0.1}
+          readOnly
+          size="small"
+          sx={{ '& .MuiRating-icon': { fontSize: '1rem' } }}
+        />
+        <Typography variant="body2" sx={{ color: 'text.secondary', fontSize: '0.75rem' }}>
+          ({review.overallRating?.toFixed(1) || 'N/A'})
+        </Typography>
+      </Box>
+    ),
+  },
+  {
+    id: 'accuracy',
+    label: 'Accuracy',
+    width: 100,
+    align: 'center',
+    render: (review) => (
+      <Typography variant="body2">{review.accuracy?.toFixed(1) || 'N/A'}</Typography>
+    ),
+  },
+  {
+    id: 'communication',
+    label: 'Communication',
+    width: 120,
+    align: 'center',
+    render: (review) => (
+      <Typography variant="body2">{review.communication?.toFixed(1) || 'N/A'}</Typography>
+    ),
+  },
+  {
+    id: 'cleanliness',
+    label: 'Cleanliness',
+    width: 120,
+    align: 'center',
+    render: (review) => (
+      <Typography variant="body2">{review.cleanliness?.toFixed(1) || 'N/A'}</Typography>
+    ),
+  },
+  {
+    id: 'location',
+    label: 'Location',
+    width: 100,
+    align: 'center',
+    render: (review) => (
+      <Typography variant="body2">{review.location?.toFixed(1) || 'N/A'}</Typography>
+    ),
+  },
+  {
+    id: 'value',
+    label: 'Value',
+    width: 100,
+    align: 'center',
+    render: (review) => (
+      <Typography variant="body2">{review.value?.toFixed(1) || 'N/A'}</Typography>
+    ),
+  },
+  {
+    id: 'createdAt',
+    label: 'Date',
+    width: 140,
+    render: (review) => (
+      <ListItemText
+        primary={fDate(review.createdAt)}
+        secondary={fTime(review.createdAt)}
+        slotProps={{
+          primary: {
+            noWrap: true,
+            sx: { typography: 'body2' },
+          },
+          secondary: {
+            sx: { mt: 0.5, typography: 'caption' },
+          },
+        }}
+      />
+    ),
+  },
 ];
 
 // ----------------------------------------------------------------------
 
 export function ReviewListView() {
   const table = useTable();
+  const router = useRouter();
 
-  const [tableData, setTableData] = useState<ReviewDataDto[]>([]);
-
-  const filters = useSetState<IReviewTableFilters>({
+  const filters = useSetState<ReviewTableFilter>({
     search: '',
     reviewType: 'all',
     rating: 'all',
   });
   const { state: currentFilters, setState: updateFilters } = filters;
 
-  const { data: reviewsData, isLoading } = useReviewsControllerGetAllReviewsAdminV1({
+  const { data: reviewsData, isLoading } = useReviewsAdminControllerGetAllReviews({
     page: table.page,
     limit: table.rowsPerPage,
     search: currentFilters.search || undefined,
-    max_rating: currentFilters.rating !== 'all' ? parseInt(currentFilters.rating, 10) : undefined,
-    // review_type: currentFilters.reviewType !== 'all' ? currentFilters.reviewType : undefined,
-    min_rating: currentFilters.rating !== 'all' ? parseInt(currentFilters.rating, 10) : undefined,
+    minRating: currentFilters.rating !== 'all' ? parseInt(currentFilters.rating, 10) : undefined,
+    maxRating: currentFilters.rating !== 'all' ? parseInt(currentFilters.rating, 10) : undefined,
   });
 
-  const reviewsList = useMemo(() => reviewsData?.data?.data || [], [reviewsData?.data?.data]);
+  const tableData = useMemo(() => reviewsData?.data?.items || [], [reviewsData?.data?.items]);
 
-  useEffect(() => {
-    if (reviewsList) setTableData(reviewsList);
-  }, [reviewsList]);
+  const canResetFilters = useCallback(
+    (filterState: ReviewTableFilter) =>
+      !!filterState.search || filterState.reviewType !== 'all' || filterState.rating !== 'all',
+    []
+  );
 
-  const canReset =
-    !!currentFilters.search ||
-    currentFilters.reviewType !== 'all' ||
-    currentFilters.rating !== 'all';
-
-  const notFound = (!tableData.length && canReset) || !tableData.length;
-
-  const handleFilterReviewType = useCallback(
-    (event: React.SyntheticEvent, newValue: string) => {
+  const handleTabChange = useCallback(
+    (newValue: string) => {
       table.onResetPage();
       updateFilters({ reviewType: newValue });
     },
     [updateFilters, table]
   );
 
-  const getTypeCounts = () => {
-    const counts: Record<string, number> = {
-      all: tableData.length,
-      guest_to_host: 0,
-      host_to_guest: 0,
-    };
+  // Apply client-side filtering for review type (since API doesn't support it yet)
+  const filteredTableData = useMemo(() => {
+    let filtered = tableData;
 
-    tableData.forEach((review) => {
-      counts[review.review_type] = (counts[review.review_type] || 0) + 1;
-    });
+    if (currentFilters.reviewType !== 'all') {
+      filtered = filtered.filter((review) => review.reviewType === currentFilters.reviewType);
+    }
 
-    return counts;
-  };
-
-  const typeCounts = getTypeCounts();
+    return filtered;
+  }, [tableData, currentFilters.reviewType]);
 
   return (
     <DashboardContent>
@@ -146,93 +271,59 @@ export function ReviewListView() {
         sx={{ mb: { xs: 3, md: 5 } }}
       />
 
-      <Card>
-        <Tabs
-          value={currentFilters.reviewType || 'all'}
-          onChange={handleFilterReviewType}
-          sx={[
-            (theme) => ({
-              px: 2.5,
-              boxShadow: `inset 0 -2px 0 0 ${varAlpha(theme.vars.palette.grey['500Channel'], 0.08)}`,
-            }),
-          ]}
-        >
-          {REVIEW_TYPE_OPTIONS.map((tab) => (
-            <Tab
-              key={tab.value}
-              iconPosition="end"
-              value={tab.value}
-              label={tab.label}
-              icon={
-                <Label variant="filled" color="default">
-                  {typeCounts[tab.value] || 0}
-                </Label>
-              }
-            />
-          ))}
-        </Tabs>
-
-        <ReviewTableToolbar
-          filters={filters}
-          onResetPage={table.onResetPage}
-          ratingOptions={RATING_OPTIONS}
-        />
-
-        {canReset && (
-          <ReviewTableFiltersResult
-            filters={filters}
-            totalResults={tableData.length}
-            onResetPage={table.onResetPage}
-            sx={{ p: 2.5, pt: 0 }}
-          />
-        )}
-
-        <Box sx={{ position: 'relative' }}>
-          {isLoading && (
-            <LinearProgress sx={{ position: 'absolute', top: 0, left: 0, right: 0, zIndex: 1 }} />
-          )}
-
-          <Scrollbar>
-            <Table size={table.dense ? 'small' : 'medium'} sx={{ minWidth: 1600 }}>
-              <TableHeadCustom
-                order={table.order}
-                orderBy={table.orderBy}
-                headCells={TABLE_HEAD}
-                rowCount={tableData.length}
-                numSelected={0}
-                onSort={table.onSort}
-              />
-
-              <TableBody>
-                {tableData.map((row) => (
-                  <ReviewTableRow
-                    key={row._id}
-                    row={row}
-                    detailsHref={paths.dashboard.reviews.details(row._id)}
-                  />
-                ))}
-
-                <TableEmptyRows
-                  height={table.dense ? 56 : 56 + 20}
-                  emptyRows={emptyRows(0, table.rowsPerPage, tableData.length)}
-                />
-
-                <TableNoData notFound={notFound} />
-              </TableBody>
-            </Table>
-          </Scrollbar>
-        </Box>
-
-        <TablePaginationCustom
-          dense={table.dense}
-          page={table.page - 1}
-          rowsPerPage={table.rowsPerPage}
-          count={reviewsData?.data?.total || 0}
-          onChangeDense={table.onChangeDense}
-          onRowsPerPageChange={table.onChangeRowsPerPage}
-          onPageChange={(event, newPage) => table.onChangePage(event, newPage + 1)}
-        />
-      </Card>
+      <DynamicTable
+        data={filteredTableData}
+        loading={isLoading}
+        columns={TABLE_COLUMNS}
+        getRowId={(row) => row.id}
+        pagination={{
+          page: table.page,
+          rowsPerPage: table.rowsPerPage,
+          totalCount: reviewsData?.data.total || 0,
+          onPageChange: table.onChangePage,
+          onRowsPerPageChange: table.onChangeRowsPerPage,
+        }}
+        sorting={{
+          orderBy: table.orderBy,
+          order: table.order,
+          onSort: table.onSort,
+        }}
+        filtering={{
+          state: currentFilters,
+          setState: updateFilters,
+          searchKey: 'search',
+          searchPlaceholder: 'Search reviews...',
+          showFiltersResult: true,
+          canResetFilters,
+          filterFields: [
+            {
+              id: 'rating',
+              label: 'Rating',
+              type: 'select',
+              name: 'rating',
+              options: RATING_OPTIONS,
+            },
+          ],
+        }}
+        tabs={{
+          tabs: REVIEW_TYPE_OPTIONS,
+          activeTab: currentFilters.reviewType,
+          onTabChange: handleTabChange,
+        }}
+        options={{
+          dense: table.dense,
+          onChangeDense: table.onChangeDense,
+          minWidth: 1600,
+        }}
+        rowActions={[
+          {
+            label: 'View Details',
+            icon: 'solar:eye-bold',
+            color: 'default',
+            onClick: (review) => router.push(paths.dashboard.reviews.details(review.id)),
+          },
+        ]}
+      />
     </DashboardContent>
   );
 }

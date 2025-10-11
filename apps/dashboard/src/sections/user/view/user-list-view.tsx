@@ -1,165 +1,302 @@
 'use client';
 
-import type { TableHeadCellProps } from 'src/components/table';
-import type { UserDataDto, UsersControllerGetAllUsersV1SortBy } from 'src/api/models';
+import type { DynamicTableColumn } from 'src/components/dynamic-table';
+import type { UserDataDto, UsersAdminControllerGetAllUsersSortBy } from 'src/api/models/admin';
 
-import { varAlpha } from 'minimal-shared/utils';
+import React, { useMemo, useCallback } from 'react';
 import { useBoolean, useSetState } from 'minimal-shared/hooks';
-import { useMemo, useState, useEffect, useCallback } from 'react';
 
 import Box from '@mui/material/Box';
-import Tab from '@mui/material/Tab';
-import Tabs from '@mui/material/Tabs';
-import Card from '@mui/material/Card';
-import Table from '@mui/material/Table';
+import Link from '@mui/material/Link';
+import Stack from '@mui/material/Stack';
 import Button from '@mui/material/Button';
-import Tooltip from '@mui/material/Tooltip';
-import TableBody from '@mui/material/TableBody';
-import IconButton from '@mui/material/IconButton';
-import LinearProgress from '@mui/material/LinearProgress';
+import Avatar from '@mui/material/Avatar';
 
 import { paths } from 'src/routes/paths';
 import { RouterLink } from 'src/routes/components';
 
-import { USER_ROLE_OPTIONS } from 'src/_mock';
-import { useAppContext } from 'src/contexts/app';
-import { UserDataDtoRolesItem } from 'src/api/models';
+import { useMultipleEnumDisplayOptions } from 'src/hooks/use-enum-display-options';
+
+import { fShortenNumber } from 'src/utils/format-number';
+
 import { DashboardContent } from 'src/layouts/dashboard';
+import { getUserRoleColor, getUserStatusColor } from 'src/constants/user-colors';
 import {
-  useUsersControllerGetAllUsersV1,
-  useUsersControllerAdminDeleteUserV1,
-  useUsersControllerAdminBulkDeleteUsersV1,
-} from 'src/api/queries/users/users';
+  useUsersAdminControllerDeleteUser,
+  useUsersAdminControllerGetAllUsers,
+  useUsersAdminControllerBulkDeleteUsers,
+} from 'src/api/queries/admin/users-management/users-management';
 
 import { Label } from 'src/components/label';
 import { toast } from 'src/components/snackbar';
+import { useTable } from 'src/components/table';
 import { Iconify } from 'src/components/iconify';
-import { Scrollbar } from 'src/components/scrollbar';
+import { DynamicTable } from 'src/components/dynamic-table';
 import { ConfirmDialog } from 'src/components/custom-dialog';
 import { CustomBreadcrumbs } from 'src/components/custom-breadcrumbs';
-import {
-  useTable,
-  emptyRows,
-  TableNoData,
-  TableEmptyRows,
-  TableHeadCustom,
-  TableSelectedAction,
-  TablePaginationCustom,
-} from 'src/components/table';
-
-import { UserTableRow } from '../user-table-row';
-import { UserTableToolbar } from '../user-table-toolbar';
-import { UserTableFiltersResult } from '../user-table-filters-result';
-
-interface IUserTableFilters {
-  name: string;
-  role: 'all' | UserDataDtoRolesItem;
-}
 
 // ----------------------------------------------------------------------
 
-const STATUS_OPTIONS = [{ value: 'all', label: 'All' }, ...USER_ROLE_OPTIONS];
+const VERIFIED_OPTIONS = [
+  { value: 'all', label: 'All' },
+  { value: 'true', label: 'Verified' },
+  { value: 'false', label: 'Unverified' },
+];
 
-const TABLE_HEAD: TableHeadCellProps[] = [
-  { id: 'firstName', label: 'User' },
-  { id: 'phone', label: 'Contact', width: 300 },
-  { id: 'roles', label: 'Role', width: 140 },
-  { id: 'reviewCount', label: 'Reviews', width: 120, align: 'center' },
-  { id: 'averageRating', label: 'Rating', width: 120, align: 'center' },
-  { id: 'status', label: 'Status', width: 120, align: 'center' },
-  { id: 'createdAt', label: 'Joined', width: 180 },
-  { id: '', width: 88 },
+const createTableColumns = (
+  userStatusOptions: Array<{ value: string; label: string }>,
+  userRoleOptions: Array<{ value: string; label: string }>
+): DynamicTableColumn<UserDataDto>[] => [
+  {
+    id: 'firstName',
+    label: 'User',
+    width: 300,
+    cellSx: {
+      left: { xs: 0, sm: 'auto' },
+      bgcolor: { xs: 'background.paper', sm: 'transparent' },
+      zIndex: { xs: 1, sm: 0 },
+      minWidth: { xs: 200, sm: 280 },
+    },
+    render: (user) => {
+      const name = `${user.firstName} ${user.lastName}`;
+      return (
+        <Box sx={{ gap: 2, display: 'flex', alignItems: 'center' }}>
+          <Avatar
+            alt={name}
+            src={user.avatarUrl}
+            sx={{
+              width: { xs: 40, sm: 48 },
+              height: { xs: 40, sm: 48 },
+              border: (theme) => `2px solid ${theme.vars.palette.background.neutral}`,
+            }}
+          />
+
+          <Stack sx={{ typography: 'body2', flex: '1 1 auto', alignItems: 'flex-start' }}>
+            <Link
+              component={RouterLink}
+              href={paths.dashboard.user.account(user.id)}
+              color="inherit"
+              sx={{
+                cursor: 'pointer',
+                fontWeight: 600,
+                fontSize: { xs: '0.875rem', sm: '1rem' },
+                '&:hover': { color: 'primary.main' },
+              }}
+            >
+              {name}
+            </Link>
+
+            {user.bio && (
+              <Box
+                component="span"
+                sx={{
+                  color: 'text.secondary',
+                  fontSize: { xs: 11, sm: 12 },
+                  maxWidth: { xs: 150, sm: 200 },
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  whiteSpace: 'nowrap',
+                  display: { xs: 'none', sm: 'block' },
+                }}
+              >
+                {user.bio}
+              </Box>
+            )}
+          </Stack>
+        </Box>
+      );
+    },
+  },
+  {
+    id: 'phone',
+    label: 'Contact',
+    width: 200,
+    render: (user) => (
+      <Stack spacing={0.5}>
+        {user.phone && (
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+            <Iconify icon="solar:phone-bold" width={16} sx={{ color: 'text.secondary' }} />
+            <Box component="span" sx={{ typography: 'caption', color: 'text.secondary' }}>
+              {user.phone}
+            </Box>
+            {user.isPhoneVerified && (
+              <Iconify icon="solar:check-circle-bold" width={14} sx={{ color: 'success.main' }} />
+            )}
+          </Box>
+        )}
+        {user.email && (
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+            <Iconify icon="solar:letter-bold" width={16} sx={{ color: 'text.secondary' }} />
+            <Box
+              component="span"
+              sx={{
+                typography: 'caption',
+                color: 'text.secondary',
+                maxWidth: 180,
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+              }}
+            >
+              {user.email}
+            </Box>
+            {user.isEmailVerified && (
+              <Iconify icon="solar:check-circle-bold" width={14} sx={{ color: 'success.main' }} />
+            )}
+          </Box>
+        )}
+      </Stack>
+    ),
+  },
+  {
+    id: 'roles',
+    label: 'Roles',
+    width: 140,
+    render: (user) => (
+      <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap' }}>
+        {user.roles.map((role) => {
+          const roleOption = userRoleOptions.find((option) => option.value === role);
+          const displayLabel = roleOption?.label || role;
+
+          return (
+            <Label key={role} variant="soft" color={getUserRoleColor(role)}>
+              {displayLabel}
+            </Label>
+          );
+        })}
+      </Box>
+    ),
+  },
+  {
+    id: 'status',
+    label: 'Status',
+    width: 160,
+    align: 'center',
+    render: (user) => {
+      // Find the status option to get the proper label
+      const statusOption = userStatusOptions.find((option) => option.value === user.status);
+      const displayLabel = statusOption?.label || user.status;
+
+      return (
+        <Label variant="soft" color={getUserStatusColor(user.status)}>
+          {displayLabel}
+        </Label>
+      );
+    },
+  },
+  {
+    id: 'reviewCount',
+    label: 'Reviews',
+    width: 120,
+    align: 'center',
+    render: (user) => fShortenNumber(user.reviewCount || 0),
+  },
+  {
+    id: 'averageRating',
+    label: 'Rating',
+    width: 180,
+    align: 'center',
+    format: 'rating',
+  },
 ];
 
 // ----------------------------------------------------------------------
 
+interface UserTableFilter extends Record<string, unknown> {
+  search: string;
+  status: string[];
+  role: string[];
+  verified?: string;
+}
+
 export function UserListView() {
-  const { catalog } = useAppContext();
-  console.log('catalog', catalog);
+  const enumOptions = useMultipleEnumDisplayOptions(['UserStatus', 'UserRole']);
+  const userStatusOptions = enumOptions.UserStatus;
+  const userRoleOptions = enumOptions.UserRole;
+
+  const tableColumns = useMemo(
+    () => createTableColumns(userStatusOptions, userRoleOptions),
+    [userRoleOptions, userStatusOptions]
+  );
 
   const table = useTable();
 
   const confirmDialog = useBoolean();
 
-  const [tableData, setTableData] = useState<UserDataDto[]>([]);
-
-  const filters = useSetState<IUserTableFilters>({
-    name: '',
-    role: 'all',
+  const filters = useSetState<UserTableFilter>({
+    search: '',
+    role: [],
+    verified: 'all',
+    status: [],
   });
   const { state: currentFilters, setState: updateFilters } = filters;
 
-  const { data: usersData, isLoading } = useUsersControllerGetAllUsersV1({
+  const {
+    data: usersData,
+    isLoading: isLoadingUsers,
+    refetch: refetchUsers,
+  } = useUsersAdminControllerGetAllUsers({
     page: table.page,
     limit: table.rowsPerPage,
-    search: currentFilters.name,
-    role: currentFilters.role === 'all' ? undefined : currentFilters.role,
-    sortBy: table.orderBy as UsersControllerGetAllUsersV1SortBy,
+    search: currentFilters.search,
+    role: currentFilters.role.length > 0 ? currentFilters.role?.join(',') : undefined,
+    verified:
+      currentFilters.verified === 'all'
+        ? undefined
+        : currentFilters.verified === 'true'
+          ? true
+          : false,
+    status: currentFilters.status.length > 0 ? currentFilters.status?.join(',') : undefined,
+    sortBy: table.orderBy as UsersAdminControllerGetAllUsersSortBy,
     sortDirection: table.order,
   });
 
-  const usersList = useMemo(() => usersData?.data?.data || [], [usersData?.data?.data]);
+  const usersList = useMemo(() => usersData?.data?.items || [], [usersData?.data?.items]);
 
-  const { mutate: deleteUser } = useUsersControllerAdminDeleteUserV1();
+  const { mutate: deleteUser } = useUsersAdminControllerDeleteUser();
 
-  const { mutate: deleteUsers } = useUsersControllerAdminBulkDeleteUsersV1();
+  const { mutate: deleteUsers } = useUsersAdminControllerBulkDeleteUsers();
 
-  useEffect(() => {
-    if (usersList) setTableData(usersList);
-  }, [usersList]);
-
-  const filteredDataCount = useMemo(
-    () => ({
-      all: tableData.length,
-      guest: tableData.filter((user) => user.roles.includes('guest')).length,
-      host: tableData.filter((user) => user.roles.includes('host')).length,
-      admin: tableData.filter((user) => user.roles.includes('admin')).length,
-    }),
-    [tableData]
+  const canResetFilters = useCallback(
+    (filterState: UserTableFilter) =>
+      !!filterState.search || filterState.role.length > 0 || filterState.status.length > 0,
+    []
   );
-
-  const canReset = !!currentFilters.name || currentFilters.role !== 'all';
-
-  const notFound = (!tableData.length && canReset) || !tableData.length;
 
   const handleDeleteRow = useCallback(
     (id: string) => {
-      const deleteRow = tableData.filter((row) => row.id !== id);
-
       deleteUser(
         { id },
         {
           onSuccess: (data) => {
             toast.success(data.message);
-            setTableData(deleteRow);
-            table.onUpdatePageDeleteRow(tableData.length);
+            table.onUpdatePageDeleteRow(usersList.length);
+            refetchUsers();
           },
         }
       );
     },
-    [deleteUser, table, tableData]
+    [deleteUser, refetchUsers, table, usersList.length]
   );
 
   const handleDeleteRows = useCallback(() => {
-    const keptRows = tableData.filter((row) => !table.selected.includes(row.id));
-    const deletedRows = tableData.filter((row) => table.selected.includes(row.id));
+    const deletedRows = usersList.filter((row) => table.selected.includes(row.id));
 
     deleteUsers(
       { data: { userIds: deletedRows.map((row) => row.id) } },
       {
         onSuccess: (data) => {
           toast.success(data.message);
-          setTableData(keptRows);
-          table.onUpdatePageDeleteRows(tableData.length, tableData.length);
+          table.onUpdatePageDeleteRows(usersList.length, usersList.length);
+          refetchUsers();
         },
       }
     );
-  }, [deleteUsers, table, tableData]);
+  }, [deleteUsers, refetchUsers, table, usersList]);
 
-  const handleFilterRole = useCallback(
-    (_event: React.SyntheticEvent, newValue: string) => {
+  const handleTabChange = useCallback(
+    (newValue: string) => {
       table.onResetPage();
-      updateFilters({ role: newValue as UserDataDtoRolesItem });
+      updateFilters({ verified: newValue });
     },
     [updateFilters, table]
   );
@@ -212,127 +349,91 @@ export function UserListView() {
           sx={{ mb: { xs: 3, md: 5 } }}
         />
 
-        <Card>
-          <Tabs
-            value={currentFilters.role || 'all'}
-            onChange={handleFilterRole}
-            sx={[
-              (theme) => ({
-                px: 2.5,
-                boxShadow: `inset 0 -2px 0 0 ${varAlpha(theme.vars.palette.grey['500Channel'], 0.08)}`,
-              }),
-            ]}
-          >
-            {STATUS_OPTIONS.map((tab) => {
-              const count = filteredDataCount[tab.value as keyof typeof filteredDataCount] || 0;
-
-              return (
-                <Tab
-                  key={tab.value}
-                  iconPosition="end"
-                  value={tab.value}
-                  label={tab.label}
-                  icon={
-                    currentFilters.role === tab.value ? (
-                      <Label variant="filled" color="primary">
-                        {count}
-                      </Label>
-                    ) : null
-                  }
-                />
-              );
-            })}
-          </Tabs>
-
-          <UserTableToolbar
-            filters={filters}
-            onResetPage={table.onResetPage}
-            options={{ roles: Object.values(UserDataDtoRolesItem) }}
-          />
-
-          {canReset && (
-            <UserTableFiltersResult
-              filters={filters}
-              totalResults={tableData.length}
-              onResetPage={table.onResetPage}
-              sx={{ p: 2.5, pt: 0 }}
-            />
-          )}
-
-          <Box sx={{ position: 'relative' }}>
-            {isLoading && (
-              <LinearProgress sx={{ position: 'absolute', top: 0, left: 0, right: 0, zIndex: 1 }} />
-            )}
-
-            <TableSelectedAction
-              dense={table.dense}
-              numSelected={table.selected.length}
-              rowCount={tableData.length}
-              onSelectAllRows={(checked) =>
-                table.onSelectAllRows(
-                  checked,
-                  tableData.map((row) => row.id)
-                )
-              }
-              action={
-                <Tooltip title="Delete">
-                  <IconButton color="primary" onClick={confirmDialog.onTrue}>
-                    <Iconify icon="solar:trash-bin-trash-bold" />
-                  </IconButton>
-                </Tooltip>
-              }
-            />
-
-            <Scrollbar sx={{ minHeight: 444 }}>
-              <Table size={table.dense ? 'small' : 'medium'} sx={{ minWidth: 800 }}>
-                <TableHeadCustom
-                  order={table.order}
-                  orderBy={table.orderBy}
-                  headCells={TABLE_HEAD}
-                  rowCount={tableData.length}
-                  numSelected={table.selected.length}
-                  onSort={table.onSort}
-                  onSelectAllRows={(checked) =>
-                    table.onSelectAllRows(
-                      checked,
-                      tableData.map((row) => row.id)
-                    )
-                  }
-                />
-
-                <TableBody>
-                  {tableData.map((row) => (
-                    <UserTableRow
-                      key={row.id}
-                      row={row}
-                      selected={table.selected.includes(row.id)}
-                      onSelectRow={() => table.onSelectRow(row.id)}
-                      onDeleteRow={() => handleDeleteRow(row.id)}
-                      editHref={paths.dashboard.user.account(row.id)}
-                    />
-                  ))}
-
-                  <TableEmptyRows
-                    height={table.dense ? 56 : 56 + 20}
-                    emptyRows={emptyRows(0, table.rowsPerPage, tableData.length)}
-                  />
-
-                  <TableNoData notFound={notFound} />
-                </TableBody>
-              </Table>
-            </Scrollbar>
-          </Box>
-
-          <TablePaginationCustom
-            page={table.page - 1}
-            dense={table.dense}
-            rowsPerPage={table.rowsPerPage}
-            onPageChange={(event, newPage) => table.onChangePage(event, newPage + 1)}
-            count={usersData?.data.total || 0}
-            onChangeDense={table.onChangeDense}
-            onRowsPerPageChange={table.onChangeRowsPerPage}
-          />
-        </Card>
+        <DynamicTable
+          data={usersList}
+          loading={isLoadingUsers}
+          columns={tableColumns}
+          getRowId={(row) => row.id}
+          pagination={{
+            page: table.page,
+            rowsPerPage: table.rowsPerPage,
+            totalCount: usersData?.data.total || 0,
+            onPageChange: table.onChangePage,
+            onRowsPerPageChange: table.onChangeRowsPerPage,
+          }}
+          sorting={{
+            orderBy: table.orderBy,
+            order: table.order,
+            onSort: table.onSort,
+          }}
+          selection={{
+            selected: table.selected,
+            onSelectRow: table.onSelectRow,
+            onSelectAllRows: (checked) =>
+              table.onSelectAllRows(
+                checked,
+                usersList.map((row) => row.id)
+              ),
+            bulkActions: [
+              {
+                label: 'Delete',
+                icon: 'solar:trash-bin-trash-bold',
+                color: 'error',
+                onClick: () => confirmDialog.onTrue(),
+              },
+            ],
+          }}
+          filtering={{
+            state: currentFilters,
+            setState: updateFilters,
+            searchKey: 'search',
+            searchPlaceholder: 'Search users...',
+            showFiltersResult: true,
+            canResetFilters,
+            filterFields: [
+              {
+                id: 'status',
+                label: 'Status',
+                type: 'multiselect',
+                name: 'status',
+                options: userStatusOptions,
+              },
+              {
+                id: 'role',
+                label: 'Role',
+                type: 'multiselect',
+                name: 'role',
+                options: userRoleOptions,
+              },
+            ],
+          }}
+          tabs={{
+            tabs: VERIFIED_OPTIONS,
+            activeTab: currentFilters.verified,
+            onTabChange: handleTabChange,
+          }}
+          options={{
+            dense: table.dense,
+            onChangeDense: table.onChangeDense,
+            minWidth: 800,
+          }}
+          rowActions={[
+            {
+              label: 'Edit',
+              icon: 'solar:pen-bold',
+              onClick: (user) => {
+                window.location.href = paths.dashboard.user.account((user as UserDataDto).id);
+              },
+              color: 'default',
+            },
+            {
+              label: 'Delete',
+              icon: 'solar:trash-bin-trash-bold',
+              onClick: (user) => handleDeleteRow((user as UserDataDto).id),
+              color: 'error',
+            },
+          ]}
+        />
       </DashboardContent>
 
       {renderConfirmDialog()}

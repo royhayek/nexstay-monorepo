@@ -3,11 +3,11 @@
 import { paths } from 'src/routes/paths';
 
 import { DashboardContent } from 'src/layouts/dashboard';
-import { useEnumDisplaysControllerFindByKeyV1 } from 'src/api/queries/enum-displays/enum-displays';
+import { useEnumDisplaysAdminControllerFindByKey } from 'src/api/queries/admin/enum-displays-management/enum-displays-management';
 
 import { CustomBreadcrumbs } from 'src/components/custom-breadcrumbs';
 
-import { EnumDisplayNewEditForm } from '../enum-display-new-edit-form';
+import { EnumDisplayDynamicForm } from '../enum-display-dynamic-form';
 
 // ----------------------------------------------------------------------
 
@@ -17,13 +17,12 @@ type Props = {
 };
 
 export function EnumDisplayEditView({ enumName, key }: Props) {
-  const { data: enumDisplayData, isLoading } = useEnumDisplaysControllerFindByKeyV1(
+  const { data: enumDisplayData, isLoading } = useEnumDisplaysAdminControllerFindByKey(
     enumName,
-    key,
-    undefined
+    key
   );
 
-  const currentEnumDisplay = enumDisplayData?.data?.data?.[0];
+  const currentEnumDisplay = enumDisplayData?.data?.[0];
 
   if (isLoading) {
     return (
@@ -41,16 +40,12 @@ export function EnumDisplayEditView({ enumName, key }: Props) {
           { name: 'Dashboard', href: paths.dashboard.root },
           { name: 'System', href: paths.dashboard.enumDisplays.root },
           { name: 'Enum Displays', href: paths.dashboard.enumDisplays.list },
-          { name: currentEnumDisplay?.key || key },
+          { name: currentEnumDisplay?.key || 'Edit' },
         ]}
         sx={{ mb: { xs: 3, md: 5 } }}
       />
 
-      <EnumDisplayNewEditForm
-        currentEnumDisplay={currentEnumDisplay}
-        enumName={enumName}
-        enumKey={key}
-      />
+      <EnumDisplayDynamicForm currentEnumDisplay={currentEnumDisplay} />
     </DashboardContent>
   );
 }

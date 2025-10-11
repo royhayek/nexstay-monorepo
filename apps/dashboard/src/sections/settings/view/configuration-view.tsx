@@ -5,7 +5,7 @@ import type {
   ConfigDataDto,
   ConfigDataDtoCategory,
   ConfigGroupedResponseDtoData,
-} from 'src/api/models';
+} from 'src/api/models/admin';
 
 import { useForm } from 'react-hook-form';
 import { useState, useEffect, useCallback } from 'react';
@@ -29,10 +29,10 @@ import { paths } from 'src/routes/paths';
 
 import { DashboardContent } from 'src/layouts/dashboard';
 import {
-  useDynamicConfigControllerSetV1,
-  useDynamicConfigControllerDeleteV1,
-  useDynamicConfigControllerGetAllGroupedByCategoryV1,
-} from 'src/api/queries/configuration/configuration';
+  useConfigAdminControllerSet,
+  useConfigAdminControllerDelete,
+  useConfigAdminControllerGetAllGroupedByCategory,
+} from 'src/api/queries/admin/configuration-management/configuration-management';
 
 import { toast } from 'src/components/snackbar';
 import { Iconify } from 'src/components/iconify';
@@ -174,11 +174,17 @@ const isConfigBoolean = (key: string, value: string): boolean => {
     'session.secure.cookie',
   ];
 
+  // First check if key is explicitly defined as boolean
+  if (booleanKeys.includes(key)) {
+    return true;
+  }
+
+  // Only treat as boolean if the value is clearly boolean-like
+  // Exclude standalone "0" and "1" unless they're for explicitly boolean keys
   const normalizedValue = value.toLowerCase();
-  return (
-    booleanKeys.includes(key) ||
-    ['true', 'false', '1', '0', 'yes', 'no', 'on', 'off'].includes(normalizedValue)
-  );
+  const explicitBooleanValues = ['true', 'false', 'yes', 'no', 'on', 'off'];
+
+  return explicitBooleanValues.includes(normalizedValue);
 };
 
 export function ConfigurationView() {
@@ -207,9 +213,9 @@ export function ConfigurationView() {
     data: groupedConfigResponse,
     isLoading,
     refetch,
-  } = useDynamicConfigControllerGetAllGroupedByCategoryV1();
-  const { mutate: setConfig } = useDynamicConfigControllerSetV1();
-  const { mutate: deleteConfig } = useDynamicConfigControllerDeleteV1();
+  } = useConfigAdminControllerGetAllGroupedByCategory();
+  const { mutate: setConfig } = useConfigAdminControllerSet();
+  const { mutate: deleteConfig } = useConfigAdminControllerDelete();
 
   const handleSectionToggle = useCallback((sectionTitle: string) => {
     setExpandedSections((prev) =>
@@ -369,6 +375,11 @@ export function ConfigurationView() {
         title: 'Payment Settings',
         description: 'Payment gateway and billing configuration',
         icon: 'solar:card-bold',
+      },
+      payout: {
+        title: 'Payout Settings',
+        description: 'Payout and withdrawal configuration',
+        icon: 'solar:wallet-bold',
       },
       notifications: {
         title: 'Notification Settings',
@@ -574,7 +585,7 @@ export function ConfigurationView() {
             fullWidth
             value={currentValue}
             onChange={(e) => handleConfigChange(config.key, e.target.value)}
-            multiline={isLongValue}
+            multiline={Boolean(isLongValue)}
             rows={isLongValue ? 3 : 1}
             size="small"
             variant="outlined"

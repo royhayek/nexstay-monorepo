@@ -1,0 +1,355 @@
+name: 🔍 Code Quality
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+permissions:
+  contents: read
+  security-events: write
+  actions: read
+
+env:
+  NODE_VERSION: '20'
+
+jobs:
+  # Code Analysis
+  code-analysis:
+    name: 📊 Code Analysis
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📁 Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Shallow clones should be disabled for better analysis
+
+      - name: 📦 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: 📥 Install dependencies
+        run: npm ci
+
+      - name: 📥 Install ESLint SARIF formatter
+        run: npm install --no-save @microsoft/eslint-formatter-sarif
+
+      - name: 🔍 Run ESLint with SARIF output
+        run: |
+          npx eslint . \
+            --format @microsoft/eslint-formatter-sarif \
+            --output-file eslint-results.sarif || true
+
+      - name: 📋 Check SARIF file exists
+        run: |
+          if [ -f "eslint-results.sarif" ]; then
+            echo "✅ ESLint SARIF file generated successfully"
+            echo "File size: $(wc -c < eslint-results.sarif) bytes"
+          else
+            echo "❌ ESLint SARIF file not found"
+            exit 1
+          fi
+
+      - name: 🔍 Check Code Scanning Availability
+        id: check-scanning
+        run: |
+          # Check if this is a public repo or has Advanced Security enabled
+          if [[ "${{ github.event.repository.private }}" == "false" ]] || [[ "${{ github.repository_owner }}" == *"enterprise"* ]]; then
+            echo "scanning_available=true" >> $GITHUB_OUTPUT
+            echo "✅ Code scanning should be available for this repository"
+          else
+            echo "scanning_available=false" >> $GITHUB_OUTPUT
+            echo "ℹ️  Code scanning may not be available (private repo without Advanced Security)"
+          fi
+
+      - name: 📤 Upload ESLint SARIF
+        uses: github/codeql-action/upload-sarif@v3
+        if: always() && steps.check-scanning.outputs.scanning_available == 'true' && github.event_name != 'pull_request_target'
+        with:
+          sarif_file: eslint-results.sarif
+          category: eslint
+        continue-on-error: true
+
+      - name: ⚠️  SARIF Upload Fallback
+        if: always() && (steps.check-scanning.outputs.scanning_available == 'false' || failure())
+        run: |
+          echo "## 🔍 Code Scanning Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "⚠️  **SARIF upload not available or failed**" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Possible reasons:**" >> $GITHUB_STEP_SUMMARY
+          echo "- Code scanning not enabled in repository settings" >> $GITHUB_STEP_SUMMARY
+          echo "- GitHub Advanced Security not available for private repos" >> $GITHUB_STEP_SUMMARY
+          echo "- Organization restrictions on security features" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**How to fix:**" >> $GITHUB_STEP_SUMMARY
+          echo "1. Go to repository Settings → Security → Code scanning" >> $GITHUB_STEP_SUMMARY
+          echo "2. Click 'Set up code scanning' and enable it" >> $GITHUB_STEP_SUMMARY
+          echo "3. For private repos: Ensure GitHub Advanced Security is enabled" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Alternative:** Download the ESLint SARIF artifact manually from this workflow run." >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          # Show ESLint results summary if file exists
+          if [ -f "eslint-results.sarif" ]; then
+            echo "**ESLint Issues Summary:**" >> $GITHUB_STEP_SUMMARY
+            # Extract basic stats from SARIF (if it contains results)
+            if command -v jq &> /dev/null; then
+              ISSUES=$(jq '.runs[0].results | length' eslint-results.sarif 2>/dev/null || echo "unknown")
+              echo "- Issues found: $ISSUES" >> $GITHUB_STEP_SUMMARY
+            fi
+          fi
+
+      - name: 📊 Upload ESLint Results as Artifact
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: eslint-sarif-results
+          path: eslint-results.sarif
+          retention-days: 30
+
+      - name: 🧮 Complexity Analysis
+        run: |
+          npx complexity-report-html \
+            --output complexity-report.html \
+            --source src/ || true
+
+      - name: 📊 Upload complexity report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: complexity-report
+          path: complexity-report.html
+
+  # Dependency Analysis
+  dependency-analysis:
+    name: 📦 Dependency Analysis
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📁 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 📦 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: 📥 Install dependencies
+        run: npm ci
+
+      - name: 🔍 Check for unused dependencies
+        run: npx depcheck --json > depcheck-results.json || true
+
+      - name: 📊 Analyze bundle size
+        run: |
+          npm run build
+          npx bundlesize || true
+
+      - name: 🚨 Dependency vulnerabilities
+        run: npm audit --json > npm-audit.json || true
+
+      - name: 📤 Upload dependency analysis
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: dependency-analysis
+          path: |
+            depcheck-results.json
+            npm-audit.json
+
+  # Code Coverage Quality Gate
+  coverage-gate:
+    name: 📈 Coverage Gate
+    runs-on: ubuntu-latest
+    
+    services:
+      mongodb:
+        image: mongo:6.0
+        ports:
+          - 27017:27017
+
+    steps:
+      - name: 📁 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 📦 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: 📥 Install dependencies
+        run: npm ci
+
+      - name: 🧪 Run tests with coverage
+        run: npm run test:cov
+        env:
+          NODE_ENV: test
+          MONGO_URI: mongodb://localhost:27017/test
+          JWT_SECRET: test-jwt-secret
+          JWT_REFRESH_SECRET: test-jwt-refresh-secret
+          EMAIL_DISABLED: 'true'
+
+      - name: 📊 Coverage Quality Gate
+        run: |
+          # Check if coverage file exists
+          if [ ! -f "coverage/coverage-summary.json" ]; then
+            echo "❌ Coverage summary file not found. Tests may have failed or not generated coverage data."
+            echo "Please check the test execution step above."
+            exit 1
+          fi
+          
+          # Extract coverage percentage from coverage summary
+          COVERAGE=$(node -p "
+            const fs = require('fs');
+            const coverage = JSON.parse(fs.readFileSync('coverage/coverage-summary.json'));
+            Math.round(coverage.total.lines.pct);
+          ")
+          
+          echo "Current coverage: ${COVERAGE}%"
+          
+          # Set minimum coverage thresholds
+          MIN_COVERAGE=80
+          CRITICAL_COVERAGE=70
+          
+          if [ "$COVERAGE" -lt "$CRITICAL_COVERAGE" ]; then
+            echo "❌ Critical: Coverage ${COVERAGE}% is below critical threshold ${CRITICAL_COVERAGE}%"
+            exit 1
+          elif [ "$COVERAGE" -lt "$MIN_COVERAGE" ]; then
+            echo "⚠️  Warning: Coverage ${COVERAGE}% is below target threshold ${MIN_COVERAGE}%"
+            echo "Please add more tests to improve coverage."
+            exit 0
+          else
+            echo "✅ Coverage ${COVERAGE}% meets quality standards!"
+          fi
+
+      - name: 📊 Coverage Badge
+        if: github.ref == 'refs/heads/main'
+        run: |
+          # Check if coverage file exists
+          if [ ! -f "coverage/coverage-summary.json" ]; then
+            echo "❌ Coverage summary file not found. Skipping badge generation."
+            exit 0
+          fi
+          
+          COVERAGE=$(node -p "
+            const fs = require('fs');
+            const coverage = JSON.parse(fs.readFileSync('coverage/coverage-summary.json'));
+            Math.round(coverage.total.lines.pct);
+          ")
+          
+          echo "COVERAGE=${COVERAGE}" >> $GITHUB_ENV
+          
+          # Determine badge color
+          if [ "$COVERAGE" -ge "90" ]; then
+            COLOR="brightgreen"
+          elif [ "$COVERAGE" -ge "80" ]; then
+            COLOR="green"
+          elif [ "$COVERAGE" -ge "70" ]; then
+            COLOR="yellow"
+          elif [ "$COVERAGE" -ge "60" ]; then
+            COLOR="orange"
+          else
+            COLOR="red"
+          fi
+          
+          echo "COVERAGE_COLOR=${COLOR}" >> $GITHUB_ENV
+
+  # Documentation Quality
+  docs-quality:
+    name: 📚 Documentation Quality
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📁 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 📦 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: 📥 Install dependencies
+        run: npm ci
+
+      - name: 📚 Check README quality
+        run: |
+          if [ ! -f README.md ]; then
+            echo "❌ Missing README.md file"
+            exit 1
+          fi
+          
+          # Check README length (should be substantial)
+          README_LINES=$(wc -l < README.md)
+          if [ "$README_LINES" -lt "50" ]; then
+            echo "⚠️  README.md is quite short (${README_LINES} lines). Consider expanding it."
+          else
+            echo "✅ README.md appears comprehensive (${README_LINES} lines)"
+          fi
+
+      - name: 📋 API Documentation Check
+        run: |
+          # Check for Swagger/OpenAPI documentation
+          if grep -r "@Api" src/ > /dev/null; then
+            echo "✅ API documentation decorators found"
+          else
+            echo "⚠️  Consider adding API documentation with Swagger decorators"
+          fi
+
+      - name: 📖 Code Documentation Check
+        run: |
+          # Check for JSDoc comments
+          JSDOC_COUNT=$(grep -r "^\s*\*\*" src/ | wc -l || echo "0")
+          FUNCTION_COUNT=$(grep -r "function\|=>" src/ | wc -l || echo "0")
+          
+          if [ "$FUNCTION_COUNT" -gt "0" ]; then
+            DOC_RATIO=$((JSDOC_COUNT * 100 / FUNCTION_COUNT))
+            echo "Documentation ratio: ${DOC_RATIO}%"
+            
+            if [ "$DOC_RATIO" -lt "30" ]; then
+              echo "⚠️  Low documentation coverage. Consider adding more JSDoc comments."
+            else
+              echo "✅ Good documentation coverage"
+            fi
+          fi
+
+  # Quality Summary
+  quality-summary:
+    name: 📋 Quality Summary
+    runs-on: ubuntu-latest
+    needs: [code-analysis, dependency-analysis, coverage-gate, docs-quality]
+    if: always()
+
+    steps:
+      - name: 📋 Generate Quality Report
+        run: |
+          echo "## 🔍 Code Quality Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Check | Status | Details |" >> $GITHUB_STEP_SUMMARY
+          echo "|-------|--------|---------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Code Analysis | ${{ needs.code-analysis.result }} | ESLint, Complexity |" >> $GITHUB_STEP_SUMMARY
+          echo "| Dependencies | ${{ needs.dependency-analysis.result }} | Unused deps, Security |" >> $GITHUB_STEP_SUMMARY
+          echo "| Coverage Gate | ${{ needs.coverage-gate.result }} | Minimum 80% target |" >> $GITHUB_STEP_SUMMARY
+          echo "| Documentation | ${{ needs.docs-quality.result }} | README, API docs |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          # Overall quality assessment
+          if [[ "${{ needs.code-analysis.result }}" == "success" && "${{ needs.dependency-analysis.result }}" == "success" && "${{ needs.coverage-gate.result }}" == "success" ]]; then
+            echo "✅ **Code quality standards met!** This PR maintains high code quality." >> $GITHUB_STEP_SUMMARY
+          else
+            echo "⚠️ **Code quality issues detected.** Please review the failed checks above." >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 📊 Quality Metrics" >> $GITHUB_STEP_SUMMARY
+          echo "- 🧪 **Test Coverage**: Target 80% minimum" >> $GITHUB_STEP_SUMMARY
+          echo "- 🔍 **Code Analysis**: ESLint + TypeScript strict mode" >> $GITHUB_STEP_SUMMARY
+          echo "- 📦 **Dependencies**: Security audit + unused detection" >> $GITHUB_STEP_SUMMARY
+          echo "- 📚 **Documentation**: API docs + code comments" >> $GITHUB_STEP_SUMMARY

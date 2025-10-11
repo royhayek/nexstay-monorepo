@@ -1,4 +1,4 @@
-import type { UserDataDto } from 'src/api/models';
+import type { UserDataDto } from 'src/api/models/admin';
 
 import { z as zod } from 'zod';
 import { useCallback } from 'react';
@@ -18,16 +18,17 @@ import FormControlLabel from '@mui/material/FormControlLabel';
 import { paths } from 'src/routes/paths';
 import { useRouter } from 'src/routes/hooks';
 
+import { useEnumDisplayOptions } from 'src/hooks/use-enum-display-options';
+
 import { fData } from 'src/utils/format-number';
 
-import { USER_ROLE_OPTIONS } from 'src/_mock';
-import { useStorageControllerUploadProfileImageV1 } from 'src/api/queries/file-storage/file-storage';
+import { useUsersPublicControllerCreate } from 'src/api/queries/public/users-public/users-public';
 import {
-  useUsersControllerCreateV1,
-  useUsersControllerAdminUpdateUserV1,
-  useUsersControllerAdminToggleEmailVerifiedV1,
-  useUsersControllerAdminTogglePhoneVerifiedV1,
-} from 'src/api/queries/users/users';
+  useUsersAdminControllerUpdateUser,
+  useUsersAdminControllerUploadAvatarForNewUser,
+  useUsersAdminControllerToggleEmailVerification,
+  useUsersAdminControllerTogglePhoneVerification,
+} from 'src/api/queries/admin/users-management/users-management';
 
 import { Label } from 'src/components/label';
 import { toast } from 'src/components/snackbar';
@@ -65,6 +66,8 @@ type Props = {
 };
 
 export function UserNewEditForm({ currentUser }: Props) {
+  const userRoleOptions = useEnumDisplayOptions('UserRole');
+
   const router = useRouter();
 
   const defaultValues: NewUserSchemaType = {
@@ -102,19 +105,19 @@ export function UserNewEditForm({ currentUser }: Props) {
 
   const values = watch();
 
-  const { mutateAsync: uploadAvatar } = useStorageControllerUploadProfileImageV1();
-  const { mutate: createUser } = useUsersControllerCreateV1();
-  const { mutate: updateUser } = useUsersControllerAdminUpdateUserV1();
-  const { mutate: toggleEmailVerified } = useUsersControllerAdminToggleEmailVerifiedV1();
-  const { mutate: togglePhoneVerified } = useUsersControllerAdminTogglePhoneVerifiedV1();
+  const { mutateAsync: uploadAvatar } = useUsersAdminControllerUploadAvatarForNewUser();
+  const { mutate: createUser } = useUsersPublicControllerCreate();
+  const { mutate: updateUser } = useUsersAdminControllerUpdateUser();
+  const { mutate: toggleEmailVerified } = useUsersAdminControllerToggleEmailVerification();
+  const { mutate: togglePhoneVerified } = useUsersAdminControllerTogglePhoneVerification();
 
   const onSubmit = handleSubmit(async (data) => {
     try {
       // Upload avatar if provided
-      let avatarUrl: string = '';
-      if (typeof data.avatarUrl !== 'string') {
+      let avatarUrl: string | undefined = '';
+      if (data.avatarUrl && typeof data.avatarUrl !== 'string') {
         const uploadResponse = await uploadAvatar({ data: { file: data.avatarUrl } });
-        avatarUrl = uploadResponse.data.url;
+        avatarUrl = uploadResponse.data?.url;
       }
 
       if (currentUser) {
@@ -307,7 +310,7 @@ export function UserNewEditForm({ currentUser }: Props) {
               <Field.DatePicker name="birthDate" label="Birth date" />
               <Field.Text name="locale" label="Locale" />
               <Field.Text name="timezone" label="Time zone" />
-              <Field.MultiSelect checkbox options={USER_ROLE_OPTIONS} name="roles" label="Roles" />
+              <Field.MultiSelect checkbox options={userRoleOptions} name="roles" label="Roles" />
               {currentUser && (
                 <>
                   <Field.Text name="createdAt" label="Joined At" disabled />

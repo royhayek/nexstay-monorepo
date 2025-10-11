@@ -1,79 +1,77 @@
 'use client';
 
-import type { IconifyName } from 'src/components/iconify';
-import type { AmenityCategoryDataDto, UpdateAmenityCategoryDto } from 'src/api/models';
+import type { AmenityCategoryDataDto, CreateAmenityCategoryDto } from 'src/api/models/admin';
 
-import { z as zod } from 'zod';
+import { z } from 'zod';
 import { useForm } from 'react-hook-form';
-import { useMemo, useState, useEffect } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useMemo, useState, useCallback } from 'react';
 
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
 import Stack from '@mui/material/Stack';
+import { LoadingButton } from '@mui/lab';
 import Button from '@mui/material/Button';
-import Switch from '@mui/material/Switch';
 import Divider from '@mui/material/Divider';
-import MenuItem from '@mui/material/MenuItem';
-import CardHeader from '@mui/material/CardHeader';
 import Typography from '@mui/material/Typography';
-import LoadingButton from '@mui/lab/LoadingButton';
+import CardHeader from '@mui/material/CardHeader';
 import ButtonGroup from '@mui/material/ButtonGroup';
-import FormControlLabel from '@mui/material/FormControlLabel';
 
 import { paths } from 'src/routes/paths';
 import { useRouter } from 'src/routes/hooks';
 
-import { useAmenityCategories, useSupportedLanguages } from 'src/contexts/app/use-app-context';
+import { allLangs } from 'src/locales/locales-config';
 import {
-  useAmenityCategoriesControllerCreateV1,
-  useAmenityCategoriesControllerUpdateV1,
-} from 'src/api/queries/amenity-categories/amenity-categories';
+  useAmenityCategoriesAdminControllerCreate,
+  useAmenityCategoriesAdminControllerUpdate,
+} from 'src/api/queries/admin/amenity-categories-management/amenity-categories-management';
 
 import { toast } from 'src/components/snackbar';
-import { Iconify } from 'src/components/iconify';
 import { Form, Field } from 'src/components/hook-form';
 
 // ----------------------------------------------------------------------
 
-// Dynamic schema creation based on supported languages
-export const createAmenityCategorySchema = (supportedLanguages: string[]) => {
-  const languageFields = supportedLanguages.reduce(
-    (acc, lang) => {
-      acc[lang] =
-        lang === 'en' ? zod.string().min(1, 'English name is required') : zod.string().optional();
-      return acc;
-    },
-    {} as Record<string, zod.ZodString>
-  );
+// Create dynamic schema based on supported languages
+const createLanguageFields = () => {
+  const nameFields: Record<string, z.ZodOptional<z.ZodString> | z.ZodString> = {};
+  const descriptionFields: Record<string, z.ZodOptional<z.ZodString>> = {};
 
-  const descriptionFields = supportedLanguages.reduce(
-    (acc, lang) => {
-      acc[lang] = zod.string().optional();
-      return acc;
-    },
-    {} as Record<string, zod.ZodOptional<zod.ZodString>>
-  );
-
-  return zod.object({
-    key: zod.string().min(1, 'Key is required'),
-    slug: zod.string().min(1, 'Slug is required'),
-    name: zod.object(languageFields),
-    description: zod.object(descriptionFields).optional(),
-    group: zod.string().optional(),
-    icon: zod.string().optional(),
-    sortOrder: zod.number().min(0, 'Sort order must be positive'),
-    isActive: zod.boolean(),
+  allLangs.forEach((lang, index) => {
+    const fieldName = `name_${lang.value}`;
+    const descFieldName = `description_${lang.value}`;
+    
+    // First language (English) is required, others are optional
+    if (index === 0 || lang.value === 'en') {
+      nameFields[fieldName] = z.string().min(1, `${lang.label} name is required`);
+    } else {
+      nameFields[fieldName] = z.string().optional();
+    }
+    
+    descriptionFields[descFieldName] = z.string().optional();
   });
+
+  return { nameFields, descriptionFields };
 };
 
-export type NewAmenityCategorySchemaType = zod.infer<
-  ReturnType<typeof createAmenityCategorySchema>
->;
+const { nameFields, descriptionFields } = createLanguageFields();
+
+const AmenityCategoryFormSchema = z.object({
+  key: z.string().min(1, 'Key is required').regex(/^[A-Z_]+$/, 'Key must be in UPPER_SNAKE_CASE format'),
+  slug: z.string().min(1, 'Slug is required').regex(/^[a-z0-9-]+$/, 'Slug must be lowercase with hyphens'),
+  ...nameFields,
+  ...descriptionFields,
+  group: z.string().optional(),
+  icon: z.string().optional(),
+  sortOrder: z.number().min(0, 'Sort order must be positive'),
+  isActive: z.boolean(),
+});
+
+type AmenityCategoryFormValues = z.infer<typeof AmenityCategoryFormSchema>;
 
 // ----------------------------------------------------------------------
 
 const ICON_OPTIONS = [
+  { value: '', label: 'No Icon' },
   { value: 'solar:checklist-minimalistic-bold', label: 'Essential' },
   { value: 'solar:tv-bold', label: 'Entertainment' },
   { value: 'solar:shield-check-bold', label: 'Safety' },
@@ -86,216 +84,178 @@ const ICON_OPTIONS = [
   { value: 'solar:swimming-bold', label: 'Outdoor' },
 ];
 
+const GROUP_OPTIONS = [
+  { value: '', label: 'No Group' },
+  { value: 'basics', label: 'Basics' },
+  { value: 'entertainment', label: 'Entertainment' },
+  { value: 'safety', label: 'Safety' },
+  { value: 'accessibility', label: 'Accessibility' },
+  { value: 'family', label: 'Family' },
+  { value: 'business', label: 'Business' },
+  { value: 'luxury', label: 'Luxury' },
+  { value: 'kitchen', label: 'Kitchen' },
+  { value: 'bathroom', label: 'Bathroom' },
+  { value: 'outdoor', label: 'Outdoor' },
+];
+
 // ----------------------------------------------------------------------
 
-type Props = {
+interface AmenityCategoryNewEditFormProps {
   currentCategory?: AmenityCategoryDataDto;
-};
+}
 
-export function AmenityCategoryNewEditForm({ currentCategory }: Props) {
+export function AmenityCategoryNewEditForm({ currentCategory }: AmenityCategoryNewEditFormProps) {
   const router = useRouter();
+  const isEdit = !!currentCategory;
+  const [selectedLanguage, setSelectedLanguage] = useState('en');
 
-  // Get supported languages from API
-  const supportedLanguagesData = useSupportedLanguages();
-  const supportedLanguages = useMemo(() => {
-    if (!supportedLanguagesData) return ['en']; // fallback to English only
-    // Extract language codes from the API response data field
-    if (Array.isArray(supportedLanguagesData)) {
-      // If it's an array of language objects, extract codes
-      return supportedLanguagesData
-        .map((lang) => lang.code || lang.lang || lang.key)
-        .filter(Boolean);
-    } else if (typeof supportedLanguagesData === 'object') {
-      // If it's an object, get the keys
-      return Object.keys(supportedLanguagesData);
-    }
-    return ['en']; // fallback to English only
-  }, [supportedLanguagesData]);
+  const defaultValues: AmenityCategoryFormValues = useMemo(() => {
+    // Helper function to extract value from field (handles both string and object types)
+    const getValue = (field: any, lang: string) => {
+      if (typeof field === 'object' && field) {
+        return field[lang] || '';
+      }
+      return lang === 'en' ? (field || '') : '';
+    };
 
-  const [selectedLanguage, setSelectedLanguage] = useState<string>('en');
-
-  const { mutateAsync: createCategory, isPending: isCreating } =
-    useAmenityCategoriesControllerCreateV1();
-  const { mutateAsync: updateCategory, isPending: isUpdating } =
-    useAmenityCategoriesControllerUpdateV1();
-
-  // Get catalog data for dropdowns
-  const existingCategories = useAmenityCategories();
-
-  // Extract unique groups from existing categories
-  const groupOptions = useMemo(() => {
-    if (!existingCategories) return [];
-    const groups = existingCategories
-      .map((category) => category.group)
-      .filter((group): group is string => Boolean(group))
-      .filter((group, index, arr) => arr.indexOf(group) === index)
-      .sort();
-
-    return [
-      { value: '', label: 'No Group' },
-      ...groups.map((group) => ({ value: group, label: group })),
-      { value: 'basics', label: 'Basics' },
-      { value: 'entertainment', label: 'Entertainment' },
-      { value: 'safety', label: 'Safety' },
-      { value: 'accessibility', label: 'Accessibility' },
-    ].filter(
-      (option, index, arr) => arr.findIndex((item) => item.value === option.value) === index
-    );
-  }, [existingCategories]);
-
-  // Dynamic schema based on supported languages
-  const schema = useMemo(
-    () => createAmenityCategorySchema(supportedLanguages),
-    [supportedLanguages]
-  );
-
-  const defaultValues = useMemo(() => {
-    // Create dynamic name and description objects based on supported languages
-    const nameDefaults = supportedLanguages.reduce(
-      (acc, lang) => {
-        if (typeof currentCategory?.name === 'object' && currentCategory?.name) {
-          acc[lang] = (currentCategory.name as Record<string, string>)[lang] || '';
-        } else if (lang === 'en') {
-          acc[lang] = (currentCategory?.name as string) || '';
+    // Create default values with dynamic language fields
+    const createDynamicDefaults = () => {
+      const dynamicFields: Record<string, string> = {};
+      
+      allLangs.forEach((lang) => {
+        const nameField = `name_${lang.value}`;
+        const descField = `description_${lang.value}`;
+        
+        if (currentCategory) {
+          dynamicFields[nameField] = getValue(currentCategory.name, lang.value);
+          dynamicFields[descField] = getValue(currentCategory.description, lang.value);
         } else {
-          acc[lang] = '';
+          dynamicFields[nameField] = '';
+          dynamicFields[descField] = '';
         }
-        return acc;
-      },
-      {} as Record<string, string>
-    );
+      });
 
-    const descriptionDefaults = supportedLanguages.reduce(
-      (acc, lang) => {
-        if (typeof currentCategory?.description === 'object' && currentCategory?.description) {
-          acc[lang] = (currentCategory.description as Record<string, string>)[lang] || '';
-        } else if (lang === 'en') {
-          acc[lang] = (currentCategory?.description as string) || '';
-        } else {
-          acc[lang] = '';
-        }
-        return acc;
-      },
-      {} as Record<string, string>
-    );
+      return dynamicFields;
+    };
 
-    const defaults = {
+    const dynamicFields = createDynamicDefaults();
+
+    return {
       key: currentCategory?.key || '',
       slug: currentCategory?.slug || '',
-      name: nameDefaults,
-      description: descriptionDefaults,
+      ...dynamicFields,
       group: currentCategory?.group || '',
       icon: currentCategory?.icon || '',
       sortOrder: currentCategory?.sortOrder || 0,
       isActive: currentCategory?.isActive ?? true,
-    };
+    } as AmenityCategoryFormValues;
+  }, [currentCategory]);
 
-    return defaults;
-  }, [currentCategory, supportedLanguages]);
-
-  const methods = useForm<NewAmenityCategorySchemaType>({
-    resolver: zodResolver(schema),
+  const methods = useForm<AmenityCategoryFormValues>({
+    resolver: zodResolver(AmenityCategoryFormSchema),
     defaultValues,
   });
 
-  const {
-    reset,
-    watch,
-    handleSubmit,
-    formState: { isSubmitting },
-  } = methods;
-
-  const values = watch();
-
-  // Reset form when currentCategory changes
-  useEffect(() => {
-    reset(defaultValues);
-  }, [reset, currentCategory, supportedLanguages.length, defaultValues]);
-
-  // Check if a language has content
-  const hasLanguageContent = (lang: string) => {
-    const name = (values.name as Record<string, string>)?.[lang];
-    const description = (values.description as Record<string, string>)?.[lang];
-    return (name && name.trim()) || (description && description.trim());
-  };
-
-  const onSubmit = handleSubmit(async (data) => {
-    try {
-      // Check if any language has a description
-      const hasDescription =
-        data.description && Object.values(data.description).some((desc) => desc && desc.trim());
-
-      const categoryData: UpdateAmenityCategoryDto = {
-        name: data.name,
-        slug: data.slug.toLowerCase(),
-        group: data.group || undefined,
-        icon: data.icon || undefined,
-        sortOrder: Number(data.sortOrder),
-        isActive: Boolean(data.isActive),
-        description: hasDescription ? data.description : undefined,
-      };
-
-      if (currentCategory) {
-        await updateCategory({ id: currentCategory._id, data: categoryData });
-        toast.success('Category updated successfully!');
+  const { mutate: createCategory, isPending: isCreating } = useAmenityCategoriesAdminControllerCreate({
+    mutation: {
+      onSuccess: () => {
+        toast.success('Category created successfully');
         router.push(paths.dashboard.amenityCategories.list);
-      } else {
-        await createCategory({
-          data: { ...data, description: hasDescription ? data.description : undefined },
-        });
-        toast.success('Category created successfully!');
-        reset();
-        router.push(paths.dashboard.amenityCategories.list);
-      }
-    } catch (error) {
-      console.error(error);
-      toast.error(currentCategory ? 'Failed to update category' : 'Failed to create category');
-    }
+      },
+      onError: () => {
+        toast.error('Failed to create category');
+      },
+    },
   });
 
-  const getLanguageDisplayName = (lang: string) => {
-    const languageNames: Record<string, string> = {
-      en: 'English',
-      fr: 'French',
-      ar: 'Arabic',
-      es: 'Spanish',
-      de: 'German',
-      it: 'Italian',
-      pt: 'Portuguese',
-      ru: 'Russian',
-      ja: 'Japanese',
-      ko: 'Korean',
-      zh: 'Chinese',
-      vi: 'Vietnamese',
+  const { mutate: updateCategory, isPending: isUpdating } = useAmenityCategoriesAdminControllerUpdate({
+    mutation: {
+      onSuccess: () => {
+        toast.success('Category updated successfully');
+        router.push(paths.dashboard.amenityCategories.list);
+      },
+      onError: () => {
+        toast.error('Failed to update category');
+      },
+    },
+  });
+
+  const handleSubmit = (data: AmenityCategoryFormValues) => {
+    // Transform dynamic language fields back to API format
+    const name: Record<string, string> = {};
+    const description: Record<string, string> = {};
+    
+    allLangs.forEach((lang) => {
+      const nameField = `name_${lang.value}` as keyof AmenityCategoryFormValues;
+      const descField = `description_${lang.value}` as keyof AmenityCategoryFormValues;
+      
+      const nameValue = data[nameField] as string;
+      const descValue = data[descField] as string;
+      
+      if (nameValue?.trim()) {
+        name[lang.value] = nameValue.trim();
+      }
+      
+      if (descValue?.trim()) {
+        description[lang.value] = descValue.trim();
+      }
+    });
+
+    const payload: CreateAmenityCategoryDto = {
+      key: data.key,
+      slug: data.slug,
+      name,
+      ...(Object.keys(description).length > 0 && { description }),
+      group: data.group || undefined,
+      icon: data.icon || undefined,
+      sortOrder: data.sortOrder,
+      isActive: data.isActive,
     };
-    return languageNames[lang] || lang.toUpperCase();
+
+    if (isEdit && currentCategory) {
+      updateCategory({
+        id: currentCategory._id,
+        data: payload as any, // UpdateAmenityCategoryDto has same structure
+      });
+    } else {
+      createCategory({ data: payload });
+    }
   };
 
-  const generateSlugFromName = (name: string) =>
-    name
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, '-')
-      .replace(/(^-|-$)/g, '');
 
-  const generateKeyFromName = (name: string) =>
-    name
-      .toUpperCase()
-      .replace(/[^A-Z0-9]+/g, '_')
-      .replace(/(^_|_$)/g, '');
+  const handleCancel = useCallback(() => {
+    router.push(paths.dashboard.amenityCategories.list);
+  }, [router]);
+
+  // Helper function to check if a language has content
+  const hasLanguageContent = useCallback((lang: string) => {
+    const nameField = `name_${lang}` as keyof AmenityCategoryFormValues;
+    const descField = `description_${lang}` as keyof AmenityCategoryFormValues;
+    
+    const nameValue = methods.watch(nameField) as string;
+    const descValue = methods.watch(descField) as string;
+    
+    return (nameValue && nameValue.trim()) || (descValue && descValue.trim());
+  }, [methods]);
+
+  // Helper function to get language display name
+  const getLanguageDisplayName = useCallback((lang: string) => {
+    const langConfig = allLangs.find(l => l.value === lang);
+    return langConfig?.label || lang.toUpperCase();
+  }, []);
 
   return (
-    <Form methods={methods} onSubmit={onSubmit}>
+    <Form methods={methods} onSubmit={methods.handleSubmit(handleSubmit)}>
       <Stack spacing={3}>
+        {/* Basic Information Card */}
         <Card>
           <CardHeader
-            title="Amenity Category Details"
-            subheader={
-              currentCategory ? 'Update existing amenity category' : 'Create new amenity category'
-            }
+            title={isEdit ? `Edit Category: ${defaultValues.name_en || 'Unnamed'}` : 'Create New Amenity Category'}
+            subheader={isEdit ? 'Update category information' : 'Enter the information for the new amenity category'}
           />
 
           <Stack spacing={3} sx={{ p: 3 }}>
-            {/* Basic Information */}
+            {/* Key and Slug Fields */}
             <Box
               sx={{
                 display: 'grid',
@@ -307,41 +267,43 @@ export function AmenityCategoryNewEditForm({ currentCategory }: Props) {
               <Field.Text
                 name="key"
                 label="Key"
-                placeholder="CATEGORY_KEY"
-                helperText="Unique key in UPPER_SNAKE_CASE format"
-                disabled={!!currentCategory}
+                placeholder="WIFI_INTERNET"
+                helperText={isEdit 
+                  ? 'Key cannot be changed for existing categories'
+                  : 'Unique key in UPPER_SNAKE_CASE format'}
+                disabled={isEdit}
               />
+              
               <Field.Text
                 name="slug"
                 label="Slug"
-                placeholder="category-slug"
-                helperText="URL-friendly slug (lowercase with hyphens)"
-                disabled={!!currentCategory}
+                placeholder="wifi-internet"
+                helperText="URL-friendly identifier (lowercase with hyphens)"
               />
             </Box>
 
             <Divider sx={{ borderStyle: 'dashed' }} />
 
-            {/* Language Toggle */}
+            {/* Language Names Section */}
             <Box>
               <Typography variant="subtitle2" sx={{ mb: 2 }}>
-                Localized Content
+                Category Names
               </Typography>
 
               <ButtonGroup size="small" sx={{ mb: 3 }}>
-                {supportedLanguages.map((lang) => (
+                {allLangs.map((lang) => (
                   <Button
-                    key={lang}
-                    onClick={() => setSelectedLanguage(lang)}
-                    variant={selectedLanguage === lang ? 'contained' : 'outlined'}
+                    key={lang.value}
+                    onClick={() => setSelectedLanguage(lang.value)}
+                    variant={selectedLanguage === lang.value ? 'contained' : 'outlined'}
                     sx={{
                       minWidth: 60,
                       position: 'relative',
-                      fontWeight: selectedLanguage === lang ? 600 : 400,
+                      fontWeight: selectedLanguage === lang.value ? 600 : 400,
                     }}
                   >
-                    {lang.toUpperCase()}
-                    {hasLanguageContent(lang) && (
+                    {lang.value.toUpperCase()}
+                    {hasLanguageContent(lang.value) && (
                       <Box
                         sx={{
                           width: 6,
@@ -358,25 +320,25 @@ export function AmenityCategoryNewEditForm({ currentCategory }: Props) {
                 ))}
               </ButtonGroup>
 
-              {/* Dynamic Language-specific fields */}
-              <Stack spacing={3}>
-                <Typography variant="caption" color="text.secondary" sx={{ mt: -2 }}>
+              <Stack spacing={2}>
+                <Typography variant="caption" color="text.secondary">
                   Currently editing in: <strong>{getLanguageDisplayName(selectedLanguage)}</strong>
                   {selectedLanguage === 'en' ? ' (Required)' : ' (Optional)'}
                 </Typography>
+                
                 <Field.Text
-                  name={`name.${selectedLanguage}`}
+                  name={`name_${selectedLanguage}`}
                   label={`Name${selectedLanguage === 'en' ? ' *' : ''}`}
-                  placeholder="Category Name"
+                  placeholder={selectedLanguage === 'en' 
+                    ? 'WiFi & Internet' 
+                    : selectedLanguage === 'ar' 
+                    ? 'واي فاي وإنترنت'
+                    : selectedLanguage === 'cn'
+                    ? 'Wi-Fi和互联网'
+                    : selectedLanguage === 'fr'
+                    ? 'Wi-Fi et Internet'
+                    : 'WiFi & Internet'}
                   helperText={`Enter the category name in ${getLanguageDisplayName(selectedLanguage)}`}
-                  onBlur={(e) => {
-                    const name = e.target.value;
-                    if (name && !currentCategory && selectedLanguage === 'en') {
-                      methods.setValue('slug', generateSlugFromName(name));
-                      methods.setValue('key', generateKeyFromName(name));
-                    }
-                  }}
-                  fullWidth
                   sx={
                     selectedLanguage === 'ar'
                       ? {
@@ -388,14 +350,22 @@ export function AmenityCategoryNewEditForm({ currentCategory }: Props) {
                       : undefined
                   }
                 />
+                
                 <Field.Text
-                  name={`description.${selectedLanguage}`}
+                  name={`description_${selectedLanguage}`}
                   label="Description"
-                  placeholder="Category description..."
-                  helperText={`Optional description explaining what this category includes in ${getLanguageDisplayName(selectedLanguage)}`}
+                  placeholder={selectedLanguage === 'en'
+                    ? 'Internet and connectivity amenities...'
+                    : selectedLanguage === 'ar'
+                    ? 'وسائل الراحة للإنترنت والاتصال...'
+                    : selectedLanguage === 'cn'
+                    ? '互联网和连接设施...'
+                    : selectedLanguage === 'fr'
+                    ? 'Commodités Internet et connectivité...'
+                    : 'Internet and connectivity amenities...'}
+                  helperText={`Enter the category description in ${getLanguageDisplayName(selectedLanguage)}`}
                   multiline
                   rows={3}
-                  fullWidth
                   sx={
                     selectedLanguage === 'ar'
                       ? {
@@ -412,138 +382,68 @@ export function AmenityCategoryNewEditForm({ currentCategory }: Props) {
 
             <Divider sx={{ borderStyle: 'dashed' }} />
 
-            {/* Additional Settings */}
-            <Box
-              sx={{
-                display: 'grid',
-                columnGap: 2,
-                rowGap: 3,
-                gridTemplateColumns: { xs: 'repeat(1, 1fr)', md: 'repeat(3, 1fr)' },
-              }}
-            >
-              <Field.Text
-                select
-                name="group"
-                label="Group"
-                placeholder="Select a group"
-                helperText="Optional grouping for organization"
-                SelectProps={{ native: false }}
+            {/* Organization & Display */}
+            <Box>
+              <Typography variant="subtitle2" sx={{ mb: 2 }}>
+                Organization & Display
+              </Typography>
+              
+              <Box
+                sx={{
+                  display: 'grid',
+                  columnGap: 2,
+                  rowGap: 3,
+                  gridTemplateColumns: { xs: 'repeat(1, 1fr)', md: 'repeat(3, 1fr)' },
+                }}
               >
-                {groupOptions.map((option) => (
-                  <MenuItem key={option.value} value={option.value}>
-                    {option.label}
-                  </MenuItem>
-                ))}
-              </Field.Text>
+                <Field.Select name="group" label="Group" placeholder="Select group">
+                  {GROUP_OPTIONS.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </Field.Select>
 
-              <Field.Select
-                select
-                name="icon"
-                label="Icon"
-                placeholder="Select an icon"
-                helperText="Visual icon for this category"
-                SelectProps={{ native: false }}
-              >
-                <MenuItem value="">No Icon</MenuItem>
-                {ICON_OPTIONS.map((option) => (
-                  <MenuItem key={option.value} value={option.value}>
-                    {option.label}
-                  </MenuItem>
-                ))}
-              </Field.Select>
+                <Field.Select name="icon" label="Icon" placeholder="Select icon">
+                  {ICON_OPTIONS.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </Field.Select>
 
-              <Field.Text
-                name="sortOrder"
-                label="Sort Order"
-                type="number"
-                helperText="Lower numbers appear first"
-                inputProps={{ min: 0, step: 1 }}
-              />
+                <Field.Text
+                  name="sortOrder"
+                  label="Sort Order"
+                  type="number"
+                  placeholder="0"
+                  helperText="Lower numbers appear first"
+                />
+              </Box>
             </Box>
 
-            <Box sx={{ display: 'flex', alignItems: 'center' }}>
-              <FormControlLabel
-                control={
-                  <Switch
-                    checked={values.isActive}
-                    onChange={(event) => methods.setValue('isActive', event.target.checked)}
-                    color="primary"
-                  />
-                }
-                label={
-                  <Box>
-                    <Typography variant="subtitle2">Active Category</Typography>
-                    <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-                      Category will be visible and available for use
-                    </Typography>
-                  </Box>
-                }
-              />
-            </Box>
+            <Divider sx={{ borderStyle: 'dashed' }} />
+
+            {/* Status */}
+            <Field.Switch
+              name="isActive"
+              label="Active"
+              helperText="When active, this category will be available for use"
+            />
           </Stack>
         </Card>
 
-        {/* Preview Card */}
-        <Card>
-          <CardHeader title="Preview" />
-          <Box sx={{ p: 3 }}>
-            <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-              How this category will appear:
-            </Typography>
-            <Box
-              sx={{
-                p: 2,
-                border: '1px dashed',
-                borderColor: 'divider',
-                borderRadius: 1,
-                bgcolor: 'background.neutral',
-                display: 'flex',
-                alignItems: 'center',
-                gap: 2,
-              }}
-            >
-              {values.icon && (
-                <Box
-                  sx={{
-                    width: 40,
-                    height: 40,
-                    borderRadius: 1,
-                    bgcolor: 'primary.main',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    color: 'primary.contrastText',
-                  }}
-                >
-                  <Iconify icon={values.icon as IconifyName} width={24} />
-                </Box>
-              )}
-              <Box sx={{ flex: 1 }}>
-                <Typography variant="body1" sx={{ fontWeight: 600 }}>
-                  {(values.name as Record<string, string>)?.[selectedLanguage] ||
-                    (values.name as Record<string, string>)?.en ||
-                    'No name'}
-                </Typography>
-                <Typography variant="caption" color="text.secondary">
-                  Key: {values.key || 'NO_KEY'} | Slug: {values.slug || 'no-slug'} | Order:{' '}
-                  {values.sortOrder} | Status: {values.isActive ? 'Active' : 'Inactive'}
-                </Typography>
-              </Box>
-            </Box>
-          </Box>
-        </Card>
-
+        {/* Action Buttons */}
         <Stack direction="row" spacing={2} sx={{ justifyContent: 'flex-end' }}>
-          <Button variant="outlined" onClick={() => router.back()}>
+          <Button variant="outlined" onClick={handleCancel}>
             Cancel
           </Button>
           <LoadingButton
             type="submit"
             variant="contained"
-            loading={isSubmitting || isCreating || isUpdating}
-            startIcon={<Iconify icon={currentCategory ? 'eva:edit-fill' : 'eva:plus-fill'} />}
+            loading={isEdit ? isUpdating : isCreating}
           >
-            {currentCategory ? 'Update Category' : 'Create Category'}
+            {isEdit ? 'Update Category' : 'Create Category'}
           </LoadingButton>
         </Stack>
       </Stack>

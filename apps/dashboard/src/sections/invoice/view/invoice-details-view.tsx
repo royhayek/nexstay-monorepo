@@ -3,7 +3,7 @@
 import { paths } from 'src/routes/paths';
 
 import { DashboardContent } from 'src/layouts/dashboard';
-import { useInvoicesControllerGetInvoiceV1 } from 'src/api/queries/invoices/invoices';
+import { useInvoicesAdminControllerGetInvoiceById } from 'src/api/queries/admin/invoices-management/invoices-management';
 
 import { CustomBreadcrumbs } from 'src/components/custom-breadcrumbs';
 
@@ -16,7 +16,7 @@ type Props = {
 };
 
 export function InvoiceDetailsView({ id }: Props) {
-  const { data: invoiceData } = useInvoicesControllerGetInvoiceV1(id, {
+  const { data: invoiceData } = useInvoicesAdminControllerGetInvoiceById(id, {
     query: { enabled: !!id },
   });
 

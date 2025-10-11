@@ -1,4 +1,6 @@
-import type { MessageDataDto, ConversationParticipantDto } from 'src/api/models';
+import type { MessageDataDto, ConversationParticipantDto } from 'src/api/models/admin';
+
+import { useMemo } from 'react';
 
 import Stack from '@mui/material/Stack';
 import LinearProgress from '@mui/material/LinearProgress';
@@ -18,9 +20,14 @@ type Props = {
 };
 
 export function ChatMessageList({ messages = [], participants, loading }: Props) {
-  const { messagesEndRef } = useMessagesScroll(messages);
+  const sortedMessages = useMemo(
+    () => [...messages].sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()),
+    [messages]
+  );
+  
+  const { messagesEndRef } = useMessagesScroll(sortedMessages);
 
-  const slides = messages
+  const slides = sortedMessages
     .filter((message) => message.message_type === 'image')
     .map((message) => ({ src: message.content || '' }));
 
@@ -55,7 +62,7 @@ export function ChatMessageList({ messages = [], participants, loading }: Props)
           flex: '1 1 auto',
         }}
       >
-        {messages.map((message) => (
+        {sortedMessages.map((message) => (
           <ChatMessageItem
             key={message.id}
             message={message}

@@ -51,7 +51,7 @@ export const EnumDisplayTableRow = memo(function EnumDisplayTableRow({
         <li>
           <MenuItem
             component={RouterLink}
-            href={paths.dashboard.enumDisplays.edit(row.enumName, row.key)}
+            href={paths.dashboard.enumDisplays.edit(row._id)}
             onClick={() => menuActions.onClose()}
           >
             <Iconify icon="solar:pen-bold" />

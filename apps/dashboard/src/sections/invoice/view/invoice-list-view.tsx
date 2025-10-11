@@ -1,7 +1,7 @@
 'use client';
 
 import type { TableHeadCellProps } from 'src/components/table';
-import type { InvoiceResponseDto, InvoicesControllerSearchInvoicesV1Params } from 'src/api/models';
+import type { InvoiceResponseDto } from 'src/api/models/admin';
 
 import { sumBy } from 'es-toolkit';
 import { varAlpha } from 'minimal-shared/utils';
@@ -28,7 +28,7 @@ import { fIsAfter } from 'src/utils/format-time';
 
 import { INVOICE_SERVICE_OPTIONS } from 'src/_mock';
 import { DashboardContent } from 'src/layouts/dashboard';
-import { useInvoicesControllerSearchInvoicesV1 } from 'src/api/queries/invoices/invoices';
+import { useInvoicesAdminControllerGetAllInvoices } from 'src/api/queries/admin/invoices-management/invoices-management';
 
 import { Label } from 'src/components/label';
 import { toast } from 'src/components/snackbar';
@@ -109,15 +109,18 @@ export function InvoiceListView() {
   const { state: currentFilters, setState: updateFilters } = filters;
 
   // Fetch invoices using React Query
-  const { data: invoiceResponse, isLoading } = useInvoicesControllerSearchInvoicesV1(queryParams, {
-    query: {
-      refetchOnWindowFocus: false,
-    },
-  });
+  const { data: invoiceResponse, isLoading } = useInvoicesAdminControllerGetAllInvoices(
+    queryParams,
+    {
+      query: {
+        refetchOnWindowFocus: false,
+      },
+    }
+  );
 
   const invoicesList = useMemo(
-    () => invoiceResponse?.data?.data || [],
-    [invoiceResponse?.data?.data]
+    () => invoiceResponse?.data?.invoices || [],
+    [invoiceResponse?.data?.invoices]
   );
 
   const totalCount = invoiceResponse?.data?.total || 0;

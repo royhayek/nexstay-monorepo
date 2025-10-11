@@ -3,7 +3,7 @@
 import { paths } from 'src/routes/paths';
 
 import { DashboardContent } from 'src/layouts/dashboard';
-import { useUsersControllerFindOneV1 } from 'src/api/queries/users/users';
+import { useUsersAdminControllerGetUserById } from 'src/api/queries/admin/users-management/users-management';
 
 import { CustomBreadcrumbs } from 'src/components/custom-breadcrumbs';
 
@@ -16,7 +16,7 @@ type Props = {
 };
 
 export function UserEditView({ id }: Props) {
-  const { data: usersData } = useUsersControllerFindOneV1(id);
+  const { data: usersData } = useUsersAdminControllerGetUserById(id);
   const currentUser = usersData?.data;
 
   return (

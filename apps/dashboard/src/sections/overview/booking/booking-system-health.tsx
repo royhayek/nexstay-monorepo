@@ -8,12 +8,12 @@ import CardHeader from '@mui/material/CardHeader';
 import Typography from '@mui/material/Typography';
 import CircularProgress from '@mui/material/CircularProgress';
 
-import { useAdminControllerGetSystemHealthV1 } from 'src/api/queries/admin-dashboard/admin-dashboard';
+import { useAdminControllerGetSystemHealth } from 'src/api/queries/admin/admin-dashboard/admin-dashboard';
 
 // ----------------------------------------------------------------------
 
 export function BookingSystemHealth() {
-  const { data: healthData, isLoading, error } = useAdminControllerGetSystemHealthV1();
+  const { data: healthData, isLoading, error } = useAdminControllerGetSystemHealth();
 
   if (isLoading) {
     return (

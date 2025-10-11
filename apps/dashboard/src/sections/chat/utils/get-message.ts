@@ -1,16 +1,15 @@
-import type { MessageDataDto, ConversationParticipantDto } from 'src/api/models';
-
 // ----------------------------------------------------------------------
+
+import type { MessageDataDto } from 'src/api/models/admin';
 
 type Props = {
   currentUserId: string;
   message: MessageDataDto;
-  participants: ConversationParticipantDto[];
 };
 
-export function getMessage({ message, participants, currentUserId }: Props) {
+export function getMessage({ message, currentUserId }: Props) {
   const senderId = message?.sender?.id || '';
-  const sender = participants.find((participant) => participant.id === senderId);
+  const sender = message.sender;
 
   const isCurrentUser = senderId === currentUserId;
 

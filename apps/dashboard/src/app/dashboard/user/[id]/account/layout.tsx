@@ -1,4 +1,8 @@
-import { AccountLayout } from 'src/sections/account/account-layout';
+'use client';
+
+import { useState, useEffect } from 'react';
+
+import { AccountFormProvider } from 'src/sections/account/account-form-provider';
 
 // ----------------------------------------------------------------------
 
@@ -7,7 +11,14 @@ type Props = {
   params: Promise<{ id: string }>;
 };
 
-export default async function Layout({ children, params }: Props) {
-  const { id } = await params;
-  return <AccountLayout id={id}> {children}</AccountLayout>;
+export default function Layout({ params }: Props) {
+  const [userId, setUserId] = useState('');
+  
+  useEffect(() => {
+    params.then(({ id }) => setUserId(id));
+  }, [params]);
+  
+  if (!userId) return null;
+  
+  return <AccountFormProvider id={userId} />;
 }

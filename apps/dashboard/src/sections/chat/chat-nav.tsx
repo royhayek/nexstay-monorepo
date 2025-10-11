@@ -1,5 +1,5 @@
 import type { UseNavCollapseReturn } from './hooks/use-collapse-nav';
-import type { ConversationResponseDto, ConversationParticipantDto } from 'src/api/models';
+import type { ConversationResponseDto, ConversationParticipantDto } from 'src/api/models/admin';
 
 type IChatConversations = {
   byId: Record<string, ConversationResponseDto>;
@@ -21,8 +21,6 @@ import { useRouter } from 'src/routes/hooks';
 
 import { Iconify } from 'src/components/iconify';
 import { Scrollbar } from 'src/components/scrollbar';
-
-import { useMockedUser } from 'src/auth/hooks';
 
 import { ToggleButton } from './styles';
 import { ChatNavItem } from './chat-nav-item';
@@ -52,8 +50,6 @@ export function ChatNav({
   selectedConversationId,
 }: Props) {
   const router = useRouter();
-
-  const { user } = useMockedUser();
 
   const mdUp = useMediaQuery((theme) => theme.breakpoints.up('md'));
 

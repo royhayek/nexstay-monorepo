@@ -5,7 +5,7 @@ import type { AuthState } from '../../types';
 import { useSetState } from 'minimal-shared/hooks';
 import { useMemo, useEffect, useCallback } from 'react';
 
-import { usersControllerMeV1 } from 'src/api/queries/users/users';
+import { usersAdminControllerGetProfile } from 'src/api/queries/admin/users-management/users-management';
 
 import { AuthContext } from '../auth-context';
 import { setSession, isValidToken } from './utils';
@@ -34,7 +34,7 @@ export function AuthProvider({ children }: Props) {
       if (accessToken && isValidToken(accessToken)) {
         setSession(accessToken, refreshToken);
 
-        const res = await usersControllerMeV1();
+        const res = await usersAdminControllerGetProfile();
 
         const user = res.data;
 

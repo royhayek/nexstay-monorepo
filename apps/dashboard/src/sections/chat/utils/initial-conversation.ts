@@ -1,4 +1,4 @@
-import type { IChatParticipant } from 'src/types/chat';
+import type { ConversationParticipantDto } from 'src/api/models/admin';
 
 import { uuidv4 } from 'minimal-shared/utils';
 
@@ -8,8 +8,8 @@ import { fSub } from 'src/utils/format-time';
 
 type Props = {
   message?: string;
-  me: IChatParticipant;
-  recipients: IChatParticipant[];
+  me: ConversationParticipantDto;
+  recipients: ConversationParticipantDto[];
 };
 
 export function initialConversation({ message = '', recipients, me }: Props) {

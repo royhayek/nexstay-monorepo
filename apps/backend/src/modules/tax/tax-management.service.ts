@@ -278,7 +278,7 @@ export class TaxManagementService {
           .sort({ priority: 1, effectiveFrom: -1 })
           .skip(pagination.skip)
           .limit(pagination.limit)
-          .lean(),
+          .exec(),
         this.taxRateModel.countDocuments(query),
       ]);
 
@@ -434,7 +434,7 @@ export class TaxManagementService {
           .sort({ periodEnd: -1 })
           .skip(pagination.skip)
           .limit(pagination.limit)
-          .lean(),
+          .exec(),
         this.taxReportModel.countDocuments(query),
       ]);
 

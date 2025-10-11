@@ -715,7 +715,7 @@ export class AnalyticsService {
     });
 
     // Mock calculation - could be enhanced with real availability logic
-    const soldOut = Math.floor(totalProperties * 0.65); // 65% sold out
+    const soldOut = Math.floor(totalProperties * 0.65); // 65% booked
     const available = totalProperties - soldOut;
 
     return {

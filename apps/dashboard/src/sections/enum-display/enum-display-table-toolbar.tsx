@@ -1,4 +1,5 @@
 import type { UseSetStateReturn } from 'minimal-shared/hooks';
+import type { DynamicTableFilter } from 'src/components/dynamic-table/types';
 
 import { useCallback } from 'react';
 
@@ -12,7 +13,7 @@ import { Iconify } from 'src/components/iconify';
 
 // ----------------------------------------------------------------------
 
-interface IEnumDisplayTableFilters {
+interface IEnumDisplayTableFilters extends DynamicTableFilter {
   name: string;
   enumName: string;
   isVisible: 'all' | 'visible' | 'hidden';

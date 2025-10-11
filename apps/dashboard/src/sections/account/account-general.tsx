@@ -1,3 +1,5 @@
+import type { AdminUpdateUserDto } from 'src/api/models/admin';
+
 import { z as zod } from 'zod';
 import { useCallback } from 'react';
 import { useForm, Controller } from 'react-hook-form';
@@ -16,16 +18,18 @@ import FormControlLabel from '@mui/material/FormControlLabel';
 import { paths } from 'src/routes/paths';
 import { useRouter } from 'src/routes/hooks';
 
+import { useEnumDisplayOptions } from 'src/hooks/use-enum-display-options';
+
 import { fData } from 'src/utils/format-number';
 
-import { USER_ROLE_OPTIONS } from 'src/_mock';
 import {
-  useUsersControllerFindOneV1,
-  useUsersControllerAdminToggleEmailVerifiedV1,
-  useUsersControllerAdminTogglePhoneVerifiedV1,
-} from 'src/api/queries/users/users';
+  useUsersAdminControllerUpdateUser,
+  useUsersAdminControllerGetUserById,
+  useUsersAdminControllerUploadAvatarForNewUser,
+  useUsersAdminControllerToggleEmailVerification,
+  useUsersAdminControllerTogglePhoneVerification,
+} from 'src/api/queries/admin/users-management/users-management';
 
-import { Label } from 'src/components/label';
 import { toast } from 'src/components/snackbar';
 import { Form, Field, schemaHelper } from 'src/components/hook-form';
 
@@ -47,9 +51,6 @@ export const UpdateUserSchema = zod.object({
   locale: zod.string().min(1, { message: 'Locale is required!' }),
   birthDate: schemaHelper.date({ message: { required: 'End date is required!' } }),
   roles: zod.array(zod.string().min(1, { message: 'Roles are required!' })),
-  isActive: zod.boolean(),
-  isEmailVerified: zod.boolean(),
-  isPhoneVerified: zod.boolean(),
   createdAt: schemaHelper.date().optional(),
   updatedAt: schemaHelper.date().optional(),
 });
@@ -61,9 +62,13 @@ type Props = {
 };
 
 export function AccountGeneral({ id }: Props) {
+  const userRoleOptions = useEnumDisplayOptions('UserRole');
+
   const router = useRouter();
 
-  const { data: currentUserData } = useUsersControllerFindOneV1(id, { query: { enabled: !!id } });
+  const { data: currentUserData } = useUsersAdminControllerGetUserById(id, {
+    query: { enabled: !!id },
+  });
 
   const currentUser = currentUserData?.data;
 
@@ -78,9 +83,6 @@ export function AccountGeneral({ id }: Props) {
     locale: '',
     birthDate: null,
     roles: [],
-    isActive: true,
-    isEmailVerified: true,
-    isPhoneVerified: true,
     createdAt: new Date(),
     updatedAt: new Date(),
   };
@@ -93,16 +95,18 @@ export function AccountGeneral({ id }: Props) {
   });
 
   const {
-    watch,
+    // watch,
     control,
     handleSubmit,
     formState: { isSubmitting },
   } = methods;
 
-  const values = watch();
+  // const values = watch();
 
-  const { mutate: toggleEmailVerified } = useUsersControllerAdminToggleEmailVerifiedV1();
-  const { mutate: togglePhoneVerified } = useUsersControllerAdminTogglePhoneVerifiedV1();
+  const { mutate: toggleEmailVerified } = useUsersAdminControllerToggleEmailVerification();
+  const { mutate: togglePhoneVerified } = useUsersAdminControllerTogglePhoneVerification();
+  const { mutateAsync: uploadAvatar } = useUsersAdminControllerUploadAvatarForNewUser();
+  const { mutate: updateUser } = useUsersAdminControllerUpdateUser();
 
   const handleEmailVerifiedChange = useCallback(() => {
     if (currentUser) toggleEmailVerified({ id: currentUser?.id });
@@ -124,9 +128,31 @@ export function AccountGeneral({ id }: Props) {
 
   const onSubmit = handleSubmit(async (data) => {
     try {
-      await new Promise((resolve) => setTimeout(resolve, 500));
-      toast.success('Update success!');
-      console.info('DATA', data);
+      let avatarUrl: string | undefined = '';
+      if (data.avatarUrl && typeof data.avatarUrl !== 'string') {
+        const uploadResponse = await uploadAvatar({ data: { file: data.avatarUrl } });
+        avatarUrl = uploadResponse.data?.url;
+      }
+
+      const payload: AdminUpdateUserDto = {
+        firstName: data.firstName,
+        lastName: data.lastName,
+        email: data.email,
+        phone: data.phone,
+        bio: data.bio,
+        role: data.roles,
+        ...(avatarUrl ? { avatarUrl } : {}),
+      };
+
+      updateUser(
+        { id: currentUser?.id || '', data: payload },
+        {
+          onSuccess: (result) => {
+            toast.success(result.message);
+            router.push(paths.dashboard.user.list);
+          },
+        }
+      );
     } catch (error) {
       console.error(error);
     }
@@ -137,14 +163,14 @@ export function AccountGeneral({ id }: Props) {
       <Grid container spacing={3}>
         <Grid size={{ xs: 12, md: 4 }}>
           <Card sx={{ pt: 10, pb: 5, px: 3 }}>
-            {currentUser && (
+            {/* {currentUser && (
               <Label
                 color={(values.isActive && 'success') || (!values.isActive && 'error') || 'warning'}
                 sx={{ position: 'absolute', top: 24, right: 24 }}
               >
                 {values.isActive ? 'Active' : 'Inactive'}
               </Label>
-            )}
+            )} */}
 
             <Box sx={{ mb: 5 }}>
               <Field.UploadAvatar
@@ -264,7 +290,7 @@ export function AccountGeneral({ id }: Props) {
               <Field.DatePicker name="birthDate" label="Birth date" />
               <Field.Text name="locale" label="Locale" />
               <Field.Text name="timezone" label="Time zone" />
-              <Field.MultiSelect checkbox options={USER_ROLE_OPTIONS} name="roles" label="Roles" />
+              <Field.MultiSelect checkbox options={userRoleOptions} name="roles" label="Roles" />
               {currentUser && (
                 <>
                   <Field.Text name="createdAt" label="Joined At" disabled />

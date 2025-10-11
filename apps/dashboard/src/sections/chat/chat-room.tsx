@@ -1,6 +1,6 @@
 import type { BoxProps } from '@mui/material/Box';
 import type { UseNavCollapseReturn } from './hooks/use-collapse-nav';
-import type { MessageDataDto, ConversationParticipantDto } from 'src/api/models';
+import type { MessageDataDto, ConversationParticipantDto } from 'src/api/models/admin/';
 
 import Box from '@mui/material/Box';
 import Drawer from '@mui/material/Drawer';

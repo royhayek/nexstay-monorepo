@@ -135,7 +135,7 @@ export class BookingOverviewDto {
   @ApiProperty({ description: 'Tours/bookings available count' })
   toursAvailable: number;
 
-  @ApiProperty({ description: 'Sold out tours count' })
+  @ApiProperty({ description: 'booked tours count' })
   soldOutTours: number;
 
   @ApiProperty({ description: 'Available tours count' })

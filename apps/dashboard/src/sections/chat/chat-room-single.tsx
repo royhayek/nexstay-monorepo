@@ -1,4 +1,4 @@
-import type { ConversationParticipantDto } from 'src/api/models';
+import type { ConversationParticipantDto } from 'src/api/models/admin';
 
 import { useBoolean } from 'minimal-shared/hooks';
 

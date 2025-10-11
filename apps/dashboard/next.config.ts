@@ -20,6 +20,8 @@ const isStaticExport = false;
 const nextConfig: NextConfig = {
   trailingSlash: true,
   output: isStaticExport ? 'export' : undefined,
+  // Disable React Strict Mode to prevent double API calls in development
+  reactStrictMode: false,
   env: {
     BUILD_STATIC_EXPORT: JSON.stringify(isStaticExport),
   },

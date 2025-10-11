@@ -3,7 +3,7 @@ import type {
   MessageDataDto,
   ConversationDataDto,
   ConversationParticipantDto,
-} from 'src/api/models';
+} from 'src/api/models/admin';
 
 import useSWR from 'swr';
 import { useMemo } from 'react';

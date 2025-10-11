@@ -37,6 +37,7 @@ import { AccountsModule } from './modules/accounts/accounts.module';
 import { MultiCurrencyModule } from './modules/multi-currency/multi-currency.module';
 import { SecurityDepositsModule } from './modules/security-deposits/security-deposits.module';
 import { BookingInstallmentsModule } from './modules/booking-installments/booking-installments.module';
+import { CatalogsModule } from './modules/catalogs/catalogs.module';
 import { LanguageDetectionMiddleware } from './common/middleware/language-detection.middleware';
 
 @Module({
@@ -110,6 +111,7 @@ import { LanguageDetectionMiddleware } from './common/middleware/language-detect
     MultiCurrencyModule,
     SecurityDepositsModule,
     BookingInstallmentsModule,
+    CatalogsModule,
   ],
   providers: [
     { provide: APP_GUARD, useClass: ThrottlerGuard },

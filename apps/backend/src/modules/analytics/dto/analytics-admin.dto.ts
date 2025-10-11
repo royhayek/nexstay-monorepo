@@ -487,7 +487,7 @@ export class ToursAvailabilityDto {
   inactive: number;
 
   @ApiProperty({
-    description: 'Number of sold out properties',
+    description: 'Number of booked properties',
     example: 290,
     minimum: 0,
   })

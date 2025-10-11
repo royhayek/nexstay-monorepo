@@ -1,4 +1,4 @@
-import type { MessageAttachmentResponseDto } from 'src/api/models';
+import type { MessageAttachmentResponseDto } from 'src/api/models/admin';
 
 import { useBoolean } from 'minimal-shared/hooks';
 

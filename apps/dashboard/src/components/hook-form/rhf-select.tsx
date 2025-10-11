@@ -24,14 +24,26 @@ import { HelperText } from './help-text';
 
 type RHFSelectProps = TextFieldProps & {
   name: string;
-  children: React.ReactNode;
+  children?: React.ReactNode;
+  options?: Array<{
+    value: string | number;
+    label: string;
+    disabled?: boolean;
+  }>;
+  showAllOption?: boolean;
+  allOptionLabel?: string;
+  allOptionValue?: string | number;
 };
 
 export function RHFSelect({
   name,
   children,
+  options,
   helperText,
   slotProps = {},
+  showAllOption = true,
+  allOptionLabel = 'All',
+  allOptionValue = 'all',
   ...other
 }: RHFSelectProps) {
   const { control } = useFormContext();
@@ -67,7 +79,22 @@ export function RHFSelect({
           slotProps={merge(baseSlotProps, slotProps)}
           {...other}
         >
-          {children}
+          {options
+            ? [
+                ...(showAllOption
+                  ? [
+                      <MenuItem key={allOptionValue} value={allOptionValue}>
+                        {allOptionLabel}
+                      </MenuItem>,
+                    ]
+                  : []),
+                ...options.map((option) => (
+                  <MenuItem key={option.value} value={option.value} disabled={option.disabled}>
+                    {option.label}
+                  </MenuItem>
+                )),
+              ]
+            : children}
         </TextField>
       )}
     />
@@ -126,7 +153,7 @@ export function RHFMultiSelect({
                 <Checkbox
                   size="small"
                   disableRipple
-                  checked={field.value.includes(option.value)}
+                  checked={field.value ? field.value.includes(option.value) : false}
                   {...slotProps?.checkbox}
                 />
               )}

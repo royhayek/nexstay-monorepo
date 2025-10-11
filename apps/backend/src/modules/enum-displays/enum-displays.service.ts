@@ -50,7 +50,7 @@ export class EnumDisplaysService {
       .select(this.FRONTEND_FIELDS)
       .sort({ sortOrder: 1, key: 1 })
       .lean()
-      .exec();
+      .exec() as unknown as Promise<Partial<EnumDisplayDocument>[]>;
   }
 
   async findById(id: string): Promise<EnumDisplayDocument | null> {
@@ -59,7 +59,11 @@ export class EnumDisplaysService {
 
   // Frontend-optimized version
   async findByIdForFrontend(id: string): Promise<Partial<EnumDisplayDocument> | null> {
-    return this.enumDisplayModel.findById(id).select(this.FRONTEND_FIELDS).lean().exec();
+    return this.enumDisplayModel
+      .findById(id)
+      .select(this.FRONTEND_FIELDS)
+      .lean()
+      .exec() as Promise<Partial<EnumDisplayDocument> | null>;
   }
 
   async findByKey(enumName: SystemEnumName, key: string): Promise<EnumDisplayDocument | null> {
@@ -255,12 +259,12 @@ export class EnumDisplaysService {
 
   // Frontend-optimized version
   async findAllForFrontend(): Promise<Record<SystemEnumName, Partial<EnumDisplayDocument>[]>> {
-    const enumDisplays = await this.enumDisplayModel
+    const enumDisplays = (await this.enumDisplayModel
       .find()
       .select(this.FRONTEND_FIELDS)
       .sort({ enumName: 1, sortOrder: 1, key: 1 })
       .lean()
-      .exec();
+      .exec()) as unknown as Partial<EnumDisplayDocument>[];
 
     return this.buildEnumDisplayGroups(enumDisplays, true);
   }

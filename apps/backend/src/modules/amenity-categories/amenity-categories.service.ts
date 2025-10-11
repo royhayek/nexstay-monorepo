@@ -30,7 +30,7 @@ export class AmenityCategoriesService extends BaseCatalogService<AmenityCategory
       .findOne({ _id: id, deletedAt: null })
       .select(this.FRONTEND_FIELDS)
       .lean()
-      .exec();
+      .exec() as Promise<Partial<AmenityCategoryDocument> | null>;
   }
 
   async createAmenityCategory(

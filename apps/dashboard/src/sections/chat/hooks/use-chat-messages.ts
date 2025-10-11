@@ -1,20 +1,17 @@
 import { useMemo } from 'react';
 
-import { useMessagingControllerGetMessagesV1 } from 'src/api/queries/messaging/messaging';
+import { useMessagingAdminControllerGetConversationMessages } from 'src/api/queries/admin/messaging-management/messaging-management';
 
 export function useChatMessages(conversationId: string) {
   const {
     data: messagesData,
     isLoading,
     error,
-  } = useMessagingControllerGetMessagesV1(conversationId, undefined, {
+  } = useMessagingAdminControllerGetConversationMessages(conversationId, undefined, {
     query: { enabled: !!conversationId },
   });
 
-  const messages = useMemo(
-    () => messagesData?.data?.messages || [],
-    [messagesData?.data?.messages]
-  );
+  const messages = useMemo(() => messagesData?.data?.items || [], [messagesData?.data?.items]);
 
   return {
     messages,

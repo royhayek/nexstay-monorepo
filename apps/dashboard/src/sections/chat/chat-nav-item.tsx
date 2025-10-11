@@ -1,4 +1,4 @@
-import type { ConversationDataDto } from 'src/api/models';
+import type { ConversationDataDto } from 'src/api/models/admin';
 
 import { useCallback, startTransition } from 'react';
 
@@ -42,7 +42,6 @@ export function ChatNavItem({ selected, collapse, conversation, onCloseMobile }:
     getNavItem({ conversation, currentUserId: `${user?.id}` });
 
   const singleParticipant = participants[0];
-  console.log('singleParticipant', singleParticipant);
 
   const handleClickConversation = useCallback(async () => {
     try {
@@ -60,10 +59,10 @@ export function ChatNavItem({ selected, collapse, conversation, onCloseMobile }:
     } catch (error) {
       console.error(error);
     }
-  }, [conversation.id, mdUp, onCloseMobile, router]);
+  }, [conversation, mdUp, onCloseMobile, router]);
 
   const renderGroup = () => (
-    <Badge variant={hasOnlineInGroup ? 'online' : 'invisible'} badgeContent=" ">
+    <Badge variant={hasOnlineInGroup ? 'available' : 'away'} badgeContent=" ">
       <AvatarGroup variant="compact" sx={{ width: 48, height: 48 }}>
         {participants.slice(0, 2).map((participant) => (
           <Avatar
@@ -77,7 +76,7 @@ export function ChatNavItem({ selected, collapse, conversation, onCloseMobile }:
   );
 
   const renderSingle = () => (
-    <Badge variant={singleParticipant?.status} badgeContent=" ">
+    <Badge variant={singleParticipant?.presenceStatus} badgeContent=" ">
       <Avatar
         alt={`${singleParticipant?.firstName} ${singleParticipant?.lastName}`.trim()}
         src={singleParticipant?.avatarUrl}

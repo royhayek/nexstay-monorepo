@@ -1,4 +1,4 @@
-import type { ConversationParticipantDto } from 'src/api/models';
+import type { ConversationParticipantDto } from 'src/api/models/admin';
 
 import { useState, useCallback } from 'react';
 import { useBoolean } from 'minimal-shared/hooks';
@@ -37,7 +37,7 @@ export function ChatRoomGroup({ participants }: Props) {
     <>
       {participants.map((participant) => (
         <ListItemButton key={participant.id} onClick={() => handleOpen(participant)}>
-          <Badge variant="invisible" badgeContent=" ">
+          <Badge variant="away" badgeContent=" ">
             <Avatar
               alt={`${participant.firstName} ${participant.lastName}`}
               src={participant.avatarUrl}

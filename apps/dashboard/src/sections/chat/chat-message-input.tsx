@@ -1,4 +1,4 @@
-import type { ConversationParticipantDto } from 'src/api/models';
+import type { ConversationParticipantDto } from 'src/api/models/admin';
 
 import { useRef, useState, useCallback } from 'react';
 
@@ -11,13 +11,11 @@ import { useRouter } from 'src/routes/hooks';
 
 import { useSocket } from 'src/contexts/socket-io-context';
 import {
-  useMessagingControllerSendMessageV1,
-  useMessagingControllerCreateConversationV1,
-} from 'src/api/queries/messaging/messaging';
+  useMessagingAdminControllerSendMessage,
+  useMessagingAdminControllerCreateConversation,
+} from 'src/api/queries/admin/messaging-management/messaging-management';
 
 import { Iconify } from 'src/components/iconify';
-
-import { useMockedUser } from 'src/auth/hooks';
 
 // ----------------------------------------------------------------------
 
@@ -36,15 +34,13 @@ export function ChatMessageInput({
 }: Props) {
   const router = useRouter();
 
-  const { user } = useMockedUser();
-
   const fileRef = useRef<HTMLInputElement>(null);
 
   const [message, setMessage] = useState('');
 
   const { sendMessage: sendSocketMessage } = useSocket();
-  const sendMessageMutation = useMessagingControllerSendMessageV1();
-  const createConversationMutation = useMessagingControllerCreateConversationV1();
+  const sendMessageMutation = useMessagingAdminControllerSendMessage();
+  const createConversationMutation = useMessagingAdminControllerCreateConversation();
 
   // Use real-time socket for sending if available, fallback to API
   const shouldUseSocket = true; // You can add logic to determine when to use socket vs API
@@ -75,7 +71,7 @@ export function ChatMessageInput({
               id: selectedConversationId,
               data: {
                 content: message.trim(),
-                message_type: 'TEXT',
+                message_type: 'text',
               },
             });
           }
@@ -84,8 +80,9 @@ export function ChatMessageInput({
           const newConversation = await createConversationMutation.mutateAsync({
             data: {
               participants: recipients.map((r) => r.id),
-              type: 'ONE_TO_ONE',
-              priority: 'NORMAL',
+              type: 'support_guest',
+              priority: 'normal',
+              title: 'Support Chat',
             },
           });
 

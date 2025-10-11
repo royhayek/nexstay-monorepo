@@ -4,16 +4,16 @@ import Box from '@mui/material/Box';
 import Grid from '@mui/material/Grid';
 
 import { DashboardContent } from 'src/layouts/dashboard';
-import { useAdminControllerGetBookingOverviewV1 } from 'src/api/queries/admin-dashboard/admin-dashboard';
+import { useAdminControllerGetBookingOverview } from 'src/api/queries/admin/admin-dashboard/admin-dashboard';
 import {
   BookingIllustration,
   CheckInIllustration,
   CheckoutIllustration,
 } from 'src/assets/illustrations';
 import {
-  useAnalyticsControllerGetBookingDetailsV1,
-  useAnalyticsControllerGetBookingOverviewV1,
-} from 'src/api/queries/analytics/analytics';
+  useAnalyticsAdminControllerGetBookingDetails,
+  useAnalyticsAdminControllerGetBookingOverview,
+} from 'src/api/queries/admin/analytics-management/analytics-management';
 
 import { BookingBooked } from '../booking-booked';
 import { BookingNewest } from '../booking-newest';
@@ -31,14 +31,15 @@ import { BookingCustomerReviews } from '../booking-customer-reviews';
 export function OverviewBookingView() {
   // Admin dashboard queries
   const { data: adminBookingData, isLoading: adminLoading } =
-    useAdminControllerGetBookingOverviewV1();
+    useAdminControllerGetBookingOverview();
 
   // Analytics queries
   const { data: analyticsBookingData, isLoading: analyticsLoading } =
-    useAnalyticsControllerGetBookingOverviewV1();
-  const { data: bookingDetails } = useAnalyticsControllerGetBookingDetailsV1({
-    page: '1',
-    limit: '10',
+    useAnalyticsAdminControllerGetBookingOverview();
+
+  const { data: bookingDetails } = useAnalyticsAdminControllerGetBookingDetails({
+    page: 1,
+    limit: 10,
   });
 
   // Use admin data as primary source, fallback to analytics
@@ -59,9 +60,9 @@ export function OverviewBookingView() {
 
         <Grid size={{ xs: 12, md: 4 }}>
           <BookingWidgetSummary
-            title="Sold"
+            title="Completed"
             percent={0}
-            total={bookingOverview?.soldBookings || 0}
+            total={bookingOverview?.completedBookings || 0}
             icon={<CheckInIllustration />}
           />
         </Grid>
@@ -70,7 +71,7 @@ export function OverviewBookingView() {
           <BookingWidgetSummary
             title="Canceled"
             percent={0}
-            total={bookingOverview?.canceledBookings || 0}
+            total={bookingOverview?.cancelledBookings || 0}
             icon={<CheckoutIllustration />}
           />
         </Grid>

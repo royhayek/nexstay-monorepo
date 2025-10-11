@@ -1,4 +1,4 @@
-import type { IChatParticipant } from 'src/types/chat';
+import type { ConversationParticipantDto } from 'src/api/models/admin';
 
 import Box from '@mui/material/Box';
 import Avatar from '@mui/material/Avatar';
@@ -11,8 +11,8 @@ import { SearchNotFound } from 'src/components/search-not-found';
 
 type Props = {
   query: string;
-  results: IChatParticipant[];
-  onClickResult: (contact: IChatParticipant) => void;
+  results: ConversationParticipantDto[];
+  onClickResult: (contact: ConversationParticipantDto) => void;
 };
 
 export function ChatNavSearchResults({ query, results, onClickResult }: Props) {
@@ -35,22 +35,25 @@ export function ChatNavSearchResults({ query, results, onClickResult }: Props) {
   const renderResults = () => (
     <nav>
       <Box component="ul" sx={{ '& li': { display: 'flex' } }}>
-        {results.map((result) => (
-          <li key={result.id}>
-            <ListItemButton
-              onClick={() => onClickResult(result)}
-              sx={{
-                gap: 2,
-                py: 1.5,
-                px: 2.5,
-                typography: 'subtitle2',
-              }}
-            >
-              <Avatar alt={result.name} src={result.avatarUrl} />
-              {result.name}
-            </ListItemButton>
-          </li>
-        ))}
+        {results.map((result) => {
+          const participantName = `${result.firstName} ${result.lastName}`;
+          return (
+            <li key={result.id}>
+              <ListItemButton
+                onClick={() => onClickResult(result)}
+                sx={{
+                  gap: 2,
+                  py: 1.5,
+                  px: 2.5,
+                  typography: 'subtitle2',
+                }}
+              >
+                <Avatar alt={participantName} src={result.avatarUrl} />
+                {participantName}
+              </ListItemButton>
+            </li>
+          );
+        })}
       </Box>
     </nav>
   );

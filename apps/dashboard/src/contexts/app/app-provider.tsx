@@ -4,69 +4,92 @@ import type { AppContextValue, AppProviderProps } from './types';
 
 import { useMemo, useCallback } from 'react';
 
+import { useEnumDisplaysAdminControllerFindAll } from 'src/api/queries/admin/enum-displays-management/enum-displays-management';
+import { useI18nPublicControllerGetSupportedLanguages } from 'src/api/queries/public/internationalization-public/internationalization-public';
+
+import { useAuthContext } from 'src/auth/hooks';
+
 import { AppContext } from './app-context';
-import { useCatalogsControllerGetCatalogsV1 } from '../../api/queries/catalogs/catalogs';
-import { useI18nControllerGetSupportedLanguagesV1 } from '../../api/queries/internationalization/internationalization';
 
 // ----------------------------------------------------------------------
 
 export function AppProvider({ children }: AppProviderProps) {
+  const { authenticated } = useAuthContext();
+
   const {
-    data: catalog,
-    isLoading: catalogLoading,
-    error: catalogError,
-    refetch: refetchCatalog,
-  } = useCatalogsControllerGetCatalogsV1(
-    {
-      include:
-        'currencies,enumDisplays,amenityCategories,amenities,bedTypes,propertyTypes,roomTypes,cancellationPolicies,currencies,notificationTypes,paymentProviders',
-      locale: 'en',
+    data: enumDisplaysResponse,
+    isLoading: isLoadingEnumDisplays,
+    error: isErrorEnumDisplays,
+    refetch: refetchEnumDisplays,
+  } = useEnumDisplaysAdminControllerFindAll({
+    query: {
+      enabled: authenticated,
+      staleTime: 5 * 60 * 1000, // 5 minutes
+      refetchOnWindowFocus: false,
+      refetchOnMount: true,
     },
-    {
-      query: {
-        staleTime: 5 * 60 * 1000, // 5 minutes
-        cacheTime: 10 * 60 * 1000, // 10 minutes
-        refetchOnWindowFocus: false,
-        refetchOnMount: true,
-      },
-    }
-  );
+  });
 
   const {
     data: supportedLanguages,
-    isLoading: languagesLoading,
-    error: languagesError,
+    isLoading: isLoadingLanguages,
+    error: isErrorLanguages,
     refetch: refetchLanguages,
-  } = useI18nControllerGetSupportedLanguagesV1({
+  } = useI18nPublicControllerGetSupportedLanguages({
     query: {
       staleTime: 30 * 60 * 1000, // 30 minutes (languages don't change often)
-      cacheTime: 60 * 60 * 1000, // 1 hour
       refetchOnWindowFocus: false,
       refetchOnMount: true,
     },
   });
 
   const handleRefetch = useCallback(() => {
-    refetchCatalog();
+    refetchEnumDisplays();
     refetchLanguages();
-  }, [refetchCatalog, refetchLanguages]);
+  }, [refetchEnumDisplays, refetchLanguages]);
+
+  const enumDisplaysObject = useMemo(
+    () => enumDisplaysResponse?.data || {},
+    [enumDisplaysResponse?.data]
+  );
+
+  const currentLanguage = useMemo(
+    () => supportedLanguages?.data?.current || 'en',
+    [supportedLanguages]
+  );
+
+  const supportedLanguagesList = useMemo(
+    () => supportedLanguages?.data?.supported || [],
+    [supportedLanguages]
+  );
 
   const memoizedValue = useMemo<AppContextValue>(
     () => ({
-      catalog: catalog?.data || null,
-      supportedLanguages:
-        (supportedLanguages as any)?.data?.supported || supportedLanguages || null,
-      isLoading: catalogLoading || languagesLoading,
-      error: (catalogError as Error | null) || (languagesError as Error | null) || null,
-      refetch: handleRefetch,
+      enumDisplays: {
+        data: enumDisplaysObject,
+        isLoading: isLoadingEnumDisplays,
+        error: isErrorEnumDisplays,
+        refetch: refetchEnumDisplays,
+      },
+      currentLanguage,
+      supportedLanguages: {
+        data: supportedLanguagesList,
+        isLoading: isLoadingLanguages,
+        error: isErrorLanguages,
+        refetch: refetchLanguages,
+      },
+      handleRefetch,
     }),
     [
-      catalog,
-      supportedLanguages,
-      catalogLoading,
-      languagesLoading,
-      catalogError,
-      languagesError,
+      enumDisplaysObject,
+      isLoadingEnumDisplays,
+      isErrorEnumDisplays,
+      refetchEnumDisplays,
+      currentLanguage,
+      supportedLanguagesList,
+      isLoadingLanguages,
+      isErrorLanguages,
+      refetchLanguages,
       handleRefetch,
     ]
   );

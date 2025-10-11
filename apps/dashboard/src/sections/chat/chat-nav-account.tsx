@@ -30,7 +30,7 @@ export function ChatNavAccount() {
 
   const menuActions = usePopover();
 
-  const [status, setStatus] = useState<BadgeProps['variant']>('online');
+  const [status, setStatus] = useState<BadgeProps['variant']>('available');
 
   const handleChangeStatus = useCallback((event: SelectChangeEvent) => {
     setStatus(event.target.value as BadgeProps['variant']);
@@ -102,7 +102,7 @@ export function ChatNavAccount() {
                 },
               }}
             >
-              {['online', 'always', 'busy', 'offline'].map((option) => (
+              {['available', 'busy', 'away', 'offline'].map((option) => (
                 <option key={option} value={option}>
                   {option}
                 </option>

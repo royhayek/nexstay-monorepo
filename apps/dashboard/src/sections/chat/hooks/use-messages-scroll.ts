@@ -1,4 +1,4 @@
-import type { MessageDataDto } from 'src/api/models';
+import type { MessageDataDto } from 'src/api/models/admin';
 
 import { useRef, useEffect, useCallback } from 'react';
 

@@ -1,6 +1,6 @@
 'use client';
 
-import type { ConversationParticipantDto } from 'src/api/models';
+import type { ConversationParticipantDto } from 'src/api/models/admin';
 
 import { useState, useEffect, useCallback, startTransition } from 'react';
 
@@ -12,9 +12,9 @@ import { useRouter, useSearchParams } from 'src/routes/hooks';
 import { CONFIG } from 'src/global-config';
 import { DashboardContent } from 'src/layouts/dashboard';
 import {
-  useMessagingControllerGetConversationV1,
-  useMessagingControllerGetSupportConversationsV1,
-} from 'src/api/queries/messaging/messaging';
+  useMessagingAdminControllerGetConversationById,
+  useMessagingAdminControllerGetSupportConversations,
+} from 'src/api/queries/admin/messaging-management/messaging-management';
 
 import { EmptyContent } from 'src/components/empty-content';
 
@@ -41,26 +41,26 @@ export function ChatView() {
   const selectedConversationId = searchParams.get('id') || '';
 
   const { data: conversationsData, isLoading: conversationsLoading } =
-    useMessagingControllerGetSupportConversationsV1();
+    useMessagingAdminControllerGetSupportConversations();
   const {
     data: conversationData,
     error: conversationError,
     isLoading: conversationLoading,
-  } = useMessagingControllerGetConversationV1(selectedConversationId, {
+  } = useMessagingAdminControllerGetConversationById(selectedConversationId, {
     query: { enabled: !!selectedConversationId },
   });
 
   const { messages: conversationMessages, isLoading: messagesLoading } =
     useChatMessages(selectedConversationId);
 
-  const conversations = conversationsData?.data?.conversations || [];
+  const conversations = conversationsData?.data?.items || [];
   const conversation = conversationData;
   const contacts: ConversationParticipantDto[] = []; // TODO: Implement contacts API
 
   // Transform conversations for the existing UI structure
   const conversationsTransformed = {
-    byId: conversations.reduce((acc, conv) => ({ ...acc, [conv.id]: conv }), {}),
-    allIds: conversations.map((conv) => conv.id),
+    byId: conversations.reduce((acc, conv) => ({ ...acc, [conv._id]: conv }), {}),
+    allIds: conversations.map((conv) => conv._id),
   };
 
   const roomNav = useCollapseNav();

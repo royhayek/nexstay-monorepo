@@ -24,6 +24,8 @@ export const paths = {
     },
     jwt: {
       signIn: `${ROOTS.AUTH}/jwt/sign-in`,
+      updatePassword: `${ROOTS.AUTH}/jwt/update-password`,
+      resetPassword: `${ROOTS.AUTH}/jwt/reset-password`,
     },
     firebase: {
       signIn: `${ROOTS.AUTH}/firebase/sign-in`,
@@ -83,6 +85,20 @@ export const paths = {
       list: `${ROOTS.DASHBOARD}/reviews/list`,
       details: (id: string) => `${ROOTS.DASHBOARD}/reviews/${id}`,
     },
+    identityVerification: {
+      root: `${ROOTS.DASHBOARD}/identity-verification`,
+      list: `${ROOTS.DASHBOARD}/identity-verification/list`,
+      details: (id: string) => `${ROOTS.DASHBOARD}/identity-verification/${id}`,
+      documentTypes: `${ROOTS.DASHBOARD}/identity-verification/document-types`,
+      stats: `${ROOTS.DASHBOARD}/identity-verification/stats`,
+    },
+    payouts: {
+      root: `${ROOTS.DASHBOARD}/payouts`,
+      list: `${ROOTS.DASHBOARD}/payouts/list`,
+      new: `${ROOTS.DASHBOARD}/payouts/new`,
+      edit: (id: string) => `${ROOTS.DASHBOARD}/payouts/${id}/edit`,
+      details: (id: string) => `${ROOTS.DASHBOARD}/payouts/${id}`,
+    },
     settings: {
       root: `${ROOTS.DASHBOARD}/settings`,
       configuration: `${ROOTS.DASHBOARD}/settings/configuration`,
@@ -96,14 +112,42 @@ export const paths = {
     enumDisplays: {
       root: `${ROOTS.DASHBOARD}/enum-displays`,
       list: `${ROOTS.DASHBOARD}/enum-displays/list`,
+      detail: `${ROOTS.DASHBOARD}/enum-displays/detail`,
       new: `${ROOTS.DASHBOARD}/enum-displays/new`,
-      edit: (enumName: string, key: string) =>
-        `${ROOTS.DASHBOARD}/enum-displays/${enumName}/${key}/edit`,
+      edit: (id: string) => `${ROOTS.DASHBOARD}/enum-displays/${id}/edit`,
       enumType: (enumName: string) => `${ROOTS.DASHBOARD}/enum-displays/enum-type/${enumName}`,
     },
     chat: `${ROOTS.DASHBOARD}/chat`,
     catalogs: {
       root: `${ROOTS.DASHBOARD}/catalogs`,
+    },
+    splitPayments: {
+      root: `${ROOTS.DASHBOARD}/split-payments`,
+      list: `${ROOTS.DASHBOARD}/split-payments/list`,
+      new: `${ROOTS.DASHBOARD}/split-payments/new`,
+      edit: (id: string) => `${ROOTS.DASHBOARD}/split-payments/${id}/edit`,
+      details: (id: string) => `${ROOTS.DASHBOARD}/split-payments/${id}`,
+      stats: `${ROOTS.DASHBOARD}/split-payments/stats`,
+    },
+    taxAdministration: {
+      root: `${ROOTS.DASHBOARD}/tax-administration`,
+      jurisdictions: {
+        root: `${ROOTS.DASHBOARD}/tax-administration/jurisdictions`,
+        list: `${ROOTS.DASHBOARD}/tax-administration/jurisdictions/list`,
+        new: `${ROOTS.DASHBOARD}/tax-administration/jurisdictions/new`,
+        edit: (id: string) => `${ROOTS.DASHBOARD}/tax-administration/jurisdictions/${id}/edit`,
+      },
+      rates: {
+        root: `${ROOTS.DASHBOARD}/tax-administration/rates`,
+        list: `${ROOTS.DASHBOARD}/tax-administration/rates/list`,
+        new: `${ROOTS.DASHBOARD}/tax-administration/rates/new`,
+        edit: (id: string) => `${ROOTS.DASHBOARD}/tax-administration/rates/${id}/edit`,
+      },
+      reports: {
+        root: `${ROOTS.DASHBOARD}/tax-administration/reports`,
+        list: `${ROOTS.DASHBOARD}/tax-administration/reports/list`,
+      },
+      analytics: `${ROOTS.DASHBOARD}/tax-administration/analytics`,
     },
   },
 };

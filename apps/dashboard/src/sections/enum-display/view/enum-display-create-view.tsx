@@ -6,7 +6,7 @@ import { DashboardContent } from 'src/layouts/dashboard';
 
 import { CustomBreadcrumbs } from 'src/components/custom-breadcrumbs';
 
-import { EnumDisplayNewEditForm } from '../enum-display-new-edit-form';
+import { EnumDisplayDynamicForm } from '../enum-display-dynamic-form';
 
 // ----------------------------------------------------------------------
 
@@ -24,7 +24,7 @@ export function EnumDisplayCreateView() {
         sx={{ mb: { xs: 3, md: 5 } }}
       />
 
-      <EnumDisplayNewEditForm />
+      <EnumDisplayDynamicForm />
     </DashboardContent>
   );
 }

@@ -1,4 +1,4 @@
-import type { IChatParticipant } from 'src/types/chat';
+import type { ConversationParticipantDto } from 'src/api/models/admin';
 
 import { useState, useCallback } from 'react';
 import { varAlpha } from 'minimal-shared/utils';
@@ -16,15 +16,15 @@ import { SearchNotFound } from 'src/components/search-not-found';
 // ----------------------------------------------------------------------
 
 type Props = {
-  contacts: IChatParticipant[];
-  onAddRecipients: (selected: IChatParticipant[]) => void;
+  contacts: ConversationParticipantDto[];
+  onAddRecipients: (selected: ConversationParticipantDto[]) => void;
 };
 
 export function ChatHeaderCompose({ contacts, onAddRecipients }: Props) {
   const [searchRecipients, setSearchRecipients] = useState('');
 
   const handleAddRecipients = useCallback(
-    (selected: IChatParticipant[]) => {
+    (selected: ConversationParticipantDto[]) => {
       setSearchRecipients('');
       onAddRecipients(selected);
     },
@@ -48,11 +48,13 @@ export function ChatHeaderCompose({ contacts, onAddRecipients }: Props) {
         onChange={(event, newValue) => handleAddRecipients(newValue)}
         onInputChange={(event, newValue) => setSearchRecipients(newValue)}
         options={contacts}
-        getOptionLabel={(recipient) => recipient.name}
+        getOptionLabel={(recipient) => recipient.firstName + ' ' + recipient.lastName}
         isOptionEqualToValue={(option, value) => option.id === value.id}
         renderInput={(params) => <TextField {...params} placeholder="+ Recipients" />}
         renderOption={(props, option, state) => {
           const { key, ...otherProps } = props;
+
+          const optionName = `${option.firstName} ${option.lastName}`.trim();
 
           return (
             <li key={key} {...otherProps}>
@@ -66,7 +68,7 @@ export function ChatHeaderCompose({ contacts, onAddRecipients }: Props) {
                   position: 'relative',
                 }}
               >
-                <Avatar alt={option.name} src={option.avatarUrl} sx={{ width: 1, height: 1 }} />
+                <Avatar alt={optionName} src={option.avatarUrl} sx={{ width: 1, height: 1 }} />
                 <Box
                   sx={[
                     (theme) => ({
@@ -91,7 +93,7 @@ export function ChatHeaderCompose({ contacts, onAddRecipients }: Props) {
                   <Iconify icon="eva:checkmark-fill" />
                 </Box>
               </Box>
-              {option.name}
+              {optionName}
             </li>
           );
         }}
@@ -100,8 +102,10 @@ export function ChatHeaderCompose({ contacts, onAddRecipients }: Props) {
             <Chip
               {...getItemProps({ index })}
               key={option.id}
-              label={option.name}
-              avatar={<Avatar alt={option.name} src={option.avatarUrl} />}
+              label={`${option.firstName} ${option.lastName}`}
+              avatar={
+                <Avatar alt={`${option.firstName} ${option.lastName}`} src={option.avatarUrl} />
+              }
               size="small"
               variant="soft"
             />

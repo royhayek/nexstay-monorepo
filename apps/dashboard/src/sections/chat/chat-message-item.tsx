@@ -1,4 +1,4 @@
-import type { MessageDataDto, ConversationParticipantDto } from 'src/api/models';
+import type { MessageDataDto, ConversationParticipantDto } from 'src/api/models/admin';
 
 import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
@@ -25,15 +25,9 @@ type Props = {
 export function ChatMessageItem({ message, participants, onOpenLightbox }: Props) {
   const { user } = useMockedUser();
 
-  const { me, senderDetails, hasImage } = getMessage({
-    message,
-    participants,
-    currentUserId: `${user?.id}`,
-  });
+  const { me, senderDetails, hasImage } = getMessage({ message, currentUserId: `${user?.id}` });
 
   const { firstName, avatarUrl } = senderDetails;
-
-  const content = message?.content || '';
   const createdAt = message?.createdAt || '';
 
   const renderInfo = () => (
@@ -65,8 +59,8 @@ export function ChatMessageItem({ message, participants, onOpenLightbox }: Props
         <Box
           component="img"
           alt="Attachment"
-          src={content}
-          onClick={() => onOpenLightbox(content)}
+          src={message.content}
+          onClick={() => onOpenLightbox(message.content)}
           sx={{
             width: 400,
             height: 'auto',
@@ -78,7 +72,7 @@ export function ChatMessageItem({ message, participants, onOpenLightbox }: Props
           }}
         />
       ) : (
-        content
+        message.content
       )}
     </Stack>
   );
@@ -113,7 +107,7 @@ export function ChatMessageItem({ message, participants, onOpenLightbox }: Props
     </Box>
   );
 
-  if (!content) {
+  if (!message.content) {
     return null;
   }
 

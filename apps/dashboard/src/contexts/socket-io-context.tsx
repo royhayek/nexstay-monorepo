@@ -1,7 +1,7 @@
 'use client';
 
 import type { Socket } from 'socket.io-client';
-import type { MessageResponseDto } from 'src/api/models';
+import type { MessageDataDto } from 'src/api/models/admin';
 
 import { io } from 'socket.io-client';
 import { useQueryClient } from '@tanstack/react-query';
@@ -46,7 +46,7 @@ export function SocketProvider({ children }: SocketProviderProps) {
     });
 
     // Listen for new messages
-    socketInstance.on('new_message', (message: MessageResponseDto) => {
+    socketInstance.on('new_message', (message: MessageDataDto) => {
       console.log('New message received:', message);
 
       // Invalidate messages query to refetch

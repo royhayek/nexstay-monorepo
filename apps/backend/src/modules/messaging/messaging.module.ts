@@ -23,7 +23,7 @@ import { MessagingService } from './messaging.service';
       imports: [ConfigModule],
       useFactory: (cs: ConfigService) => ({
         secret: cs.get<string>('JWT_SECRET', 'fallbackSecret'),
-        signOptions: { expiresIn: cs.get<string>('JWT_EXPIRES_IN', '15m') },
+        signOptions: { expiresIn: cs.get<string>('JWT_EXPIRES_IN', '15m') as any },
       }),
       inject: [ConfigService],
     }),

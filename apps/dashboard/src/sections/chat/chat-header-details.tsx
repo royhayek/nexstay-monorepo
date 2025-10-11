@@ -1,5 +1,5 @@
-import type { IChatParticipant } from 'src/types/chat';
 import type { UseNavCollapseReturn } from './hooks/use-collapse-nav';
+import type { ConversationParticipantDto } from 'src/api/models/admin';
 
 import { useCallback } from 'react';
 import { usePopover } from 'minimal-shared/hooks';
@@ -26,7 +26,7 @@ import { ChatHeaderSkeleton } from './chat-skeleton';
 
 type Props = {
   loading: boolean;
-  participants: IChatParticipant[];
+  participants: ConversationParticipantDto[];
   collapseNav: UseNavCollapseReturn;
 };
 
@@ -38,6 +38,8 @@ export function ChatHeaderDetails({ collapseNav, participants, loading }: Props)
   const isGroup = participants.length > 1;
 
   const singleParticipant = participants[0];
+
+  const participantName = `${singleParticipant?.firstName} ${singleParticipant?.lastName}`;
 
   const { collapseDesktop, onCollapseDesktop, onOpenMobile } = collapseNav;
 
@@ -61,23 +63,27 @@ export function ChatHeaderDetails({ collapseNav, participants, loading }: Props)
       }}
     >
       {participants.map((participant) => (
-        <Avatar key={participant.id} alt={participant.name} src={participant.avatarUrl} />
+        <Avatar
+          key={participant.id}
+          alt={`${participant.firstName} ${participant.lastName}`}
+          src={participant.avatarUrl}
+        />
       ))}
     </AvatarGroup>
   );
 
   const renderSingle = () => (
     <Box sx={{ gap: 2, display: 'flex', alignItems: 'center' }}>
-      <Badge variant={singleParticipant?.status} badgeContent=" ">
-        <Avatar src={singleParticipant?.avatarUrl} alt={singleParticipant?.name} />
+      <Badge variant={singleParticipant?.presenceStatus} badgeContent=" ">
+        <Avatar src={singleParticipant?.avatarUrl} alt={participantName} />
       </Badge>
 
       <ListItemText
-        primary={singleParticipant?.name}
+        primary={participantName}
         secondary={
-          singleParticipant?.status === 'offline'
+          singleParticipant?.presenceStatus === 'offline'
             ? fToNow(singleParticipant?.lastActivity)
-            : singleParticipant?.status
+            : singleParticipant?.presenceStatus
         }
       />
     </Box>

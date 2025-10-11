@@ -4,7 +4,7 @@ import Grid from '@mui/material/Grid';
 import { useTheme } from '@mui/material/styles';
 
 import { DashboardContent } from 'src/layouts/dashboard';
-import { useAnalyticsControllerGetDashboardOverviewV1 } from 'src/api/queries/analytics/analytics';
+import { useAnalyticsAdminControllerGetDashboardOverview } from 'src/api/queries/admin/analytics-management/analytics-management';
 
 import { AppNewInvoice } from '../app-new-invoice';
 import { AppTopAuthors } from '../app-top-authors';
@@ -18,7 +18,7 @@ import { AppTopInstalledCountries } from '../app-top-installed-countries';
 export function OverviewAppView() {
   const theme = useTheme();
 
-  const { data: dashboardData } = useAnalyticsControllerGetDashboardOverviewV1();
+  const { data: dashboardData } = useAnalyticsAdminControllerGetDashboardOverview();
 
   const metrics = dashboardData?.data?.metrics || [];
   const platformDistribution = dashboardData?.data?.platformDistribution || [];

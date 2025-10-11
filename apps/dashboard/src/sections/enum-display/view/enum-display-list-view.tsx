@@ -1,362 +1,189 @@
 'use client';
 
-import type { EnumDisplayDataDto } from 'src/api/models';
-import type { TableHeadCellProps } from 'src/components/table';
-import type { IEnumDisplayTableFilters } from '../enum-display-table-toolbar';
+import type { EnumDisplayDataDto } from 'src/api/models/admin';
 
-import { useBoolean, useSetState } from 'minimal-shared/hooks';
-import { useMemo, useState, useEffect, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
+import { useMemo, useState, useCallback } from 'react';
 
 import Box from '@mui/material/Box';
-import Tab from '@mui/material/Tab';
-import Tabs from '@mui/material/Tabs';
-import Card from '@mui/material/Card';
-import Table from '@mui/material/Table';
+import Grid from '@mui/material/Grid';
 import Button from '@mui/material/Button';
-import Tooltip from '@mui/material/Tooltip';
-import TableBody from '@mui/material/TableBody';
-import IconButton from '@mui/material/IconButton';
-import LinearProgress from '@mui/material/LinearProgress';
+import TextField from '@mui/material/TextField';
+import Typography from '@mui/material/Typography';
+import InputAdornment from '@mui/material/InputAdornment';
+import CircularProgress from '@mui/material/CircularProgress';
 
 import { paths } from 'src/routes/paths';
 import { RouterLink } from 'src/routes/components';
 
 import { DashboardContent } from 'src/layouts/dashboard';
-import {
-  useEnumDisplaysControllerDeleteV1,
-  useEnumDisplaysControllerFindAllPaginatedV1,
-} from 'src/api/queries/enum-displays/enum-displays';
+import { useEnumDisplaysAdminControllerFindAll } from 'src/api/queries/admin/enum-displays-management/enum-displays-management';
 
-import { toast } from 'src/components/snackbar';
 import { Iconify } from 'src/components/iconify';
-import { Scrollbar } from 'src/components/scrollbar';
-import { ConfirmDialog } from 'src/components/custom-dialog';
+import { EmptyContent } from 'src/components/empty-content';
 import { CustomBreadcrumbs } from 'src/components/custom-breadcrumbs';
-import {
-  useTable,
-  emptyRows,
-  TableNoData,
-  TableEmptyRows,
-  TableHeadCustom,
-  TableSelectedAction,
-  TablePaginationCustom,
-} from 'src/components/table';
 
-import { EnumDisplayTableRow } from '../enum-display-table-row';
-import { EnumDisplayTableToolbar } from '../enum-display-table-toolbar';
+import { EnumDisplayCard } from '../enum-display-card';
 
 // ----------------------------------------------------------------------
 
-const VISIBILITY_OPTIONS = [
-  { value: 'all', label: 'All' },
-  { value: 'visible', label: 'Visible' },
-  { value: 'hidden', label: 'Hidden' },
-];
-
-const TABLE_HEAD: TableHeadCellProps[] = [
-  { id: 'label', label: 'Label', width: 280 },
-  { id: 'enumName', label: 'Enum', width: 160 },
-  { id: 'languages', label: 'Languages', width: 200 },
-  { id: 'sortOrder', label: 'Sort Order', width: 120, align: 'center' },
-  { id: 'isVisible', label: 'Status', width: 120, align: 'center' },
-  { id: '', width: 88 },
-];
-
-// ----------------------------------------------------------------------
+interface GroupedEnumData {
+  [enumName: string]: EnumDisplayDataDto[];
+}
 
 export function EnumDisplayListView() {
-  const table = useTable();
-  const confirmDialog = useBoolean();
+  const router = useRouter();
+  const [searchQuery, setSearchQuery] = useState('');
 
-  const [tableData, setTableData] = useState<EnumDisplayDataDto[]>([]);
+  // Fetch enum display data
+  const { data: enumDisplaysData, isLoading } = useEnumDisplaysAdminControllerFindAll();
 
-  const filters = useSetState<IEnumDisplayTableFilters>({
-    name: '',
-    enumName: '',
-    isVisible: 'all',
-  });
-  const { state: currentFilters, setState: updateFilters } = filters;
+  // Process data into grouped format
+  const groupedData = useMemo<GroupedEnumData>(() => {
+    if (!enumDisplaysData?.data) return {};
 
-  // Build query params
-  const queryParams = useMemo(() => {
-    const params: any = {
-      page: table.page,
-      limit: table.rowsPerPage,
-    };
-
-    if (currentFilters.name) {
-      params.search = currentFilters.name;
+    // Check if data is already grouped (object of arrays)
+    if (!Array.isArray(enumDisplaysData.data)) {
+      return enumDisplaysData.data as GroupedEnumData;
     }
 
-    if (currentFilters.enumName) {
-      params.enumName = currentFilters.enumName;
-    }
-
-    if (currentFilters.isVisible !== 'all') {
-      params.isVisible = currentFilters.isVisible === 'visible';
-    }
-
-    return params;
-  }, [table.page, table.rowsPerPage, currentFilters]);
-
-  const { data: enumDisplaysData, isLoading } =
-    useEnumDisplaysControllerFindAllPaginatedV1(queryParams);
-
-  const enumDisplaysList = useMemo(
-    () => enumDisplaysData?.data?.data || [],
-    [enumDisplaysData?.data?.data]
-  );
-
-  const { mutate: deleteEnumDisplay } = useEnumDisplaysControllerDeleteV1();
-
-  useEffect(() => {
-    if (enumDisplaysList) setTableData(enumDisplaysList);
-  }, [enumDisplaysList]);
-
-  // Get enum name options from data
-  const enumNameOptions = useMemo(() => {
-    const uniqueEnums = Array.from(new Set(tableData.map((item) => item.enumName))).sort();
-    return uniqueEnums;
-  }, [tableData]);
-
-  // Filter counts
-  const filteredDataCount = useMemo(
-    () => ({
-      all: tableData.length,
-      visible: tableData.filter((item) => item.isVisible).length,
-      hidden: tableData.filter((item) => !item.isVisible).length,
-    }),
-    [tableData]
-  );
-
-  const canReset =
-    !!currentFilters.name || !!currentFilters.enumName || currentFilters.isVisible !== 'all';
-
-  const notFound = (!tableData.length && canReset) || !tableData.length;
-
-  const handleDeleteRow = useCallback(
-    (row: EnumDisplayDataDto) => {
-      const deleteRow = tableData.filter((item) => item._id !== row._id);
-
-      deleteEnumDisplay(
-        { enumName: row.enumName, key: row.key },
-        {
-          onSuccess: () => {
-            toast.success('Enum display deleted successfully');
-            setTableData(deleteRow);
-            table.onUpdatePageDeleteRow(tableData.length);
-          },
-          onError: () => {
-            toast.error('Failed to delete enum display');
-          },
-        }
-      );
-    },
-    [deleteEnumDisplay, table, tableData]
-  );
-
-  const handleDeleteRows = useCallback(() => {
-    const keptRows = tableData.filter((row) => !table.selected.includes(row._id));
-    const deletedRows = tableData.filter((row) => table.selected.includes(row._id));
-
-    // Delete selected rows one by one
-    deletedRows.forEach((row) => {
-      deleteEnumDisplay(
-        { enumName: row.enumName, key: row.key },
-        {
-          onSuccess: () => {
-            toast.success('Enum displays deleted successfully');
-          },
-          onError: () => {
-            toast.error('Failed to delete some enum displays');
-          },
-        }
-      );
+    // If data is a flat array, group by enumName
+    const grouped: GroupedEnumData = {};
+    enumDisplaysData.data.forEach((item: EnumDisplayDataDto) => {
+      if (!grouped[item.enumName]) {
+        grouped[item.enumName] = [];
+      }
+      grouped[item.enumName].push(item);
     });
 
-    setTableData(keptRows);
-    table.onUpdatePageDeleteRows(tableData.length, tableData.length);
-  }, [deleteEnumDisplay, table, tableData]);
+    return grouped;
+  }, [enumDisplaysData?.data]);
 
-  const handleFilterVisibility = useCallback(
-    (_event: React.SyntheticEvent, newValue: string) => {
-      table.onResetPage();
-      updateFilters({ isVisible: newValue as 'all' | 'visible' | 'hidden' });
+  // Filter enums based on search query
+  const filteredEnums = useMemo(() => {
+    if (!searchQuery) return groupedData;
+
+    const filtered: GroupedEnumData = {};
+    Object.entries(groupedData).forEach(([enumName, items]) => {
+      if (
+        enumName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        items.some(
+          (item) =>
+            item.key.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            (typeof item.label === 'object' &&
+              Object.values(item.label as Record<string, string>).some((val) =>
+                val.toLowerCase().includes(searchQuery.toLowerCase())
+              ))
+        )
+      ) {
+        filtered[enumName] = items;
+      }
+    });
+
+    return filtered;
+  }, [groupedData, searchQuery]);
+
+  const enumNames = Object.keys(filteredEnums);
+
+  const handleViewDetails = useCallback(
+    (enumName: string) => {
+      // Navigate to detail page with enum as query parameter
+      router.push(`${paths.dashboard.enumDisplays.detail}?enum=${enumName}`);
     },
-    [updateFilters, table]
+    [router]
   );
 
-  const renderConfirmDialog = () => (
-    <ConfirmDialog
-      open={confirmDialog.value}
-      onClose={confirmDialog.onFalse}
-      title="Delete"
-      content={
-        <>
-          Are you sure you want to delete <strong> {table.selected.length} </strong> items?
-        </>
-      }
-      action={
-        <Button
-          variant="contained"
-          color="error"
-          onClick={() => {
-            handleDeleteRows();
-            confirmDialog.onFalse();
-          }}
-        >
-          Delete
-        </Button>
-      }
-    />
+  const handleEditEnum = useCallback(
+    (enumName: string) => {
+      // Navigate to edit page with enumName as query parameter
+      router.push(`${paths.dashboard.enumDisplays.new}?enumName=${enumName}`);
+    },
+    [router]
   );
 
   return (
-    <>
-      <DashboardContent>
-        <CustomBreadcrumbs
-          heading="Enum Displays"
-          links={[
-            { name: 'Dashboard', href: paths.dashboard.root },
-            { name: 'System', href: paths.dashboard.enumDisplays.root },
-            { name: 'Enum Displays' },
-          ]}
-          action={
-            <Button
-              component={RouterLink}
-              href={paths.dashboard.enumDisplays.new}
-              variant="contained"
-              startIcon={<Iconify icon="mingcute:add-line" />}
-            >
-              New Enum Display
-            </Button>
-          }
-          sx={{ mb: { xs: 3, md: 5 } }}
-        />
-
-        <Card>
-          <Tabs
-            value={currentFilters.isVisible || 'all'}
-            onChange={handleFilterVisibility}
-            sx={{
-              px: 2.5,
-              boxShadow: (theme) => `inset 0 -2px 0 0 ${theme.vars.palette.grey['500']}08`,
-            }}
+    <DashboardContent>
+      <CustomBreadcrumbs
+        heading="Enum Displays"
+        links={[
+          { name: 'Dashboard', href: paths.dashboard.root },
+          { name: 'System', href: paths.dashboard.enumDisplays.root },
+          { name: 'Enum Displays' },
+        ]}
+        action={
+          <Button
+            component={RouterLink}
+            href={paths.dashboard.enumDisplays.new}
+            variant="contained"
+            startIcon={<Iconify icon="mingcute:add-line" />}
           >
-            {VISIBILITY_OPTIONS.map((tab) => {
-              const count = filteredDataCount[tab.value as keyof typeof filteredDataCount] || 0;
+            New Enum Display
+          </Button>
+        }
+        sx={{ mb: { xs: 3, md: 5 } }}
+      />
 
-              return (
-                <Tab
-                  key={tab.value}
-                  iconPosition="end"
-                  value={tab.value}
-                  label={tab.label}
-                  icon={
-                    <Box
-                      sx={{
-                        minWidth: 24,
-                        height: 20,
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        borderRadius: 0.75,
-                        bgcolor: 'primary.main',
-                        color: 'primary.contrastText',
-                        typography: 'caption',
-                        fontWeight: 'bold',
-                      }}
-                    >
-                      {count}
-                    </Box>
-                  }
+      {/* Search Bar */}
+      <Box sx={{ mb: 3 }}>
+        <TextField
+          fullWidth
+          placeholder="Search enum types, keys, or labels..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          slotProps={{
+            input: {
+              startAdornment: (
+                <InputAdornment position="start">
+                  <Iconify icon="eva:search-fill" sx={{ color: 'text.disabled' }} />
+                </InputAdornment>
+              ),
+            },
+          }}
+          sx={{ maxWidth: 480 }}
+        />
+      </Box>
+
+      {/* Loading State */}
+      {isLoading && (
+        <Box sx={{ display: 'flex', justifyContent: 'center', py: 8 }}>
+          <CircularProgress />
+        </Box>
+      )}
+
+      {/* Empty State */}
+      {!isLoading && enumNames.length === 0 && (
+        <EmptyContent
+          title="No enum displays found"
+          description={
+            searchQuery
+              ? 'Try adjusting your search criteria'
+              : 'Create your first enum display to get started'
+          }
+          sx={{ py: 8 }}
+        />
+      )}
+
+      {/* Enum Cards Grid */}
+      {!isLoading && enumNames.length > 0 && (
+        <>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+            {enumNames.length} enum type{enumNames.length !== 1 ? 's' : ''} found
+          </Typography>
+
+          <Grid container spacing={3}>
+            {enumNames.map((enumName) => (
+              <Grid size={{ xs: 12, sm: 6, md: 4 }} key={enumName}>
+                <EnumDisplayCard
+                  enumName={enumName}
+                  items={filteredEnums[enumName]}
+                  onViewDetails={handleViewDetails}
+                  onEdit={handleEditEnum}
                 />
-              );
-            })}
-          </Tabs>
-
-          <EnumDisplayTableToolbar
-            filters={filters}
-            onResetPage={table.onResetPage}
-            options={{ enumNames: enumNameOptions }}
-          />
-
-          <Box sx={{ position: 'relative' }}>
-            {isLoading && (
-              <LinearProgress sx={{ position: 'absolute', top: 0, left: 0, right: 0, zIndex: 1 }} />
-            )}
-
-            <TableSelectedAction
-              dense={table.dense}
-              numSelected={table.selected.length}
-              rowCount={tableData.length}
-              onSelectAllRows={(checked) =>
-                table.onSelectAllRows(
-                  checked,
-                  tableData.map((row) => row._id)
-                )
-              }
-              action={
-                <Tooltip title="Delete">
-                  <IconButton color="primary" onClick={confirmDialog.onTrue}>
-                    <Iconify icon="solar:trash-bin-trash-bold" />
-                  </IconButton>
-                </Tooltip>
-              }
-            />
-
-            <Scrollbar sx={{ minHeight: 444 }}>
-              <Table size={table.dense ? 'small' : 'medium'} sx={{ minWidth: 800 }}>
-                <TableHeadCustom
-                  order={table.order}
-                  orderBy={table.orderBy}
-                  headCells={TABLE_HEAD}
-                  rowCount={tableData.length}
-                  numSelected={table.selected.length}
-                  onSort={table.onSort}
-                  onSelectAllRows={(checked) =>
-                    table.onSelectAllRows(
-                      checked,
-                      tableData.map((row) => row._id)
-                    )
-                  }
-                />
-
-                <TableBody>
-                  {tableData.map((row) => (
-                    <EnumDisplayTableRow
-                      key={row._id}
-                      row={row}
-                      selected={table.selected.includes(row._id)}
-                      onSelectRow={() => table.onSelectRow(row._id)}
-                      onDeleteRow={() => handleDeleteRow(row)}
-                    />
-                  ))}
-
-                  <TableEmptyRows
-                    height={table.dense ? 56 : 56 + 20}
-                    emptyRows={emptyRows(0, table.rowsPerPage, tableData.length)}
-                  />
-
-                  <TableNoData notFound={notFound} />
-                </TableBody>
-              </Table>
-            </Scrollbar>
-          </Box>
-
-          <TablePaginationCustom
-            page={table.page - 1}
-            dense={table.dense}
-            rowsPerPage={table.rowsPerPage}
-            onPageChange={(event, newPage) => table.onChangePage(event, newPage + 1)}
-            count={enumDisplaysData?.data?.total || 0}
-            onChangeDense={table.onChangeDense}
-            onRowsPerPageChange={table.onChangeRowsPerPage}
-          />
-        </Card>
-      </DashboardContent>
-
-      {renderConfirmDialog()}
-    </>
+              </Grid>
+            ))}
+          </Grid>
+        </>
+      )}
+    </DashboardContent>
   );
 }

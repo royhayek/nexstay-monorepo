@@ -5,8 +5,8 @@
   "description": "Airbnb Clone Dashboard",
   "private": true,
   "scripts": {
-    "dev": "next dev -p 8083 --turbopack",
-    "start": "next start -p 8083",
+    "dev": "next dev -p 8082 --turbopack",
+    "start": "next start -p 8082",
     "build": "next build",
     "lint": "eslint \"src/**/*.{js,jsx,ts,tsx}\"",
     "lint:fix": "eslint --fix \"src/**/*.{js,jsx,ts,tsx}\"",
@@ -21,14 +21,20 @@
     "tsc:dev": "yarn dev & yarn tsc:watch",
     "tsc:watch": "tsc --noEmit --watch",
     "tsc:print": "npx tsc --showConfig",
-    "generate-api": "node -e \"require('fs').rmSync('src/shared/orval', { recursive: true, force: true });\" && orval --config orval.config.ts"
+    "generate-api": "npm run generate-api:clean && npm run generate-api:all",
+    "generate-api:clean": "node -e \"require('fs').rmSync('src/api/queries', { recursive: true, force: true });\" && node -e \"require('fs').rmSync('src/api/models', { recursive: true, force: true });\"",
+    "generate-api:all": "orval --config orval.config.ts",
+    "generate-api:public": "orval --config orval.config.ts --project public",
+    "generate-api:admin": "orval --config orval.config.ts --project admin",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage"
   },
   "engines": {
     "node": ">=20"
   },
   "packageManager": "yarn@1.22.22",
   "dependencies": {
-    "@nexstay/shared-types": "*",
     "@dnd-kit/core": "^6.3.1",
     "@dnd-kit/sortable": "^10.0.0",
     "@dnd-kit/utilities": "^3.2.2",
@@ -108,6 +114,7 @@
     "rehype-highlight": "^7.0.2",
     "rehype-raw": "^7.0.0",
     "remark-gfm": "^4.0.1",
+    "scrypt-js": "^3.0.1",
     "simplebar-react": "^3.3.0",
     "socket.io-client": "^4.8.1",
     "sonner": "^2.0.3",
@@ -122,7 +129,11 @@
     "@eslint/js": "^9.27.0",
     "@svgr/webpack": "^8.1.0",
     "@tanstack/eslint-plugin-query": "^5.83.1",
+    "@testing-library/jest-dom": "^6.8.0",
+    "@testing-library/react": "^16.3.0",
+    "@testing-library/user-event": "^14.6.1",
     "@types/autosuggest-highlight": "^3.2.3",
+    "@types/jest": "^30.0.0",
     "@types/node": "^22.15.19",
     "@types/nprogress": "^0.2.3",
     "@types/react": "^19.1.4",
@@ -138,6 +149,8 @@
     "eslint-plugin-react-hooks": "^5.2.0",
     "eslint-plugin-unused-imports": "^4.1.4",
     "globals": "^16.1.0",
+    "jest": "^30.0.5",
+    "jest-environment-jsdom": "^30.0.5",
     "prettier": "^3.5.3",
     "typescript": "^5.8.3",
     "typescript-eslint": "^8.32.1"

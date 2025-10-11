@@ -130,11 +130,11 @@ export class AuthService {
     const payload: JwtPayload = { sub: userId, email, roles };
 
     const accessToken = this.jwtService.sign(payload, {
-      expiresIn: sessionExpiresIn,
+      expiresIn: sessionExpiresIn as any,
     });
     const refreshToken = this.jwtService.sign(payload, {
       secret: refreshTokenSecret,
-      expiresIn: refreshExpiresIn,
+      expiresIn: refreshExpiresIn as any,
     });
 
     // Hash and store refresh token
@@ -659,7 +659,7 @@ export class AuthService {
     };
 
     const resetToken = this.jwtService.sign(resetPayload, {
-      expiresIn: resetTokenExpiresIn,
+      expiresIn: resetTokenExpiresIn as any,
     });
 
     // Calculate expiration time
@@ -849,7 +849,7 @@ export class AuthService {
       };
 
       const signupSessionToken = this.jwtService.sign(signupSessionPayload, {
-        expiresIn: '15m', // 15 minutes for completing signup
+        expiresIn: '15m' as any, // 15 minutes for completing signup
       });
 
       return {
@@ -1012,7 +1012,7 @@ export class AuthService {
       };
 
       const sessionToken = this.jwtService.sign(sessionPayload, {
-        expiresIn: '15m',
+        expiresIn: '15m' as any,
       });
 
       return {
@@ -1033,7 +1033,7 @@ export class AuthService {
     };
 
     const sessionToken = this.jwtService.sign(sessionPayload, {
-      expiresIn: '15m',
+      expiresIn: '15m' as any,
     });
 
     return {
@@ -1140,7 +1140,7 @@ export class AuthService {
     };
 
     const updatedSessionToken = this.jwtService.sign(updatedSessionPayload, {
-      expiresIn: '15m',
+      expiresIn: '15m' as any,
     });
 
     return {

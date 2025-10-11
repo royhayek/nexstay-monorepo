@@ -77,12 +77,35 @@ export function RHFUpload({ name, multiple, helperText, ...other }: RHFUploadPro
         };
 
         const onDrop = (acceptedFiles: File[]) => {
-          const value = multiple ? [...field.value, ...acceptedFiles] : acceptedFiles[0];
+          const value = multiple ? [...(field.value || []), ...acceptedFiles] : acceptedFiles[0];
 
           setValue(name, value, { shouldValidate: true });
         };
 
-        return <Upload {...uploadProps} value={field.value} onDrop={onDrop} {...other} />;
+        const onRemove = (file: File | string) => {
+          const newValue = field.value?.filter((item: File | string) => item !== file);
+          setValue(name, newValue, { shouldValidate: true });
+        };
+
+        const onRemoveAll = () => {
+          setValue(name, [], { shouldValidate: true });
+        };
+
+        const onDelete = () => {
+          setValue(name, null, { shouldValidate: true });
+        };
+
+        return (
+          <Upload 
+            {...uploadProps} 
+            value={field.value} 
+            onDrop={onDrop} 
+            onRemove={multiple ? onRemove : undefined}
+            onRemoveAll={multiple ? onRemoveAll : undefined}
+            onDelete={!multiple ? onDelete : undefined}
+            {...other} 
+          />
+        );
       }}
     />
   );

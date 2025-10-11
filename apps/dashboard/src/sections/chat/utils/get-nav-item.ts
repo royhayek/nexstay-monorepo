@@ -1,4 +1,4 @@
-import type { ConversationDataDto } from 'src/api/models';
+import type { ConversationDataDto } from 'src/api/models/admin';
 
 // ----------------------------------------------------------------------
 
@@ -21,7 +21,7 @@ export function getNavItem({ currentUserId, conversation }: Props) {
     .join(', ');
 
   const hasOnlineInGroup = group
-    ? participantsInConversation.map((item) => item.status).includes('online')
+    ? participantsInConversation.map((item) => item.presenceStatus).includes('available')
     : false;
 
   let displayText = '';

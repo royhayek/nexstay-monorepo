@@ -129,6 +129,7 @@ export const _userPlans = [
 
 export const _userList: UserDataDto[] = [
   {
+    id: _mock.id(1),
     email: 'royhayek27@gmail.com',
     roles: ['guest'],
     firstLogin: true,
@@ -139,12 +140,6 @@ export const _userList: UserDataDto[] = [
     reviewCount: 0,
     averageRating: 0,
     wishlist: [],
-    createdAt: {
-      $date: '2025-08-07T20:03:20.558Z',
-    },
-    updatedAt: {
-      $date: '2025-08-07T20:21:20.704Z',
-    },
-    __v: 0,
+    status: 'active',
   },
 ];
