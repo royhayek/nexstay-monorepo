@@ -33,6 +33,7 @@ import { logout, tokenManager, userManager } from "@/utils/auth";
 import { isDevelopment } from "@/utils/environment";
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { Alert } from "react-native";
+import { useAppStateAuth } from "./use-app-state-auth";
 
 // Use generated API response types directly
 
@@ -82,6 +83,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
   const [user, setUser] = useState<UserDataDto | null>(null);
   const [showLoginModal, setShowLoginModal] = useState(false);
+
+  // Setup app state monitoring for token validation on resume
+  useAppStateAuth({
+    minIntervalMs: 30000, // Check at most once every 30 seconds
+    onTokenExpired: () => {
+      // Token expired on app resume - force logout
+      console.info("[Auth] Token expired on app resume, forcing logout");
+      setIsAuthenticated(false);
+      setUser(null);
+      setShowLoginModal(true);
+    },
+  });
 
   // Generated API hooks
   const checkIdentifierMutation = useAuthPublicControllerCheckIdentifier();

@@ -1,6 +1,7 @@
 import { Module, forwardRef } from '@nestjs/common';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { SharedSchemasModule } from '../../common/schemas/shared-schemas.module';
+import { CommonModule } from '../../common/common.module';
 
 // Services
 import { NotificationsModule } from '../notifications/notifications.module';
@@ -17,6 +18,7 @@ import { BookingFacadeService } from './services/booking-facade.service';
 import { BookingPaymentService } from './services/booking-payment.service';
 import { BookingSagaService } from './services/booking-saga.service';
 import { BookingEventsService } from './services/booking-events.service';
+import { BookingAutoCancelService } from './services/booking-auto-cancel.service';
 import { DynamicConfigModule } from '../config/config.module';
 import { PropertiesModule } from '../properties/properties.module';
 import { TaxModule } from '../tax/tax.module';
@@ -25,6 +27,7 @@ import { AccountsModule } from '../accounts/accounts.module';
 @Module({
   imports: [
     SharedSchemasModule,
+    CommonModule,
     EventEmitterModule.forRoot(),
     NotificationsModule,
     PaymentsModule,
@@ -42,6 +45,7 @@ import { AccountsModule } from '../accounts/accounts.module';
     BookingPaymentService,
     BookingSagaService,
     BookingEventsService,
+    BookingAutoCancelService,
   ],
   controllers: [BookingsAppController, BookingsAdminController],
   exports: [
@@ -50,6 +54,7 @@ import { AccountsModule } from '../accounts/accounts.module';
     BookingPaymentService,
     BookingSagaService,
     BookingEventsService,
+    BookingAutoCancelService,
   ],
 })
 export class BookingsModule {}

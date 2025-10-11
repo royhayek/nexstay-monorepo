@@ -5,6 +5,10 @@ import { BookingStatus } from '../../../common/enums/booking.enums';
 
 /**
  * Pagination constants for booking listings
+ *
+ * NOTE: Pagination defaults (DEFAULT_LIMIT, MAX_LIMIT) are now loaded dynamically
+ * from database configuration via PaginationConfigService. These values serve as
+ * fallback defaults for booking-specific pagination.
  */
 export const BOOKING_PAGINATION_CONSTANTS = {
   DEFAULT_LIMIT: 20,
@@ -15,6 +19,11 @@ export const BOOKING_PAGINATION_CONSTANTS = {
 
 /**
  * Booking validation constants
+ *
+ * NOTE: Guest limit constants (MAX_ADULTS, MAX_CHILDREN, MAX_INFANTS, MAX_TOTAL_GUESTS)
+ * are now loaded dynamically from database configuration via BookingConfigService.
+ * These values serve as fallback defaults for DTO validation decorators.
+ * Runtime validation in BookingCoreService uses dynamic configuration.
  */
 export const BOOKING_VALIDATION_CONSTANTS = {
   MIN_ADULTS: 1,
@@ -33,6 +42,11 @@ export const BOOKING_VALIDATION_CONSTANTS = {
 
 /**
  * Booking business rules constants
+ *
+ * NOTE: Advance booking rules (MAX_ADVANCE_BOOKING_DAYS, MIN_ADVANCE_BOOKING_HOURS)
+ * and AUTO_CANCEL_UNPAID_HOURS are now loaded dynamically from database configuration
+ * via BookingConfigService. These values serve as fallback defaults.
+ * Runtime validation in BookingCoreService uses dynamic configuration.
  */
 export const BOOKING_BUSINESS_CONSTANTS = {
   DEFAULT_CURRENCY: 'USD',
@@ -45,6 +59,10 @@ export const BOOKING_BUSINESS_CONSTANTS = {
 
 /**
  * Booking time constants
+ *
+ * NOTE: Check-in/check-out times (DEFAULT_CHECKIN_TIME, DEFAULT_CHECKOUT_TIME)
+ * are now loaded dynamically from database configuration via BookingConfigService.
+ * These values serve as fallback defaults.
  */
 export const BOOKING_TIME_CONSTANTS = {
   MILLISECONDS_PER_DAY: 24 * 60 * 60 * 1000,

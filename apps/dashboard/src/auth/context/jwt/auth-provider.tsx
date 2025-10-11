@@ -28,8 +28,8 @@ export function AuthProvider({ children }: Props) {
 
   const checkUserSession = useCallback(async () => {
     try {
-      const accessToken = sessionStorage.getItem(JWT_STORAGE_KEY);
-      const refreshToken = sessionStorage.getItem(JWT_REFRESH_STORAGE_KEY);
+      const accessToken = localStorage.getItem(JWT_STORAGE_KEY);
+      const refreshToken = localStorage.getItem(JWT_REFRESH_STORAGE_KEY);
 
       if (accessToken && isValidToken(accessToken)) {
         setSession(accessToken, refreshToken);

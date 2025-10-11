@@ -1,6 +1,8 @@
 import { Module } from '@nestjs/common';
 import { SharedSchemasModule } from '../../common/schemas/shared-schemas.module';
 import { AnalyticsModule } from '../analytics/analytics.module';
+import { AuthModule } from '../auth/auth.module';
+import { BookingsModule } from '../bookings/bookings.module';
 
 // Controllers
 import { AdminController } from './admin.controller';
@@ -42,7 +44,7 @@ import { AdminActivityService } from './services/admin-activity.service';
  * - Advanced filtering and pagination with concrete paginated DTOs for OpenAPI compatibility
  */
 @Module({
-  imports: [SharedSchemasModule, AnalyticsModule],
+  imports: [SharedSchemasModule, AnalyticsModule, AuthModule, BookingsModule],
   controllers: [
     AdminController, // Legacy controller - maintained for backward compatibility
     AdminDashboardController, // New dashboard controller with enhanced functionality

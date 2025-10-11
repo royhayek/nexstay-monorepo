@@ -2,6 +2,13 @@ import { ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import { IsOptional, IsInt, Min, Max } from 'class-validator';
 
+/**
+ * Base pagination DTO for API requests
+ *
+ * NOTE: The default and maximum values here are compile-time constraints for validation.
+ * At runtime, use PaginationUtils.normalizePagination() which loads dynamic configuration
+ * from the database via PaginationConfigService, allowing changes without code deployment.
+ */
 export class PaginationDto {
   @ApiPropertyOptional({
     description: 'Page number (starting from 1)',

@@ -53,7 +53,7 @@ export function isValidToken(accessToken: string) {
 // ----------------------------------------------------------------------
 
 let tokenRefreshTimer: NodeJS.Timeout | null = null;
-let isRefreshing = false;
+let refreshPromise: Promise<{ accessToken: string; refreshToken: string }> | null = null;
 
 export function tokenExpired(exp: number) {
   // Clear any existing timer to prevent multiple refresh attempts
@@ -66,21 +66,30 @@ export function tokenExpired(exp: number) {
 
   tokenRefreshTimer = setTimeout(async () => {
     tokenRefreshTimer = null; // Clear the timer reference when it executes
-    
-    // Prevent concurrent refresh attempts
-    if (isRefreshing) {
-      console.info('Token refresh already in progress, skipping...');
+
+    // If a refresh is already in progress, wait for it instead of starting a new one
+    if (refreshPromise) {
+      console.info('Token refresh already in progress, waiting for completion...');
+      try {
+        await refreshPromise;
+        console.info('Existing token refresh completed.');
+      } catch (error) {
+        console.error('Existing token refresh failed:', error);
+      }
       return;
     }
-    
-    isRefreshing = true;
-    
-    try {
-      const storedRefreshToken = sessionStorage.getItem(JWT_REFRESH_STORAGE_KEY);
-      const storedAccessToken = sessionStorage.getItem(JWT_STORAGE_KEY);
 
-      console.info('Token expired, attempting to refresh tokens...');
-      if (storedRefreshToken) {
+    // Start the refresh process
+    refreshPromise = (async () => {
+      try {
+        const storedRefreshToken = localStorage.getItem(JWT_REFRESH_STORAGE_KEY);
+        const storedAccessToken = localStorage.getItem(JWT_STORAGE_KEY);
+
+        console.info('Token expired, attempting to refresh tokens...');
+        if (!storedRefreshToken) {
+          throw new Error('No refresh token available');
+        }
+
         // Include the current access token in the Authorization header for the refresh request
         const requestOptions = storedAccessToken
           ? {
@@ -97,78 +106,76 @@ export function tokenExpired(exp: number) {
         const { accessToken, refreshToken } = res.data;
         await setSession(accessToken, refreshToken);
         console.info('Tokens refreshed successfully.');
-        return;
+        return { accessToken, refreshToken };
+      } catch (error) {
+        console.error('Error during token expiration:', error);
+        // Clear tokens and redirect to login on refresh failure
+        localStorage.removeItem(JWT_STORAGE_KEY);
+        localStorage.removeItem(JWT_REFRESH_STORAGE_KEY);
+        window.location.href = paths.auth.jwt.signIn;
+        throw error;
+      } finally {
+        refreshPromise = null; // Clear the promise reference
       }
+    })();
 
-      sessionStorage.removeItem(JWT_STORAGE_KEY);
-      sessionStorage.removeItem(JWT_REFRESH_STORAGE_KEY);
-      window.location.href = paths.auth.jwt.signIn;
-    } catch (error) {
-      console.error('Error during token expiration:', error);
-      // Clear tokens and redirect to login on refresh failure
-      sessionStorage.removeItem(JWT_STORAGE_KEY);
-      sessionStorage.removeItem(JWT_REFRESH_STORAGE_KEY);
-      window.location.href = paths.auth.jwt.signIn;
-    } finally {
-      isRefreshing = false; // Always reset the flag
-    }
+    await refreshPromise;
   }, timeLeft);
 }
 
 // ----------------------------------------------------------------------
 
-export async function refreshAccessToken() {
-  // Prevent concurrent refresh attempts
-  if (isRefreshing) {
-    console.info('Token refresh already in progress, waiting...');
-    // Wait a bit and return if still refreshing
-    await new Promise(resolve => setTimeout(resolve, 100));
-    if (isRefreshing) {
-      throw new Error('Token refresh in progress');
-    }
+export async function refreshAccessToken(): Promise<{ accessToken: string; refreshToken: string }> {
+  // If a refresh is already in progress, return the same promise
+  if (refreshPromise) {
+    console.info('Token refresh already in progress, reusing existing promise...');
+    return refreshPromise;
   }
-  
-  isRefreshing = true;
-  
-  try {
-    const storedRefreshToken = sessionStorage.getItem(JWT_REFRESH_STORAGE_KEY);
-    const storedAccessToken = sessionStorage.getItem(JWT_STORAGE_KEY);
 
-    if (!storedRefreshToken) {
-      throw new Error('No refresh token available');
+  // Start a new refresh operation
+  refreshPromise = (async () => {
+    try {
+      const storedRefreshToken = localStorage.getItem(JWT_REFRESH_STORAGE_KEY);
+      const storedAccessToken = localStorage.getItem(JWT_STORAGE_KEY);
+
+      if (!storedRefreshToken) {
+        throw new Error('No refresh token available');
+      }
+
+      console.info('Manually refreshing tokens...');
+
+      // Include the current access token in the Authorization header for the refresh request
+      const requestOptions = storedAccessToken
+        ? {
+            headers: {
+              Authorization: `Bearer ${storedAccessToken}`,
+            },
+          }
+        : undefined;
+
+      const res = await authPublicControllerRefresh(
+        { refreshToken: storedRefreshToken },
+        requestOptions
+      );
+
+      const { accessToken, refreshToken } = res.data;
+      await setSession(accessToken, refreshToken);
+      console.info('Tokens refreshed successfully.');
+
+      return { accessToken, refreshToken };
+    } catch (error) {
+      console.error('Error during manual token refresh:', error);
+      // Clear tokens and redirect to login on refresh failure
+      localStorage.removeItem(JWT_STORAGE_KEY);
+      localStorage.removeItem(JWT_REFRESH_STORAGE_KEY);
+      window.location.href = paths.auth.jwt.signIn;
+      throw error;
+    } finally {
+      refreshPromise = null; // Clear the promise reference
     }
+  })();
 
-    console.info('Manually refreshing tokens...');
-
-    // Include the current access token in the Authorization header for the refresh request
-    const requestOptions = storedAccessToken
-      ? {
-          headers: {
-            Authorization: `Bearer ${storedAccessToken}`,
-          },
-        }
-      : undefined;
-
-    const res = await authPublicControllerRefresh(
-      { refreshToken: storedRefreshToken },
-      requestOptions
-    );
-
-    const { accessToken, refreshToken } = res.data;
-    await setSession(accessToken, refreshToken);
-    console.info('Tokens refreshed successfully.');
-
-    return { accessToken, refreshToken };
-  } catch (error) {
-    console.error('Error during manual token refresh:', error);
-    // Clear tokens and redirect to login on refresh failure
-    sessionStorage.removeItem(JWT_STORAGE_KEY);
-    sessionStorage.removeItem(JWT_REFRESH_STORAGE_KEY);
-    window.location.href = paths.auth.jwt.signIn;
-    throw error;
-  } finally {
-    isRefreshing = false; // Always reset the flag
-  }
+  return refreshPromise;
 }
 
 // ----------------------------------------------------------------------
@@ -176,12 +183,12 @@ export async function refreshAccessToken() {
 export async function setSession(accessToken: string | null, refreshToken: string | null) {
   try {
     if (accessToken && refreshToken) {
-      sessionStorage.setItem(JWT_STORAGE_KEY, accessToken);
-      sessionStorage.setItem(JWT_REFRESH_STORAGE_KEY, refreshToken);
+      localStorage.setItem(JWT_STORAGE_KEY, accessToken);
+      localStorage.setItem(JWT_REFRESH_STORAGE_KEY, refreshToken);
 
       axios.defaults.headers.common.Authorization = `Bearer ${accessToken}`;
 
-      const decodedToken = jwtDecode(accessToken); // ~3 days by minimals server
+      const decodedToken = jwtDecode(accessToken);
 
       if (decodedToken && 'exp' in decodedToken) {
         tokenExpired(decodedToken.exp);
@@ -189,8 +196,8 @@ export async function setSession(accessToken: string | null, refreshToken: strin
         throw new Error('Invalid access token!');
       }
     } else {
-      sessionStorage.removeItem(JWT_STORAGE_KEY);
-      sessionStorage.removeItem(JWT_REFRESH_STORAGE_KEY);
+      localStorage.removeItem(JWT_STORAGE_KEY);
+      localStorage.removeItem(JWT_REFRESH_STORAGE_KEY);
       delete axios.defaults.headers.common.Authorization;
     }
   } catch (error) {

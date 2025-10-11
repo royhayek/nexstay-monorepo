@@ -13,10 +13,10 @@
     "generate-api": "orval"
   },
   "dependencies": {
-    "@nexstay/shared-types": "*",
     "@expo-google-fonts/plus-jakarta-sans": "^0.4.2",
     "@expo/vector-icons": "^15.0.2",
     "@gorhom/bottom-sheet": "^5.2.6",
+    "@nexstay/shared-types": "*",
     "@react-native-async-storage/async-storage": "^2.2.0",
     "@react-navigation/bottom-tabs": "^7.4.0",
     "@react-navigation/elements": "^2.6.3",
@@ -38,6 +38,7 @@
     "expo-web-browser": "~15.0.7",
     "i": "^0.3.7",
     "iconsax-react-native": "^0.0.8",
+    "jwt-decode": "^4.0.0",
     "npm": "^11.6.1",
     "phosphor-react-native": "^3.0.0",
     "react": "19.1.0",

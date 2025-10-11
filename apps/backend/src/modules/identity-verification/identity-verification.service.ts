@@ -28,18 +28,17 @@ import { CreateIdentityVerificationDto } from './dto/create-identity-verificatio
 import { UpdateVerificationStatusDto } from './dto/update-verification-status.dto';
 import { IdentityVerificationFilters } from './interfaces/identity-verification.interfaces';
 import { LoggingUtil } from '../../common/utils/logging.util';
+import { ConfigCacheHelper } from '../config/config-cache.helper';
 
 @Injectable()
 export class IdentityVerificationService {
-  private readonly MAX_VERIFICATION_ATTEMPTS = 3;
-  private readonly VERIFICATION_EXPIRY_DAYS = 365; // 1 year
-
   constructor(
     @InjectModel(IdentityVerification.name)
     private readonly verificationModel: Model<IdentityVerificationDocument>,
     @InjectModel(User.name)
     private readonly userModel: Model<UserDocument>,
     private readonly s3Service: S3Service,
+    private readonly configCache: ConfigCacheHelper,
   ) {}
 
   async createVerification(
@@ -87,12 +86,13 @@ export class IdentityVerificationService {
       );
     }
 
-    // Check verification attempts
+    // Check verification attempts (load from dynamic config)
+    const maxAttempts = await this.configCache.getNumber('IDENTITY_VERIFICATION_MAX_ATTEMPTS', 3);
     const attemptCount = await this.verificationModel
       .countDocuments({ userId: new Types.ObjectId(userId) })
       .exec();
 
-    if (attemptCount >= this.MAX_VERIFICATION_ATTEMPTS) {
+    if (attemptCount >= maxAttempts) {
       throw new ForbiddenException(
         'Maximum verification attempts exceeded. Please contact support.',
       );
@@ -171,6 +171,7 @@ export class IdentityVerificationService {
       }
 
       // Create verification record
+      const expiryDays = await this.configCache.getNumber('IDENTITY_VERIFICATION_EXPIRY_DAYS', 365);
       const verification = new this.verificationModel({
         userId: new Types.ObjectId(userId),
         status: VerificationStatus.PENDING,
@@ -193,7 +194,7 @@ export class IdentityVerificationService {
         submittedAt: DateUtils.now(),
         attemptCount: attemptCount + 1,
         isActive: true,
-        expiresAt: DateUtils.addDays(DateUtils.now(), this.VERIFICATION_EXPIRY_DAYS),
+        expiresAt: DateUtils.addDays(DateUtils.now(), expiryDays),
         metadata,
         statusHistory: [
           {
@@ -207,15 +208,56 @@ export class IdentityVerificationService {
 
       const savedVerification = await verification.save();
 
-      // Update user status to pending verification if not already verified
-      if (user.status === UserStatus.PENDING_VERIFICATION) {
-        // Keep the same status but update timestamp
-        user.updatedAt = DateUtils.now();
-        await user.save();
+      // Check if auto-review is enabled (load from dynamic config)
+      const autoReviewEnabled = await this.configCache.getBoolean(
+        'IDENTITY_VERIFICATION_AUTO_REVIEW_ENABLED',
+        false,
+      );
+
+      if (autoReviewEnabled) {
+        // Automatically approve the verification
+        LoggingUtil.log(
+          `Auto-reviewing verification ${savedVerification._id} for user: ${userId}`,
+          'IdentityVerificationService',
+        );
+
+        savedVerification.status = VerificationStatus.APPROVED;
+        savedVerification.reviewedAt = DateUtils.now();
+        savedVerification.verifiedAt = DateUtils.now();
+        savedVerification.statusHistory.push({
+          status: VerificationStatus.APPROVED,
+          changedAt: DateUtils.now(),
+          comment: 'Automatically approved by system (auto-review enabled)',
+          metadata: { autoReview: true },
+        });
+
+        await savedVerification.save();
+
+        // Update user status to active and mark as verified
+        await this.userModel
+          .findByIdAndUpdate(userId, {
+            status: UserStatus.ACTIVE,
+            isIdentityVerified: true,
+            identityVerifiedAt: DateUtils.now(),
+            updatedAt: DateUtils.now(),
+          })
+          .exec();
+
+        LoggingUtil.log(
+          `User ${userId} status updated to ACTIVE via auto-review`,
+          'IdentityVerificationService',
+        );
+      } else {
+        // Update user status to pending verification if not already verified
+        if (user.status === UserStatus.PENDING_VERIFICATION) {
+          // Keep the same status but update timestamp
+          user.updatedAt = DateUtils.now();
+          await user.save();
+        }
       }
 
       LoggingUtil.log(
-        `Identity verification created successfully for user: ${userId}`,
+        `Identity verification created successfully for user: ${userId}${autoReviewEnabled ? ' (auto-approved)' : ''}`,
         'IdentityVerificationService',
       );
       return savedVerification;

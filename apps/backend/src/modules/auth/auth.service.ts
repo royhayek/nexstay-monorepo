@@ -11,13 +11,13 @@ import { JwtService } from '@nestjs/jwt';
 import { InjectModel } from '@nestjs/mongoose';
 import { RefreshDto } from './dto/refresh.dto';
 import { UsersFacadeService } from '../users/services/users-facade.service';
-import { LoginUserDto, AuthMethod } from './dto/login.dto';
+import { AuthMethod } from './dto/login.dto';
 import { CreateUserDto } from '../users/dto/create-user.dto';
 import { DynamicConfigService } from '../config/config.service';
-import { UserDocument } from '../../database/schemas/user.schema';
 import { canUserPerformAction } from '../../common/enums/user-status.enums';
 import { CheckIdentifierDataDto } from './dto/check-identifier-response.dto';
 import { RefreshToken, RefreshTokenDocument } from '../../database/schemas/refresh-token.schema';
+import { TrustedDevice, TrustedDeviceDocument } from '../../database/schemas/trusted-device.schema';
 import { RequestVerifyDto } from './dto/request-verify.dto';
 import { VerifyDto } from './dto/verify.dto';
 import {
@@ -47,6 +47,7 @@ import { CryptoUtil } from '../../common/utils/crypto.utils';
 import { OtpUtil } from '../../common/utils/otp.util';
 import { DateUtils } from '../../common/utils/date.utils';
 import { NotificationService } from '../../common/services/notificaton.service';
+import { DeviceTrustConfigService } from '../../common/services/device-trust-config.service';
 import { ConfigService } from '@nestjs/config';
 import {
   JwtPayload,
@@ -69,10 +70,13 @@ export class AuthService {
     private readonly configService: ConfigService,
     private readonly notificationService: NotificationService,
     private readonly dynamicConfigService: DynamicConfigService,
+    private readonly deviceTrustConfigService: DeviceTrustConfigService,
     @InjectModel(RefreshToken.name)
     private readonly refreshTokenModel: Model<RefreshTokenDocument>,
     @InjectModel(VerificationToken.name)
     private readonly vtModel: Model<VerificationTokenDocument>,
+    @InjectModel(TrustedDevice.name)
+    private readonly trustedDeviceModel: Model<TrustedDeviceDocument>,
   ) {}
 
   /** Load OTP configuration from dynamic config service */
@@ -119,9 +123,184 @@ export class AuthService {
   }
 
   /**
+   * Private helper: Validate OTP code format, attempts, expiration, and hash
+   * This method extracts common OTP verification logic used across multiple flows
+   */
+  private async validateOtpCode(
+    code: string,
+    record: VerificationTokenDocument,
+    cfg: OtpConfigOptions,
+    maxAttemptsOverride?: number,
+  ): Promise<void> {
+    // Validate code format (should be N digits based on config)
+    const re = new RegExp(`^\\d{${cfg.length}}$`);
+    if (!re.test(code)) {
+      throw new BadRequestException(`Code must be a ${cfg.length}-digit number`);
+    }
+
+    // Check attempts limit (use override if provided, otherwise use default)
+    const maxAttempts = maxAttemptsOverride ?? cfg.maxAttempts;
+    if (record.attempts >= maxAttempts) {
+      throw new BadRequestException('Too many attempts. Request a new code.');
+    }
+
+    // Check expiration
+    if (record.expiresAt.getTime() < DateUtils.nowTimestamp()) {
+      // Clean up expired token
+      await this.vtModel.deleteOne({ _id: record._id }).exec();
+      throw new BadRequestException('Verification code expired');
+    }
+
+    // Verify the code hash
+    const codeValid = await CryptoUtil.comparePassword(code, record.codeHash);
+    if (!codeValid) {
+      // Increment attempts on failure
+      await this.vtModel.findByIdAndUpdate(record._id, { $inc: { attempts: 1 } }).exec();
+      throw new BadRequestException('Invalid verification code');
+    }
+
+    // If we reach here, code is valid
+  }
+
+  /**
+   * Generate device fingerprint from user agent and IP address
+   */
+  private async generateDeviceFingerprint(userAgent: string, ipAddress: string): Promise<string> {
+    const combined = `${userAgent}|${ipAddress}`;
+    return await CryptoUtil.hashPassword(combined);
+  }
+
+  /**
+   * Extract device name from user agent (simplified)
+   */
+  private extractDeviceName(userAgent: string): string {
+    // Simple extraction - in production, use a library like ua-parser-js
+    const ua = userAgent.toLowerCase();
+
+    let browser = 'Unknown Browser';
+    if (ua.includes('chrome')) browser = 'Chrome';
+    else if (ua.includes('firefox')) browser = 'Firefox';
+    else if (ua.includes('safari')) browser = 'Safari';
+    else if (ua.includes('edge')) browser = 'Edge';
+
+    let os = 'Unknown OS';
+    if (ua.includes('windows')) os = 'Windows';
+    else if (ua.includes('mac')) os = 'macOS';
+    else if (ua.includes('linux')) os = 'Linux';
+    else if (ua.includes('android')) os = 'Android';
+    else if (ua.includes('ios') || ua.includes('iphone') || ua.includes('ipad')) os = 'iOS';
+
+    return `${browser} on ${os}`;
+  }
+
+  /**
+   * Check if a device is trusted for a user
+   * Returns true if device is trusted, false if verification is required
+   */
+  private async isDeviceTrusted(
+    userId: string,
+    userAgent: string,
+    ipAddress: string,
+  ): Promise<boolean> {
+    const fingerprint = await this.generateDeviceFingerprint(userAgent, ipAddress);
+
+    const trustedDevice = await this.trustedDeviceModel
+      .findOne({
+        user: userId,
+        deviceFingerprint: fingerprint,
+        isActive: true,
+      })
+      .exec();
+
+    if (trustedDevice) {
+      // Update last used timestamp
+      trustedDevice.lastUsedAt = DateUtils.now();
+      await trustedDevice.save();
+      return true;
+    }
+
+    return false;
+  }
+
+  /**
+   * Register a new trusted device for a user
+   */
+  private async registerTrustedDevice(
+    userId: string,
+    userAgent: string,
+    ipAddress: string,
+  ): Promise<void> {
+    const fingerprint = await this.generateDeviceFingerprint(userAgent, ipAddress);
+    const deviceName = this.extractDeviceName(userAgent);
+
+    // Load device trust configuration
+    const config = await this.deviceTrustConfigService.getConfig();
+
+    // Check if device already exists
+    const existingDevice = await this.trustedDeviceModel
+      .findOne({
+        user: userId,
+        deviceFingerprint: fingerprint,
+      })
+      .exec();
+
+    if (existingDevice) {
+      // Update existing device
+      existingDevice.lastUsedAt = DateUtils.now();
+      existingDevice.isActive = true;
+      existingDevice.userAgent = userAgent;
+      existingDevice.ipAddress = ipAddress;
+      existingDevice.deviceName = deviceName;
+      await existingDevice.save();
+      return;
+    }
+
+    // Check if user has reached max devices limit
+    const activeDevicesCount = await this.trustedDeviceModel
+      .countDocuments({
+        user: userId,
+        isActive: true,
+      })
+      .exec();
+
+    if (activeDevicesCount >= config.maxDevicesPerUser) {
+      // Find and deactivate the oldest device
+      const oldestDevice = await this.trustedDeviceModel
+        .findOne({
+          user: userId,
+          isActive: true,
+        })
+        .sort({ lastUsedAt: 1 }) // Sort by lastUsedAt ascending (oldest first)
+        .exec();
+
+      if (oldestDevice) {
+        oldestDevice.isActive = false;
+        await oldestDevice.save();
+      }
+    }
+
+    // Create new trusted device
+    await this.trustedDeviceModel.create({
+      user: userId,
+      deviceFingerprint: fingerprint,
+      deviceName,
+      userAgent,
+      ipAddress,
+      lastUsedAt: DateUtils.now(),
+      firstSeenAt: DateUtils.now(),
+      isActive: true,
+    });
+  }
+
+  /**
    * Generate new access & refresh tokens, hash & store refresh token
    */
-  private async generateTokens(userId: string, email: string, roles: string[]): Promise<TokenPair> {
+  private async generateTokens(
+    userId: string,
+    email: string,
+    roles: string[],
+    deviceInfo?: { userAgent?: string; ipAddress?: string },
+  ): Promise<TokenPair> {
     const sessionExpiresIn = await this.dynamicConfigService.get('SESSION_EXPIRES_IN', '15m');
     const refreshExpiresIn = await this.dynamicConfigService.get('REFRESH_EXPIRES_IN', '7d');
     const refreshTokenSecret = this.configService.get<string>('REFRESH_TOKEN_SECRET');
@@ -146,11 +325,35 @@ export class AuthService {
     }
 
     const expiresAtUnix = (decoded?.exp || 0) * 1000;
-    await this.refreshTokenModel.create({
+    const now = DateUtils.now();
+
+    // Prepare refresh token document with optional device metadata
+    const refreshTokenDoc: any = {
       user: userId,
       tokenHash: hashed,
       expiresAt: DateUtils.create(expiresAtUnix),
-    });
+      lastUsedAt: now,
+    };
+
+    // Add device information if provided
+    if (deviceInfo?.userAgent) {
+      refreshTokenDoc.userAgent = deviceInfo.userAgent;
+      refreshTokenDoc.deviceName = this.extractDeviceName(deviceInfo.userAgent);
+    }
+
+    if (deviceInfo?.ipAddress) {
+      refreshTokenDoc.ipAddress = deviceInfo.ipAddress;
+    }
+
+    // Generate device fingerprint if both userAgent and IP are provided
+    if (deviceInfo?.userAgent && deviceInfo?.ipAddress) {
+      refreshTokenDoc.deviceFingerprint = await this.generateDeviceFingerprint(
+        deviceInfo.userAgent,
+        deviceInfo.ipAddress,
+      );
+    }
+
+    await this.refreshTokenModel.create(refreshTokenDoc);
 
     return { accessToken, refreshToken };
   }
@@ -210,49 +413,6 @@ export class AuthService {
   }
 
   /**
-   * Registers a new user and issues a JWT
-   */
-  async register(createDto: CreateUserDto): Promise<VerificationCodeResponse> {
-    // 1) Basic uniqueness checks
-    if (createDto.email) {
-      const existing = await this.usersService.findByEmail(createDto.email);
-      if (existing) throw new ConflictException('Email already in use');
-    }
-    if (createDto.phone) {
-      const existing = await this.usersService.findByPhone(createDto.phone);
-      if (existing) throw new ConflictException('Phone already in use');
-    }
-
-    // Must have at least one identifier to verify
-    const hasEmail = Boolean(createDto.email);
-    const hasPhone = Boolean(createDto.phone);
-    if (!hasEmail && !hasPhone) {
-      throw new BadRequestException('Email or phone is required for verification');
-    }
-
-    // Validate password strength before creating user (if password provided)
-    if (createDto.password) {
-      await this.validatePasswordStrength(createDto.password);
-    }
-
-    // 2) Create user (verified flags should be false by default in your schema)
-    const user = await this.usersService.create(createDto);
-
-    // 3) Decide which channel to verify now
-    const method: AuthMethod = hasPhone ? AuthMethod.PHONE : AuthMethod.EMAIL;
-
-    const identifier = method === AuthMethod.PHONE ? user.phone! : user.email!;
-    if (!identifier) {
-      // Extra guard in case DTO lacks what we expected
-      throw new BadRequestException(`Missing identifier for ${method.toLowerCase()} verification`);
-    }
-
-    // 4) Reuse existing OTP flow
-    const dto: RequestVerifyDto = { method, identifier };
-    return this.requestVerify(dto);
-  }
-
-  /**
    * Validate method and identifier consistency
    */
   private validateMethodIdentifierConsistency(method: AuthMethod, identifier: string): void {
@@ -265,54 +425,6 @@ export class AuthService {
     if (method === AuthMethod.PHONE && isEmail) {
       throw new BadRequestException('Phone method requires a valid phone number');
     }
-  }
-
-  /**
-   * Authenticates user based on method and issues a JWT
-   */
-  async login(loginDto: LoginUserDto): Promise<TokenPair> {
-    // Validate identifier format
-    const { isValid } = this.validateIdentifier(loginDto.identifier);
-    if (!isValid) {
-      throw new BadRequestException('Invalid identifier format');
-    }
-
-    // Validate method and identifier consistency
-    this.validateMethodIdentifierConsistency(loginDto.method, loginDto.identifier);
-
-    // Rate limiting check could be added here based on identifier
-
-    let user: UserDocument | null = null;
-    switch (loginDto.method) {
-      case AuthMethod.EMAIL:
-        user = await this.usersService.findForAuthByEmail(loginDto.identifier);
-        break;
-      case AuthMethod.PHONE:
-        user = await this.usersService.findByPhone(loginDto.identifier);
-        break;
-      default:
-        throw new BadRequestException('Unsupported login method');
-    }
-
-    if (!user) throw new UnauthorizedException('Invalid credentials');
-
-    // Check if account can login
-    if (!canUserPerformAction(user.status, 'canLogin')) {
-      throw new UnauthorizedException(`Account is ${user.status} and cannot login`);
-    }
-
-    if ([AuthMethod.EMAIL, AuthMethod.PHONE].includes(loginDto.method)) {
-      if (!loginDto.password) throw new BadRequestException('Password is required for this method');
-
-      if (!user.passwordHash) {
-        throw new UnauthorizedException('Password authentication not enabled for this account');
-      }
-
-      const valid = await this.usersService.validatePassword(String(user._id), loginDto.password);
-      if (!valid) throw new UnauthorizedException('Invalid credentials');
-    }
-
-    return this.generateTokens(String(user._id), user.email!, user.roles);
   }
 
   /** Send a new OTP to email or phone */
@@ -445,10 +557,6 @@ export class AuthService {
     // Load OTP configuration
     const cfg = await this.loadOtpConfig();
 
-    // Validate code format (should be 6 digits)
-    const re = new RegExp(`^\\d{${cfg.length}}$`);
-    if (!re.test(code)) throw new BadRequestException(`Code must be a ${cfg.length}-digit number`);
-
     // 1) Lookup user
     const user =
       method === AuthMethod.EMAIL
@@ -457,41 +565,27 @@ export class AuthService {
 
     if (!user) throw new UnauthorizedException(`No account for ${identifier}`);
 
-    // 2) Lookup token record and verify code
+    // 2) Lookup token record
     const record = await this.vtModel.findOne({ user: user._id, type: method }).exec();
 
     if (!record) {
       throw new BadRequestException('Invalid verification code');
     }
 
-    // lockout on attempts
-    if (record.attempts >= cfg.maxAttempts) {
-      throw new BadRequestException('Too many attempts. Request a new code.');
-    }
+    // 3) Validate OTP code using common helper
+    await this.validateOtpCode(code, record, cfg);
 
-    // Check expiry first to provide better error message
-    if (record.expiresAt.getTime() < DateUtils.nowTimestamp()) {
-      // Clean up expired token
-      await this.vtModel.deleteOne({ _id: record._id }).exec();
-      throw new BadRequestException('Verification code expired');
-    }
-
-    const codeValid = await CryptoUtil.comparePassword(code, record.codeHash);
-    if (!codeValid) {
-      throw new BadRequestException('Invalid verification code');
-    }
-
-    // 3) Clean up
+    // 4) Clean up verification token
     await this.vtModel.deleteOne({ _id: record._id }).exec();
 
-    // 4) Mark user verified
+    // 5) Mark user verified
     if (method === AuthMethod.EMAIL) {
       await this.usersService.markEmailVerified(String(user._id));
     } else {
       await this.usersService.markPhoneVerified(String(user._id));
     }
 
-    // 5) Issue tokens
+    // 6) Issue tokens
     return this.generateTokens(String(user._id), user.email || identifier, user.roles);
   }
 
@@ -612,18 +706,12 @@ export class AuthService {
     // Load OTP configuration
     const cfg = await this.loadOtpConfig();
 
-    // Validate code format
-    const re = new RegExp(`^\\d{${cfg.length}}$`);
-    if (!re.test(dto.code)) {
-      throw new BadRequestException(`Code must be a ${cfg.length}-digit number`);
-    }
-
     const user = await this.usersService.findUserByIdentifier(dto.identifier, dto.method);
     if (!user) {
       throw new NotFoundException('User not found');
     }
 
-    // Find unused token and verify code
+    // Find unused token
     const token = await this.vtModel
       .findOne({
         user: user._id,
@@ -637,18 +725,10 @@ export class AuthService {
       throw new BadRequestException('Invalid or expired code');
     }
 
-    if (token.attempts >= cfg.resetMaxAttempts) {
-      throw new BadRequestException('Too many attempts. Request a new code.');
-    }
+    // Validate OTP code using common helper (with reset-specific max attempts)
+    await this.validateOtpCode(dto.code, token, cfg, cfg.resetMaxAttempts);
 
-    const codeValid = await CryptoUtil.comparePassword(dto.code, token.codeHash);
-    if (!codeValid) {
-      // Increment attempts
-      await this.vtModel.findByIdAndUpdate(token._id, { $inc: { attempts: 1 } }).exec();
-      throw new BadRequestException('Invalid code');
-    }
-
-    // Mark token as used
+    // Mark token as used (password reset keeps the token for audit trail)
     await this.vtModel.findByIdAndUpdate(token._id, { used: true }).exec();
 
     // Generate a temporary reset token (JWT)
@@ -722,20 +802,27 @@ export class AuthService {
       throw new BadRequestException('Invalid token format');
     }
 
-    // Verify token hasn't expired by checking JWT payload
+    // Verify token hasn't expired and extract payload
+    let decoded: JwtPayload;
     try {
       const refreshTokenSecret = this.configService.get<string>('REFRESH_TOKEN_SECRET');
 
       // This will throw if token is expired or invalid
-      this.jwtService.verify(refreshToken, { secret: refreshTokenSecret });
+      decoded = this.jwtService.verify(refreshToken, { secret: refreshTokenSecret });
     } catch {
       throw new UnauthorizedException('Token expired or invalid');
     }
 
-    // Find matching hashed token
+    // O(1) lookup: Query by userId and non-expired tokens (uses compound index)
+    // Then verify hash matches in memory for the small result set (typically 1-3 tokens per user)
     const tokens = await this.refreshTokenModel
-      .find({ expiresAt: { $gt: DateUtils.now() } })
+      .find({
+        user: decoded.sub,
+        expiresAt: { $gt: DateUtils.now() },
+      })
       .exec();
+
+    // Find matching token by comparing hashes
     let match: RefreshTokenDocument | null = null;
     for (const t of tokens) {
       if (await CryptoUtil.comparePassword(refreshToken, t.tokenHash)) {
@@ -743,7 +830,10 @@ export class AuthService {
         break;
       }
     }
-    if (!match) throw new UnauthorizedException('Invalid refresh token');
+
+    if (!match) {
+      throw new UnauthorizedException('Invalid refresh token');
+    }
 
     // Verify user still exists and is active
     const user = await this.usersService.findById(match.user.toString());
@@ -753,30 +843,39 @@ export class AuthService {
       throw new UnauthorizedException('User no longer exists');
     }
 
+    // Update lastUsedAt before rotation
+    await this.refreshTokenModel
+      .findByIdAndUpdate(match._id, {
+        lastUsedAt: DateUtils.now(),
+      })
+      .exec();
+
     // Remove old refresh token (rotation)
     await this.refreshTokenModel.deleteOne({ _id: match._id }).exec();
 
-    // Issue new tokens
-    return this.generateTokens(String(user._id), user.email!, user.roles);
+    // Issue new tokens (preserve device info if available)
+    const deviceInfo =
+      match.userAgent || match.ipAddress
+        ? { userAgent: match.userAgent, ipAddress: match.ipAddress }
+        : undefined;
+
+    return this.generateTokens(String(user._id), user.email!, user.roles, deviceInfo);
   }
 
   async logout(userId: string): Promise<LogoutResponse> {
+    // Convert ObjectId to string for consistent querying
+    // The controller passes req.user._id which might be an ObjectId,
+    // but tokens are stored with string user IDs
+    const userIdStr = String(userId);
+
     // Remove all refresh tokens for this user
-    await this.refreshTokenModel.deleteMany({ user: userId }).exec();
+    await this.refreshTokenModel.deleteMany({ user: userIdStr }).exec();
+
     return { message: 'Logout successful' };
   }
 
   async validateUser(userId: string) {
     return this.usersService.findById(userId);
-  }
-
-  // Alias methods for controller compatibility
-  async refreshTokens(refreshDto: RefreshDto): Promise<TokenPair> {
-    return this.refresh(refreshDto);
-  }
-
-  async requestVerificationCode(dto: RequestVerifyDto): Promise<VerificationCodeResponse> {
-    return this.requestVerify(dto);
   }
 
   async verifyCode(dto: VerifyDto): Promise<{
@@ -800,10 +899,6 @@ export class AuthService {
     // Load OTP configuration
     const cfg = await this.loadOtpConfig();
 
-    // Validate code format (should be 6 digits)
-    const re = new RegExp(`^\\d{${cfg.length}}$`);
-    if (!re.test(code)) throw new BadRequestException(`Code must be a ${cfg.length}-digit number`);
-
     // 1) Lookup user
     const user =
       method === AuthMethod.EMAIL
@@ -813,28 +908,21 @@ export class AuthService {
     if (!user) {
       // This is ownership verification for a new user
       // Verify the OTP is valid for this identifier
-      const query = {
-        identifier: identifier,
-        type: method,
-        used: false,
-        expiresAt: { $gt: DateUtils.now() },
-      };
-
-      const record = await this.vtModel.findOne(query).exec();
+      const record = await this.vtModel
+        .findOne({
+          identifier: identifier,
+          type: method,
+          used: false,
+          expiresAt: { $gt: DateUtils.now() },
+        })
+        .exec();
 
       if (!record) {
         throw new BadRequestException('Invalid verification code');
       }
 
-      if (record.attempts >= cfg.maxAttempts) {
-        throw new BadRequestException('Too many attempts. Request a new code.');
-      }
-
-      const codeValid = await CryptoUtil.comparePassword(code, record.codeHash);
-      if (!codeValid) {
-        await this.vtModel.findByIdAndUpdate(record._id, { $inc: { attempts: 1 } }).exec();
-        throw new BadRequestException('Invalid verification code');
-      }
+      // Validate OTP code using common helper
+      await this.validateOtpCode(code, record, cfg);
 
       // Clean up the verification record
       await this.vtModel.deleteOne({ _id: record._id }).exec();
@@ -873,23 +961,10 @@ export class AuthService {
       throw new BadRequestException('Invalid verification code');
     }
 
-    if (record.attempts >= cfg.maxAttempts) {
-      throw new BadRequestException('Too many attempts. Request a new code.');
-    }
+    // Validate OTP code using common helper
+    await this.validateOtpCode(code, record, cfg);
 
-    if (record.expiresAt.getTime() < DateUtils.nowTimestamp()) {
-      await this.vtModel.deleteOne({ _id: record._id }).exec();
-      throw new BadRequestException('Verification code expired');
-    }
-
-    const codeValid = await CryptoUtil.comparePassword(code, record.codeHash);
-    if (!codeValid) {
-      // Increment attempts before throwing error
-      await this.vtModel.findByIdAndUpdate(record._id, { $inc: { attempts: 1 } }).exec();
-      throw new BadRequestException('Invalid verification code');
-    }
-
-    // Clean up
+    // Clean up verification token
     await this.vtModel.deleteOne({ _id: record._id }).exec();
 
     // Mark user verified
@@ -1083,11 +1158,31 @@ export class AuthService {
       throw new UnauthorizedException('Invalid credentials');
     }
 
-    // Check if device verification is required (simple logic - can be enhanced)
-    const requiresDeviceVerification = false; // For now, skip device verification
+    // Check if device verification is required
+    let requiresDeviceVerification = false;
+
+    // Load device trust configuration
+    const deviceTrustConfig = await this.deviceTrustConfigService.getConfig();
+
+    // Only perform device verification if feature is enabled AND device information is provided
+    if (deviceTrustConfig.verificationRequired && dto.userAgent && dto.ipAddress) {
+      const deviceTrusted = await this.isDeviceTrusted(
+        String(user._id),
+        dto.userAgent,
+        dto.ipAddress,
+      );
+
+      // Require verification if device is not trusted
+      requiresDeviceVerification = !deviceTrusted;
+    }
 
     if (!requiresDeviceVerification) {
-      // Complete signin immediately
+      // Device is trusted or device info not provided - complete signin immediately
+      // Register device as trusted if device info was provided
+      if (dto.userAgent && dto.ipAddress) {
+        await this.registerTrustedDevice(String(user._id), dto.userAgent, dto.ipAddress);
+      }
+
       const tokens = await this.generateTokens(String(user._id), user.email!, user.roles);
       const userData = plainToInstance(UserDataDto, user.toObject());
       return {
@@ -1173,13 +1268,7 @@ export class AuthService {
     // Load OTP configuration
     const cfg = await this.loadOtpConfig();
 
-    // Validate code format
-    const re = new RegExp(`^\\d{${cfg.length}}$`);
-    if (!re.test(dto.code)) {
-      throw new BadRequestException(`Code must be a ${cfg.length}-digit number`);
-    }
-
-    // Find and verify token
+    // Find verification token
     const record = await this.vtModel
       .findOne({
         user: user._id,
@@ -1193,18 +1282,16 @@ export class AuthService {
       throw new BadRequestException('Invalid or expired verification code');
     }
 
-    if (record.attempts >= cfg.maxAttempts) {
-      throw new BadRequestException('Too many attempts. Request a new code.');
-    }
-
-    const codeValid = await CryptoUtil.comparePassword(dto.code, record.codeHash);
-    if (!codeValid) {
-      await this.vtModel.findByIdAndUpdate(record._id, { $inc: { attempts: 1 } }).exec();
-      throw new BadRequestException('Invalid verification code');
-    }
+    // Validate OTP code using common helper
+    await this.validateOtpCode(dto.code, record, cfg);
 
     // Clean up verification record
     await this.vtModel.deleteOne({ _id: record._id }).exec();
+
+    // Register device as trusted after successful verification
+    if (dto.userAgent && dto.ipAddress) {
+      await this.registerTrustedDevice(String(user._id), dto.userAgent, dto.ipAddress);
+    }
 
     // Complete signin
     const tokens = await this.generateTokens(String(user._id), user.email!, user.roles);
@@ -1473,5 +1560,49 @@ export class AuthService {
         dto.contactType === AuthMethod.EMAIL ? CodeDeliveryMethod.EMAIL : CodeDeliveryMethod.SMS,
       testCode: process.env.NODE_ENV !== 'production' ? code : undefined,
     };
+  }
+
+  /**
+   * Session Management: List active sessions/devices for a user
+   */
+  async listSessions(userId: string): Promise<any[]> {
+    const sessions = await this.refreshTokenModel
+      .find({
+        user: userId,
+        expiresAt: { $gt: DateUtils.now() },
+      })
+      .sort({ lastUsedAt: -1 })
+      .select('-tokenHash') // Exclude sensitive token hash
+      .exec();
+
+    return sessions.map((session) => ({
+      id: String(session._id),
+      deviceName: session.deviceName || 'Unknown Device',
+      deviceFingerprint: session.deviceFingerprint,
+      ipAddress: session.ipAddress,
+      userAgent: session.userAgent,
+      createdAt: session.createdAt,
+      lastUsedAt: session.lastUsedAt,
+      expiresAt: session.expiresAt,
+      isCurrent: false, // Will be determined by frontend based on current refresh token
+    }));
+  }
+
+  /**
+   * Session Management: Logout a specific session/device
+   */
+  async logoutSession(userId: string, sessionId: string): Promise<{ message: string }> {
+    const result = await this.refreshTokenModel
+      .deleteOne({
+        _id: sessionId,
+        user: userId, // Ensure user can only delete their own sessions
+      })
+      .exec();
+
+    if (result.deletedCount === 0) {
+      throw new NotFoundException('Session not found or already expired');
+    }
+
+    return { message: 'Session terminated successfully' };
   }
 }

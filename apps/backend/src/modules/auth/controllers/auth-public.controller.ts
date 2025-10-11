@@ -1,4 +1,4 @@
-import { Controller, Post, Body, HttpCode, HttpStatus, Req } from '@nestjs/common';
+import { Controller, Post, Get, Body, Query, HttpCode, HttpStatus, Req } from '@nestjs/common';
 import { BaseController } from '../../../common/controllers/base.controller';
 import { ApiTags } from '@nestjs/swagger';
 import { AuthService } from '../auth.service';
@@ -6,6 +6,9 @@ import {
   PublicEndpoint,
   ProtectedEndpoint,
 } from '../../../common/decorators/api-endpoint.decorator';
+import { IpThrottle, IpThrottlePresets } from '../../../common/decorators/ip-throttle.decorator';
+import { AuditLog, AuditLogPresets } from '../../../common/decorators/audit-log.decorator';
+import { AuditLogAction, AuditLogSeverity } from '../../../database/schemas/audit-log.schema';
 import type { AuthRequest } from '../types/auth.types';
 
 // DTOs
@@ -38,6 +41,13 @@ import { SignupVerifyContactDto } from '../dto/signup-initiate.dto';
 import { SignupInitiateResponseDto } from '../dto/signup-response.dto';
 import { AddSecondaryContactDto } from '../dto/add-secondary-contact.dto';
 import { AddSecondaryContactResponseDto } from '../dto/add-secondary-contact-response.dto';
+import {
+  ListSessionsResponseDto,
+  SessionTerminationResponseDto,
+} from '../dto/session-response.dto';
+import { AuditLogQueryDto } from '../dto/audit-log-query.dto';
+import { AuditLogListResponseDto, AuditLogEntryDto } from '../dto/audit-log-response.dto';
+import { AuditLogService } from '../services/audit-log.service';
 
 /**
  * Public Controller for Authentication
@@ -46,7 +56,10 @@ import { AddSecondaryContactResponseDto } from '../dto/add-secondary-contact-res
 @Controller('public/auth')
 @ApiTags('Authentication')
 export class AuthPublicController extends BaseController {
-  constructor(private readonly authService: AuthService) {
+  constructor(
+    private readonly authService: AuthService,
+    private readonly auditLogService: AuditLogService,
+  ) {
     super();
   }
 
@@ -71,6 +84,7 @@ export class AuthPublicController extends BaseController {
 
   @Post('refresh')
   @HttpCode(HttpStatus.OK)
+  @IpThrottle(IpThrottlePresets.TOKEN_REFRESH)
   @PublicEndpoint(
     'Refresh access token',
     'Generate new access token using valid refresh token',
@@ -79,7 +93,7 @@ export class AuthPublicController extends BaseController {
   async refresh(@Body() refreshDto: RefreshDto): Promise<RefreshTokenResponseDto> {
     return this.executeWithErrorHandlingAndMessage(
       async () => {
-        return await this.authService.refreshTokens(refreshDto);
+        return await this.authService.refresh(refreshDto);
       },
       'Refresh token',
       'Token Refreshed',
@@ -90,6 +104,7 @@ export class AuthPublicController extends BaseController {
 
   @Post('logout')
   @HttpCode(HttpStatus.OK)
+  @AuditLog(AuditLogPresets.LOGOUT)
   @ProtectedEndpoint('User logout', 'Logout user and invalidate refresh tokens', LogoutResponseDto)
   async logout(@Req() req: AuthRequest): Promise<LogoutResponseDto> {
     return this.executeWithErrorHandlingAndMessage(
@@ -105,6 +120,7 @@ export class AuthPublicController extends BaseController {
 
   @Post('request-verify')
   @HttpCode(HttpStatus.OK)
+  @IpThrottle(IpThrottlePresets.OTP_REQUEST)
   @PublicEndpoint(
     'Request verification code',
     'Send verification code via email or SMS',
@@ -113,7 +129,7 @@ export class AuthPublicController extends BaseController {
   async requestVerify(@Body() dto: RequestVerifyDto): Promise<RequestVerifyResponseDto> {
     return this.executeWithErrorHandlingAndMessage(
       async () => {
-        return await this.authService.requestVerificationCode(dto);
+        return await this.authService.requestVerify(dto);
       },
       'Request verification',
       'Verification Code Sent',
@@ -143,6 +159,7 @@ export class AuthPublicController extends BaseController {
 
   @Post('request-reset')
   @HttpCode(HttpStatus.OK)
+  @IpThrottle(IpThrottlePresets.PASSWORD_RESET)
   @PublicEndpoint(
     'Request password reset',
     'Send password reset code to email or phone',
@@ -181,6 +198,7 @@ export class AuthPublicController extends BaseController {
 
   @Post('reset-password')
   @HttpCode(HttpStatus.OK)
+  @AuditLog(AuditLogPresets.PASSWORD_CHANGED)
   @PublicEndpoint(
     'Reset password',
     'Reset password using verification code and new password',
@@ -200,6 +218,7 @@ export class AuthPublicController extends BaseController {
 
   @Post('signup/verify-contact')
   @HttpCode(HttpStatus.OK)
+  @IpThrottle(IpThrottlePresets.SIGNUP)
   @PublicEndpoint(
     'Verify signup contact',
     'Send verification code to email or phone for new user registration',
@@ -221,6 +240,12 @@ export class AuthPublicController extends BaseController {
 
   @Post('signup/complete-profile')
   @HttpCode(HttpStatus.CREATED)
+  @AuditLog({
+    action: AuditLogAction.ACCOUNT_CREATED,
+    severity: AuditLogSeverity.MEDIUM,
+    resourceType: 'User',
+    description: 'New user account created',
+  })
   @PublicEndpoint(
     'Complete signup profile',
     'Complete user registration with personal details and create account',
@@ -242,6 +267,7 @@ export class AuthPublicController extends BaseController {
 
   @Post('signin/initiate')
   @HttpCode(HttpStatus.OK)
+  @IpThrottle(IpThrottlePresets.AUTH_LOGIN)
   @PublicEndpoint(
     'Initiate sign-in',
     'Start the unified sign-in flow with email/phone identifier',
@@ -261,6 +287,12 @@ export class AuthPublicController extends BaseController {
 
   @Post('signin/password')
   @HttpCode(HttpStatus.OK)
+  @IpThrottle(IpThrottlePresets.AUTH_LOGIN)
+  @AuditLog({
+    action: AuditLogAction.LOGIN_SUCCESS,
+    severity: AuditLogSeverity.MEDIUM,
+    description: 'User logged in with password',
+  })
   @PublicEndpoint(
     'Enter password',
     'Complete sign-in with password or request SMS code',
@@ -280,6 +312,11 @@ export class AuthPublicController extends BaseController {
 
   @Post('signin/verify-device')
   @HttpCode(HttpStatus.OK)
+  @AuditLog({
+    action: AuditLogAction.DEVICE_TRUSTED,
+    severity: AuditLogSeverity.MEDIUM,
+    description: 'Device verified and trusted for user',
+  })
   @PublicEndpoint(
     'Verify device',
     'Complete sign-in with device verification code',
@@ -317,5 +354,125 @@ export class AuthPublicController extends BaseController {
       'Secondary contact added successfully',
       'Failed to add secondary contact',
     ) as Promise<AddSecondaryContactResponseDto>;
+  }
+
+  @Post('sessions')
+  @HttpCode(HttpStatus.OK)
+  @ProtectedEndpoint(
+    'List active sessions',
+    'Get all active sessions/devices for the authenticated user',
+    ListSessionsResponseDto,
+  )
+  async listSessions(@Req() req: AuthRequest): Promise<ListSessionsResponseDto> {
+    return this.executeWithErrorHandlingAndMessage(
+      async () => {
+        return await this.authService.listSessions(req.user._id);
+      },
+      'List sessions',
+      'Sessions Retrieved',
+      'Active sessions retrieved successfully',
+      'Failed to retrieve sessions',
+    ) as Promise<ListSessionsResponseDto>;
+  }
+
+  @Post('sessions/:sessionId/terminate')
+  @HttpCode(HttpStatus.OK)
+  @AuditLog({
+    ...AuditLogPresets.SESSION_TERMINATED,
+    getResourceId: (req) => {
+      const body = req.body as Record<string, unknown>;
+      return typeof body?.sessionId === 'string' ? body.sessionId : undefined;
+    },
+  })
+  @ProtectedEndpoint(
+    'Terminate session',
+    'Logout a specific session/device by ID',
+    SessionTerminationResponseDto,
+  )
+  async terminateSession(
+    @Req() req: AuthRequest,
+    @Body('sessionId') sessionId: string,
+  ): Promise<SessionTerminationResponseDto> {
+    return this.executeWithErrorHandlingAndMessage(
+      async () => {
+        return await this.authService.logoutSession(req.user._id, sessionId);
+      },
+      'Terminate session',
+      'Session Terminated',
+      'Session terminated successfully',
+      'Failed to terminate session',
+    ) as Promise<SessionTerminationResponseDto>;
+  }
+
+  @Get('audit-logs')
+  @HttpCode(HttpStatus.OK)
+  @ProtectedEndpoint(
+    'View audit logs',
+    'Get audit logs for the authenticated user with optional filtering',
+    AuditLogListResponseDto,
+  )
+  async getAuditLogs(
+    @Req() req: AuthRequest,
+    @Query() query: AuditLogQueryDto,
+  ): Promise<AuditLogListResponseDto> {
+    return this.executeWithErrorHandlingAndMessage(
+      async () => {
+        const page = query.page || 1;
+        const limit = query.limit || 50;
+        const skip = (page - 1) * limit;
+
+        // Query audit logs for current user
+        const entries = await this.auditLogService.query({
+          userId: req.user._id,
+          action: query.action,
+          result: query.result,
+          severity: query.severity,
+          ipAddress: query.ipAddress,
+          startDate: query.startDate ? new Date(query.startDate) : undefined,
+          endDate: query.endDate ? new Date(query.endDate) : undefined,
+          limit,
+          skip,
+        });
+
+        // Get total count for pagination
+        const total = await this.auditLogService.count({
+          userId: req.user._id,
+          action: query.action,
+          result: query.result,
+          severity: query.severity,
+          ipAddress: query.ipAddress,
+          startDate: query.startDate ? new Date(query.startDate) : undefined,
+          endDate: query.endDate ? new Date(query.endDate) : undefined,
+        });
+
+        // Map to DTOs
+        const auditLogEntries: AuditLogEntryDto[] = entries.map((entry) => ({
+          id: String(entry._id),
+          action: entry.action,
+          result: entry.result,
+          severity: entry.severity,
+          resourceType: entry.resourceType,
+          resourceId: entry.resourceId,
+          ipAddress: entry.ipAddress,
+          userAgent: entry.userAgent,
+          deviceFingerprint: entry.deviceFingerprint,
+          metadata: entry.metadata,
+          errorMessage: entry.errorMessage,
+          description: entry.description,
+          createdAt: entry.createdAt,
+        }));
+
+        return {
+          entries: auditLogEntries,
+          total,
+          page,
+          limit,
+        };
+      },
+      'Get audit logs',
+      'Audit Logs Retrieved',
+      'Audit logs retrieved successfully',
+      'Failed to retrieve audit logs',
+    ) as Promise<AuditLogListResponseDto>;
   }
 }

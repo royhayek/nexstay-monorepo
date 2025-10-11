@@ -7,20 +7,27 @@ import { JwtStrategy } from './jwt.strategy';
 import { MongooseModule } from '@nestjs/mongoose';
 import { AuthPublicController } from './controllers/auth-public.controller';
 import { UsersModule } from '../users/users.module';
-import { CommonModule } from '../../common/common.modules';
+import { CommonModule } from '../../common/common.module';
 import { RefreshToken, RefreshTokenSchema } from '../../database/schemas/refresh-token.schema';
 import {
   VerificationToken,
   VerificationTokenSchema,
 } from '../../database/schemas/verification-token.schema';
+import { TrustedDevice, TrustedDeviceSchema } from '../../database/schemas/trusted-device.schema';
+import { AuditLog, AuditLogSchema } from '../../database/schemas/audit-log.schema';
 import { IsOtpCodeConstraint } from '../../common/validators/otp-code.validator';
 import { DynamicConfigModule } from '../config/config.module';
+import { AuditLogService } from './services/audit-log.service';
+import { AuditLogCleanupService } from './services/audit-log-cleanup.service';
+import { TrustedDeviceCleanupService } from './services/trusted-device-cleanup.service';
 
 @Module({
   imports: [
     MongooseModule.forFeature([
       { name: RefreshToken.name, schema: RefreshTokenSchema },
       { name: VerificationToken.name, schema: VerificationTokenSchema },
+      { name: TrustedDevice.name, schema: TrustedDeviceSchema },
+      { name: AuditLog.name, schema: AuditLogSchema },
     ]),
     ConfigModule,
     PassportModule,
@@ -37,7 +44,14 @@ import { DynamicConfigModule } from '../config/config.module';
     DynamicConfigModule,
   ],
   controllers: [AuthPublicController],
-  providers: [AuthService, JwtStrategy, IsOtpCodeConstraint],
-  exports: [AuthService],
+  providers: [
+    AuthService,
+    JwtStrategy,
+    IsOtpCodeConstraint,
+    AuditLogService,
+    AuditLogCleanupService,
+    TrustedDeviceCleanupService,
+  ],
+  exports: [AuthService, AuditLogService, TrustedDeviceCleanupService],
 })
 export class AuthModule {}

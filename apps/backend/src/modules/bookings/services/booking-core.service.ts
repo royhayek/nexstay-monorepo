@@ -11,6 +11,7 @@ import { PayoutStatus } from '../../../common/enums/payout.enums';
 import { BOOKING_BUSINESS_CONSTANTS, BOOKING_STATUS_FLOW } from '../constants/booking.constants';
 import { BookingValidationUtils } from '../utils/booking-validation.utils';
 import { FeeCalculationService } from '../../fees/services/fee-calculation.service';
+import { BookingConfigService } from '../../../common/services/booking-config.service';
 import {
   BookingNotFoundException,
   PropertyNotAvailableException,
@@ -35,6 +36,7 @@ export class BookingCoreService {
     @InjectModel(User.name)
     private readonly userModel: Model<UserDocument>,
     private readonly feeCalculationService: FeeCalculationService,
+    private readonly bookingConfigService: BookingConfigService,
   ) {}
 
   /**
@@ -62,6 +64,15 @@ export class BookingCoreService {
 
       // Validate dates
       BookingValidationUtils.validateBookingDates(dto.checkIn, dto.checkOut);
+
+      // Load booking configuration
+      const bookingConfig = await this.bookingConfigService.getConfig();
+
+      // Validate guest limits against dynamic configuration
+      this.validateGuestLimits(dto.guests, bookingConfig);
+
+      // Validate advance booking rules
+      await this.validateAdvanceBookingRules(dto.checkIn, bookingConfig);
 
       // Calculate pricing
       const pricing = await this.calculatePricing(property, dto);
@@ -322,5 +333,74 @@ export class BookingCoreService {
         baseAmount + cleaningFee + feeBreakdown.guestServiceFee + feeBreakdown.occupancyTax,
       currency: feeBreakdown.currency,
     };
+  }
+
+  /**
+   * Validate guest limits against dynamic configuration
+   */
+  private validateGuestLimits(
+    guests: { adults: number; children?: number; infants?: number; totalGuests: number },
+    config: { maxAdults: number; maxChildren: number; maxInfants: number; maxTotalGuests: number },
+  ): void {
+    if (guests.adults > config.maxAdults) {
+      throw new BookingValidationException(
+        `Number of adults (${guests.adults}) exceeds maximum allowed (${config.maxAdults})`,
+        'adults',
+      );
+    }
+
+    if (guests.children && guests.children > config.maxChildren) {
+      throw new BookingValidationException(
+        `Number of children (${guests.children}) exceeds maximum allowed (${config.maxChildren})`,
+        'children',
+      );
+    }
+
+    if (guests.infants && guests.infants > config.maxInfants) {
+      throw new BookingValidationException(
+        `Number of infants (${guests.infants}) exceeds maximum allowed (${config.maxInfants})`,
+        'infants',
+      );
+    }
+
+    if (guests.totalGuests > config.maxTotalGuests) {
+      throw new BookingValidationException(
+        `Total number of guests (${guests.totalGuests}) exceeds maximum allowed (${config.maxTotalGuests})`,
+        'totalGuests',
+      );
+    }
+  }
+
+  /**
+   * Validate advance booking rules against dynamic configuration
+   */
+  private async validateAdvanceBookingRules(
+    checkInDate: string | Date,
+    config: { maxAdvanceDays: number; minAdvanceHours: number },
+  ): Promise<void> {
+    const checkIn = DateUtils.create(checkInDate);
+    const now = DateUtils.now();
+
+    // Calculate time difference in hours
+    const hoursDifference = (checkIn.getTime() - now.getTime()) / (1000 * 60 * 60);
+
+    // Check minimum advance hours
+    if (hoursDifference < config.minAdvanceHours) {
+      throw new BookingValidationException(
+        `Booking must be made at least ${config.minAdvanceHours} hours in advance`,
+        'checkIn',
+      );
+    }
+
+    // Calculate days difference
+    const daysDifference = Math.ceil(hoursDifference / 24);
+
+    // Check maximum advance days
+    if (daysDifference > config.maxAdvanceDays) {
+      throw new BookingValidationException(
+        `Booking cannot be made more than ${config.maxAdvanceDays} days in advance`,
+        'checkIn',
+      );
+    }
   }
 }

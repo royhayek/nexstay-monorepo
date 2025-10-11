@@ -9,6 +9,7 @@ import { DynamicConfigService } from '../config/config.service';
 import { NotificationService } from '../../common/services/notificaton.service';
 import { RefreshToken } from '../../database/schemas/refresh-token.schema';
 import { VerificationToken } from '../../database/schemas/verification-token.schema';
+import { TrustedDevice } from '../../database/schemas/trusted-device.schema';
 import { AuthMethod, CodeDeliveryMethod } from './dto/login.dto';
 import { CheckIdentifierDto } from './dto/check-identifier.dto';
 import { SignupCompleteProfileDto } from './dto/signup-complete-profile.dto';
@@ -67,6 +68,18 @@ describe('AuthService', () => {
     registrationState: RegistrationState.PROFILE_COMPLETE,
     isEmailVerified: true,
     isPhoneVerified: false,
+    toObject: jest.fn().mockReturnValue({
+      _id: '507f1f77bcf86cd799439011',
+      email: 'test@example.com',
+      phone: '+1234567890',
+      firstName: 'John',
+      lastName: 'Doe',
+      roles: [UserRole.GUEST],
+      status: UserStatus.ACTIVE,
+      registrationState: RegistrationState.PROFILE_COMPLETE,
+      isEmailVerified: true,
+      isPhoneVerified: false,
+    }),
   };
 
   beforeEach(async () => {
@@ -130,6 +143,16 @@ describe('AuthService', () => {
             findOne: jest.fn(),
             findOneAndUpdate: jest.fn(),
             deleteOne: jest.fn(),
+            exec: jest.fn(),
+          },
+        },
+        {
+          provide: getModelToken(TrustedDevice.name),
+          useValue: {
+            findOne: jest.fn(),
+            findOneAndUpdate: jest.fn(),
+            create: jest.fn(),
+            save: jest.fn(),
             exec: jest.fn(),
           },
         },
@@ -275,6 +298,7 @@ describe('AuthService', () => {
       jwtService.verify.mockReturnValue(mockSessionPayload);
       usersFacadeService.findByEmail.mockResolvedValue(null);
       usersFacadeService.create.mockResolvedValue(mockUser as UserDocument);
+      usersFacadeService.findById.mockResolvedValue(mockUser as UserDocument);
       usersFacadeService.markEmailVerified.mockResolvedValue(undefined);
       jwtService.sign.mockReturnValue('mock-token');
       jwtService.decode.mockReturnValue({ exp: Math.floor(Date.now() / 1000) + 3600 }); // 1 hour from now
@@ -301,7 +325,7 @@ describe('AuthService', () => {
 
       const result: SignupCompleteDataDto = await service.signupCompleteProfile(dto);
 
-      expect(result).toEqual({
+      expect(result).toMatchObject({
         accessToken: 'mock-token',
         refreshToken: 'mock-token',
         registrationState: RegistrationState.PROFILE_COMPLETE,
@@ -309,6 +333,7 @@ describe('AuthService', () => {
         missingContactType: 'phone',
         secondaryContactNeedsVerification: false,
       });
+      expect(result.user).toBeDefined();
     });
 
     it('should complete profile with secondary contact provided', async () => {
@@ -332,7 +357,7 @@ describe('AuthService', () => {
 
       const result: SignupCompleteDataDto = await service.signupCompleteProfile(dto);
 
-      expect(result).toEqual({
+      expect(result).toMatchObject({
         accessToken: 'mock-token',
         refreshToken: 'mock-token',
         registrationState: RegistrationState.PROFILE_COMPLETE,
@@ -340,6 +365,7 @@ describe('AuthService', () => {
         missingContactType: undefined,
         secondaryContactNeedsVerification: true,
       });
+      expect(result.user).toBeDefined();
     });
 
     it('should throw BadRequestException for invalid session token', async () => {

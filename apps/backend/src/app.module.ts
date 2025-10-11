@@ -4,11 +4,14 @@ import { DynamicConfigService } from './modules/config/config.service';
 import appConfig from './config/app.config';
 import databaseConfig from './config/database.config';
 import { MongooseModule } from '@nestjs/mongoose';
-import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
+import { ThrottlerModule } from '@nestjs/throttler';
+import { ScheduleModule } from '@nestjs/schedule';
 import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
 import { RolesGuard } from './common/guards/roles.guard';
+import { IpThrottlerGuard } from './common/guards/ip-throttler.guard';
 import twilioConfig from './config/twilio.config';
-import { APP_GUARD } from '@nestjs/core';
+import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
+import { AuditLogInterceptor } from './common/interceptors/audit-log.interceptor';
 import { UsersModule } from './modules/users/users.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { DynamicConfigModule } from './modules/config/config.module';
@@ -38,6 +41,7 @@ import { MultiCurrencyModule } from './modules/multi-currency/multi-currency.mod
 import { SecurityDepositsModule } from './modules/security-deposits/security-deposits.module';
 import { BookingInstallmentsModule } from './modules/booking-installments/booking-installments.module';
 import { CatalogsModule } from './modules/catalogs/catalogs.module';
+import { CommonModule } from './common/common.module';
 import { LanguageDetectionMiddleware } from './common/middleware/language-detection.middleware';
 
 @Module({
@@ -58,6 +62,7 @@ import { LanguageDetectionMiddleware } from './common/middleware/language-detect
       validationSchema: envValidation,
     }),
     DynamicConfigModule,
+    ScheduleModule.forRoot(),
     ThrottlerModule.forRootAsync({
       imports: [DynamicConfigModule],
       useFactory: async (configService: DynamicConfigService) => {
@@ -89,6 +94,7 @@ import { LanguageDetectionMiddleware } from './common/middleware/language-detect
     }),
 
     // 2) Cross-cutting feature modules
+    CommonModule,
     I18nModule,
     StorageModule,
     AuthModule,
@@ -114,9 +120,10 @@ import { LanguageDetectionMiddleware } from './common/middleware/language-detect
     CatalogsModule,
   ],
   providers: [
-    { provide: APP_GUARD, useClass: ThrottlerGuard },
+    { provide: APP_GUARD, useClass: IpThrottlerGuard },
     { provide: APP_GUARD, useClass: JwtAuthGuard },
     { provide: APP_GUARD, useClass: RolesGuard },
+    { provide: APP_INTERCEPTOR, useClass: AuditLogInterceptor },
   ],
 })
 export class AppModule implements NestModule {

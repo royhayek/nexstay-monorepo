@@ -50,6 +50,9 @@ axiosInstance.interceptors.request.use(
   }
 );
 
+// Track concurrent refresh attempts
+let refreshPromise: Promise<string | null> | null = null;
+
 // Response interceptor
 axiosInstance.interceptors.response.use(
   (response: AxiosResponse) => {
@@ -73,27 +76,71 @@ axiosInstance.interceptors.response.use(
       originalRequest._retry = true;
 
       try {
-        const refreshToken = await tokenManager.getRefreshToken();
-        if (refreshToken) {
-          // Call refresh token endpoint
-          const response = await axios.post(`${API_CONFIG.BASE_URL}/auth/refresh`, {
-            refresh_token: refreshToken,
-          });
+        // If a refresh is already in progress, wait for it
+        if (refreshPromise) {
+          const newAccessToken = await refreshPromise;
+          if (newAccessToken) {
+            originalRequest.headers!.Authorization = `Bearer ${newAccessToken}`;
+            return axiosInstance(originalRequest);
+          }
+          throw new Error("Token refresh failed");
+        }
 
-          const { access_token, refresh_token: newRefreshToken } = response.data;
-          await tokenManager.setTokens(access_token, newRefreshToken);
+        // Start a new refresh
+        refreshPromise = (async () => {
+          try {
+            const refreshToken = await tokenManager.getRefreshToken();
+            if (!refreshToken) {
+              throw new Error("No refresh token available");
+            }
 
+            // Import the generated refresh function dynamically to avoid circular dependency
+            const { authPublicControllerRefresh } = await import(
+              "./queries/public/authentication/authentication"
+            );
+
+            // Call refresh using the generated Orval function
+            const response = await authPublicControllerRefresh({
+              refreshToken: refreshToken,
+            });
+
+            // Extract tokens from response (Orval already unwraps the data)
+            const { accessToken, refreshToken: newRefreshToken } = response.data;
+
+            if (!accessToken || !newRefreshToken) {
+              throw new Error("Invalid refresh response");
+            }
+
+            await tokenManager.setTokens(accessToken, newRefreshToken);
+
+            if (__DEV__) {
+              console.info("🔄 Tokens refreshed successfully");
+            }
+
+            return accessToken;
+          } catch (error) {
+            // Clear tokens on refresh failure
+            await tokenManager.clearTokens();
+            if (__DEV__) {
+              console.error("🔄 Token refresh failed:", error);
+            }
+            throw error;
+          } finally {
+            refreshPromise = null; // Clear the promise
+          }
+        })();
+
+        const newAccessToken = await refreshPromise;
+        if (newAccessToken) {
           // Retry original request with new token
-          originalRequest.headers!.Authorization = `Bearer ${access_token}`;
+          originalRequest.headers!.Authorization = `Bearer ${newAccessToken}`;
           return axiosInstance(originalRequest);
         }
-      } catch (refreshError) {
-        // Refresh failed, clear tokens and redirect to login
-        await tokenManager.clearTokens();
+      } catch (error) {
         // You might want to emit an event or use a navigation service here
         // to redirect to login screen
         if (__DEV__) {
-          console.error("🔄 Token refresh failed:", refreshError);
+          console.error("🔄 Token refresh failed, redirecting to login");
         }
       }
     }

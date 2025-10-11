@@ -7,9 +7,8 @@ import { BookingStatus, PaymentStatus } from '../../../common/enums/booking.enum
 import { PayoutStatus } from '../../../common/enums/payout.enums';
 import { BookingCoreService } from './booking-core.service';
 import { PaginationDto } from '../../messaging/dto/pagination.dto';
-import { BOOKING_PAGINATION_CONSTANTS } from '../constants/booking.constants';
 import { QueryBuilder } from '../../../common/utils/query-builder.util';
-import { validatePagination, buildPaginatedResult } from '../../../common/utils/database.utils';
+import { PaginationUtils } from '../../../common/utils/pagination.utils';
 import {
   BookingQueryFilter,
   BookingFiltersDto,
@@ -29,6 +28,7 @@ export class BookingAdminService {
     @InjectModel(Booking.name)
     private readonly bookingModel: Model<BookingDocument>,
     private readonly bookingCoreService: BookingCoreService,
+    private readonly paginationUtils: PaginationUtils,
   ) {}
 
   async findAllWithFilters(
@@ -38,11 +38,10 @@ export class BookingAdminService {
     try {
       const query = this.buildFilterQuery(filters);
 
-      // Use standardized pagination validation
-      const { page, limit, skip } = validatePagination({
-        page: pagination.page || BOOKING_PAGINATION_CONSTANTS.MIN_PAGE,
-        limit: pagination.limit || BOOKING_PAGINATION_CONSTANTS.DEFAULT_LIMIT,
-        maxLimit: BOOKING_PAGINATION_CONSTANTS.MAX_LIMIT,
+      // Use dynamic pagination from PaginationUtils
+      const normalizedPagination = await this.paginationUtils.normalizePagination({
+        page: pagination.page,
+        limit: pagination.limit,
       });
 
       const [bookings, total] = await Promise.all([
@@ -52,8 +51,8 @@ export class BookingAdminService {
           .populate('guest', 'firstName lastName email')
           .populate('host', 'firstName lastName email')
           .sort({ createdAt: -1 })
-          .skip(skip)
-          .limit(limit)
+          .skip(normalizedPagination.skip)
+          .limit(normalizedPagination.limit)
           .exec(),
         this.bookingModel.countDocuments(query).exec(),
       ]);
@@ -63,18 +62,22 @@ export class BookingAdminService {
         'BookingAdminService',
       );
 
-      // Use standardized pagination result builder
-      const paginationResult = buildPaginatedResult(bookings, total, page, limit);
+      // Use dynamic pagination metadata
+      const metadata = this.paginationUtils.createMetadata(
+        total,
+        normalizedPagination.page,
+        normalizedPagination.limit,
+      );
 
       return {
-        items: paginationResult.data,
-        bookings: paginationResult.data, // Keep for backward compatibility
-        total: paginationResult.total,
-        page: paginationResult.page,
-        limit: paginationResult.limit,
-        totalPages: paginationResult.totalPages,
-        hasNextPage: paginationResult.hasNextPage,
-        hasPrevPage: paginationResult.hasPrevPage,
+        items: bookings,
+        bookings, // Keep for backward compatibility
+        total: metadata.total,
+        page: metadata.page,
+        limit: metadata.limit,
+        totalPages: metadata.totalPages,
+        hasNextPage: metadata.hasNextPage,
+        hasPrevPage: metadata.hasPrevPage,
       };
     } catch (error) {
       LoggingUtil.errorWithException('Error in admin booking query:', error, 'BookingAdminService');

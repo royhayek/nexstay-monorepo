@@ -50,8 +50,7 @@ export class CatalogsService {
           result.enumDisplays = allEnumDisplays;
           break;
         case 'amenitycategories':
-          result.amenityCategories =
-            await this.amenityCategoriesService.findAllForFrontend();
+          result.amenityCategories = await this.amenityCategoriesService.findAllForFrontend();
           break;
         case 'currencies':
           result.currencies = allEnumDisplays?.['currency'] || [];
