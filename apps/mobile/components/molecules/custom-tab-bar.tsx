@@ -9,7 +9,8 @@ import { StyleSheet, useUnistyles } from "react-native-unistyles";
 
 import { IconButton } from "@/components/atoms";
 import { ms } from "@/utils/scaling";
-import { Calendar, Heart, Home2, Profile } from "iconsax-react-native";
+import { Calendar, Heart, Home2, Profile, Category, Messages2, HambergerMenu } from "iconsax-react-native";
+import { useRoleContext } from "@/contexts";
 
 const SPRING_CONFIG = {
   damping: 15,
@@ -21,66 +22,71 @@ export const CustomTabBar: React.FC<BottomTabBarProps> = ({ state, descriptors, 
   const insets = useSafeAreaInsets();
   const { theme } = useUnistyles();
   const translateX = useSharedValue(0);
+  const { activeRole, canBeHost, isDualRole } = useRoleContext();
+
+  // Determine which tabs should be shown based on roles
+  const showHostStack = isDualRole ? activeRole === "host" : canBeHost;
+
+  // Define which routes belong to which stack
+  const guestRoutes = ["index", "favorites", "booking-history", "profile"];
+  const hostRoutes = ["host-dashboard", "host-listings", "host-calendar", "host-messages", "host-menu"];
+
+  // Filter and sort routes based on active stack
+  const visibleRoutes = state.routes
+    .filter((route) => {
+      const { options } = descriptors[route.key];
+
+      // First check if route is explicitly hidden
+      if (options.href === null) {
+        return false;
+      }
+
+      // Then check if route belongs to the current stack
+      if (showHostStack) {
+        return hostRoutes.includes(route.name);
+      } else {
+        return guestRoutes.includes(route.name);
+      }
+    })
+    .sort((a, b) => {
+      // Sort by the order defined in hostRoutes or guestRoutes
+      const routeList = showHostStack ? hostRoutes : guestRoutes;
+      return routeList.indexOf(a.name) - routeList.indexOf(b.name);
+    });
+
+  // Find the visible index (position among visible tabs)
+  const visibleIndex = visibleRoutes.findIndex((route) => route.key === state.routes[state.index].key);
 
   useEffect(() => {
+    // Don't animate if current route is not in visible routes
+    if (visibleIndex === -1) {
+      return;
+    }
+
     // Use actual theme values for precise positioning
     const iconWidth = theme.spacing.huge; // 48px
     const margin = theme.spacing.xs; // 4px
     const tabSpacing = iconWidth + margin * 2; // 56px total per tab
 
     // Calculate position from center for each tab
-    const numTabs = state.routes.length; // 4 tabs
-    const totalWidth = numTabs * tabSpacing; // 224px
-    const halfWidth = totalWidth / 2; // 112px
+    const numTabs = visibleRoutes.length;
+    const totalWidth = numTabs * tabSpacing;
+    const halfWidth = totalWidth / 2;
 
     // Position of each tab center relative to the overall center
-    const tabCenterPosition = state.index * tabSpacing + tabSpacing / 2 - halfWidth;
+    const tabCenterPosition = visibleIndex * tabSpacing + tabSpacing / 2 - halfWidth;
 
     translateX.value = withSpring(tabCenterPosition, SPRING_CONFIG);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [state.index, theme]);
+  }, [visibleIndex, theme, visibleRoutes.length]);
 
   const dotStyle = useAnimatedStyle(() => ({
     transform: [{ translateX: translateX.value }],
   }));
 
-  // Create animated styles for each tab index
-  const iconStyle0 = useAnimatedStyle(() => {
-    const isActive = state.index === 0;
-    return {
-      transform: [{ scale: withSpring(isActive ? 1.1 : 1, SPRING_CONFIG) }],
-      opacity: withSpring(isActive ? 1 : 0.7, SPRING_CONFIG),
-    };
-  });
-
-  const iconStyle1 = useAnimatedStyle(() => {
-    const isActive = state.index === 1;
-    return {
-      transform: [{ scale: withSpring(isActive ? 1.1 : 1, SPRING_CONFIG) }],
-      opacity: withSpring(isActive ? 1 : 0.7, SPRING_CONFIG),
-    };
-  });
-
-  const iconStyle2 = useAnimatedStyle(() => {
-    const isActive = state.index === 2;
-    return {
-      transform: [{ scale: withSpring(isActive ? 1.1 : 1, SPRING_CONFIG) }],
-      opacity: withSpring(isActive ? 1 : 0.7, SPRING_CONFIG),
-    };
-  });
-
-  const iconStyle3 = useAnimatedStyle(() => {
-    const isActive = state.index === 3;
-    return {
-      transform: [{ scale: withSpring(isActive ? 1.1 : 1, SPRING_CONFIG) }],
-      opacity: withSpring(isActive ? 1 : 0.7, SPRING_CONFIG),
-    };
-  });
-
-  const iconStyles = [iconStyle0, iconStyle1, iconStyle2, iconStyle3];
-
   const getIcon = (routeName: string) => {
     switch (routeName) {
+      // Guest tabs
       case "index":
         return Home2;
       case "favorites":
@@ -89,6 +95,17 @@ export const CustomTabBar: React.FC<BottomTabBarProps> = ({ state, descriptors, 
         return Calendar;
       case "profile":
         return Profile;
+      // Host tabs
+      case "host-dashboard":
+        return Home2;
+      case "host-calendar":
+        return Calendar;
+      case "host-listings":
+        return Category;
+      case "host-messages":
+        return Messages2;
+      case "host-menu":
+        return HambergerMenu;
       default:
         return Home2;
     }
@@ -109,6 +126,11 @@ export const CustomTabBar: React.FC<BottomTabBarProps> = ({ state, descriptors, 
     }
   };
 
+  // Don't render if no visible routes
+  if (visibleRoutes.length === 0) {
+    return null;
+  }
+
   return (
     <LinearGradient
       colors={["transparent", "rgba(0,0,0,0.1)", "rgba(0,0,0,0.2)"]}
@@ -116,27 +138,37 @@ export const CustomTabBar: React.FC<BottomTabBarProps> = ({ state, descriptors, 
       style={[styles.container, { paddingBottom: insets.bottom }]}
     >
       <View style={styles.tabBar}>
-        {state.routes.map((route, index) => {
-          const isFocused = state.index === index;
+        {visibleRoutes.map((route) => {
+          // Get the original index in state.routes
+          const originalIndex = state.routes.findIndex((r) => r.key === route.key);
+          const isFocused = state.index === originalIndex;
           const IconComponent = getIcon(route.name);
-          const iconStyle = iconStyles[index];
 
           return (
             <IconButton
               key={route.key}
               style={styles.tab}
-              onPress={() => handleTabPress(index, route)}
+              onPress={() => handleTabPress(originalIndex, route)}
               accessible={true}
               accessibilityRole="button"
               accessibilityLabel={route.name}
             >
-              <Animated.View style={[styles.iconContainer, iconStyle]} pointerEvents="none">
+              <View
+                style={[
+                  styles.iconContainer,
+                  {
+                    transform: [{ scale: isFocused ? 1.1 : 1 }],
+                    opacity: isFocused ? 1 : 0.7,
+                  },
+                ]}
+                pointerEvents="none"
+              >
                 <IconComponent
                   size={ms(24)}
                   color={isFocused ? theme.colors.neutral0 : theme.colors.neutral600}
                   variant={isFocused ? "Bold" : "Linear"}
                 />
-              </Animated.View>
+              </View>
             </IconButton>
           );
         })}

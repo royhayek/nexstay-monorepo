@@ -12,7 +12,16 @@ import {
   IsStringArrayField,
   IsBooleanField,
 } from '../../../common/validators/standardized-validators';
-import { PropertyType, RoomType, CancellationPolicy } from '../../../common/enums/property.enums';
+import {
+  PropertyType,
+  RoomType,
+  CancellationPolicy,
+  PropertyCategory,
+  FlexibleDateRange,
+  ViewType,
+  ParkingType,
+  CheckInMethod,
+} from '../../../common/enums/property.enums';
 import { SortDirectionEnum } from '../../../common/enums/sort.enums';
 import {
   IsPriceField,
@@ -95,6 +104,12 @@ export class PropertySearchDto implements PropertySearchParams {
   })
   checkOut?: string;
 
+  @IsEnumField(FlexibleDateRange, {
+    description: 'Flexible date range for quick date selections',
+    example: FlexibleDateRange.WEEKEND,
+  })
+  flexibleDateRange?: FlexibleDateRange;
+
   // ========== Property Types ==========
   @IsOptional()
   @IsArray({ message: 'validation.MUST_BE_ARRAY' })
@@ -113,6 +128,34 @@ export class PropertySearchDto implements PropertySearchParams {
     example: [RoomType.ENTIRE_HOME, RoomType.PRIVATE_ROOM],
   })
   roomTypes?: RoomType[];
+
+  @IsOptional()
+  @IsArray({ message: 'validation.MUST_BE_ARRAY' })
+  @IsEnumField(PropertyCategory, {
+    isArray: true,
+    description: 'Filter by property categories (Beachfront, Cabins, etc.)',
+    example: [PropertyCategory.BEACHFRONT, PropertyCategory.LUXURY],
+  })
+  categories?: PropertyCategory[];
+
+  // ========== Property Attributes (Phase 1) ==========
+  @IsEnumField(ViewType, {
+    description: 'Filter by view type',
+    example: ViewType.OCEAN_VIEW,
+  })
+  viewType?: ViewType;
+
+  @IsEnumField(ParkingType, {
+    description: 'Filter by parking type',
+    example: ParkingType.FREE_PARKING,
+  })
+  parkingType?: ParkingType;
+
+  @IsEnumField(CheckInMethod, {
+    description: 'Filter by check-in method',
+    example: CheckInMethod.SELF_CHECK_IN,
+  })
+  checkInMethod?: CheckInMethod;
 
   // ========== Pricing ==========
   @IsPriceField({ fieldType: 'minimum' })

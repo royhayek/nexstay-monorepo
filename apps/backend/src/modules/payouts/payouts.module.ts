@@ -24,6 +24,7 @@ import { DynamicConfigModule } from '../config/config.module';
 import { AuthModule } from '../auth/auth.module';
 import { FeesModule } from '../fees/fees.module';
 import { AccountsModule } from '../accounts/accounts.module';
+import { NotificationsModule } from '../notifications/notifications.module';
 
 @Module({
   imports: [
@@ -37,6 +38,7 @@ import { AccountsModule } from '../accounts/accounts.module';
     AuthModule,
     FeesModule,
     AccountsModule,
+    NotificationsModule,
   ],
   controllers: [PayoutsHostController, PayoutsAdminController],
   providers: [

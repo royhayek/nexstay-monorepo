@@ -1,11 +1,11 @@
 import { router } from "expo-router";
 import React, { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
-import { Alert, Image, TouchableOpacity, View } from "react-native";
+import { Alert, TouchableOpacity, View } from "react-native";
 import { StyleSheet } from "react-native-unistyles";
 
-import { Button, Input, Text } from "@/components/atoms";
-import { FormScreenTemplate } from "@/components/templates";
+import { Avatar, Button, Input, Text } from "@/components/atoms";
+import { ScreenTemplate } from "@/components/templates";
 import { useAuth } from "@/hooks/use-auth";
 import { useBottomSheet } from "@/hooks/use-bottom-sheet";
 import { ms } from "@/utils/scaling";
@@ -152,15 +152,14 @@ export default function EditProfileScreen() {
   );
 
   return (
-    <FormScreenTemplate title="Edit Profile" onBackPress={handleBack} bottomActions={bottomActions}>
+    <ScreenTemplate title="Edit Profile" onBackPress={handleBack} bottomActions={bottomActions}>
       {/* Avatar Section */}
       <View style={styles.avatarSection}>
-        <View style={styles.avatarContainer}>
-          <Image
-            source={user?.avatarUrl ? { uri: user.avatarUrl } : require("@/assets/images/avatar.png")}
-            style={styles.avatar}
-          />
-        </View>
+        <Avatar
+          source={user?.avatarUrl || require("@/assets/images/avatar.png")}
+          size="xlarge"
+          initials={user?.firstName ? `${user.firstName.charAt(0)}${user.lastName?.charAt(0) || ""}` : "HA"}
+        />
         <TouchableOpacity onPress={handleChangePhoto} style={styles.changePhotoButton}>
           <Text variant="bodyMediumMedium" color="neutral800">
             Change Photo
@@ -270,7 +269,7 @@ export default function EditProfileScreen() {
           )}
         />
       </View>
-    </FormScreenTemplate>
+    </ScreenTemplate>
   );
 }
 
@@ -278,15 +277,7 @@ const styles = StyleSheet.create((theme) => ({
   avatarSection: {
     alignItems: "center",
     paddingVertical: theme.spacing.xl,
-  },
-  avatarContainer: {
-    marginBottom: theme.spacing.base,
-  },
-  avatar: {
-    width: ms(100),
-    height: ms(100),
-    borderRadius: ms(50),
-    backgroundColor: theme.colors.neutral200,
+    gap: theme.spacing.base,
   },
   changePhotoButton: {
     paddingVertical: theme.spacing.sm,

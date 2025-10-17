@@ -40,6 +40,14 @@ import { ApiEndpoint } from '../../../common/decorators/api-endpoint.decorator';
 import { PaginatedDto } from '../../../common/dto/paginated.dto';
 import type { BulkModerateReviewsRequest } from '../interfaces/reviews-controller.interfaces';
 import { DateUtils } from '../../../common/utils/date.utils';
+import { ReviewVerificationService } from '../services/review-verification.service';
+import { ReviewSentimentService } from '../services/review-sentiment.service';
+import {
+  ManualVerificationDto,
+  ReviewVerificationDataDto,
+  ReviewVerificationResponse,
+  SentimentDto,
+} from '../dto/review-enhancements.dto';
 
 /**
  * Admin Controller for Reviews
@@ -51,7 +59,11 @@ import { DateUtils } from '../../../common/utils/date.utils';
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Roles(UserRole.ADMIN, UserRole.SYSTEM_ADMIN)
 export class ReviewsAdminController extends BaseController {
-  constructor(private readonly reviewFacadeService: ReviewFacadeService) {
+  constructor(
+    private readonly reviewFacadeService: ReviewFacadeService,
+    private readonly reviewVerificationService: ReviewVerificationService,
+    private readonly reviewSentimentService: ReviewSentimentService,
+  ) {
     super();
   }
 
@@ -318,6 +330,159 @@ export class ReviewsAdminController extends BaseController {
       'Review Deleted',
       'Review deleted successfully',
       'Failed to delete review',
+    );
+  }
+
+  // ========================================
+  // ENHANCEMENT ENDPOINTS
+  // ========================================
+
+  /**
+   * Manually verify or unverify a review
+   */
+  @Post(':id/verify')
+  @ApiParam({ name: 'id', description: 'Review ID' })
+  @ApiEndpoint({
+    summary: 'Manually verify review',
+    description:
+      'Override automatic verification status. Use this to verify or unverify reviews manually.',
+    responses: {
+      success: {
+        description: 'Review verification updated successfully',
+        type: ReviewVerificationDataDto,
+      },
+      errors: {
+        notFound: 'Review not found',
+      },
+    },
+  })
+  async manuallyVerifyReview(
+    @Param('id') id: string,
+    @Body() verificationDto: ManualVerificationDto,
+    @CurrentUser() admin: UserDocument,
+  ): Promise<ReviewVerificationResponse> {
+    return this.executeWithErrorHandlingAndMessage(
+      async () => {
+        return await this.reviewVerificationService.manualVerifyReview(
+          id,
+          verificationDto.isVerified,
+          String(admin._id),
+          verificationDto.reason,
+        );
+      },
+      'Manually Verify Review',
+      'Review Verification Updated',
+      'Review verification updated successfully',
+      'Failed to update review verification',
+    );
+  }
+
+  /**
+   * Get reviews requiring manual review based on sentiment analysis
+   */
+  @Get('requiring-review')
+  @ApiQuery({
+    name: 'limit',
+    required: false,
+    type: Number,
+    description: 'Number of reviews to retrieve (default: 50, max: 100)',
+  })
+  @ApiEndpoint({
+    summary: 'Get reviews requiring manual review',
+    description:
+      'Get reviews flagged by sentiment analysis as requiring manual moderation (negative or mixed sentiment)',
+    responses: {
+      success: {
+        description: 'Reviews requiring review retrieved successfully',
+        type: ReviewAdminListResponseDto,
+      },
+    },
+  })
+  async getReviewsRequiringReview(
+    @Query('limit', new DefaultValuePipe(50), ParseIntPipe) limit: number,
+  ): Promise<ReviewAdminListResponse> {
+    return this.executeWithErrorHandlingAndMessage(
+      async () => {
+        const reviews = await this.reviewSentimentService.getReviewsRequiringManualReview(
+          Math.min(limit, 100),
+        );
+
+        const data: PaginatedDto<ReviewAdminDto> = {
+          items: reviews.map((review) => plainToInstance(ReviewAdminDto, review.toObject())),
+          total: reviews.length,
+          page: 1,
+          limit: reviews.length,
+          totalPages: 1,
+          hasNextPage: false,
+          hasPrevPage: false,
+        };
+
+        return data;
+      },
+      'Get Reviews Requiring Review',
+      'Reviews Requiring Review Retrieved',
+      'Reviews requiring review retrieved successfully',
+      'Failed to retrieve reviews requiring review',
+    );
+  }
+
+  /**
+   * Trigger sentiment analysis for a specific review
+   */
+  @Post(':id/analyze-sentiment')
+  @ApiParam({ name: 'id', description: 'Review ID' })
+  @ApiEndpoint({
+    summary: 'Analyze review sentiment',
+    description:
+      'Trigger sentiment analysis for a specific review. Useful for re-analyzing after edits or manual review.',
+    responses: {
+      success: { description: 'Sentiment analysis completed successfully', type: SentimentDto },
+      errors: {
+        notFound: 'Review not found',
+      },
+    },
+  })
+  async analyzeSentiment(
+    @Param('id') id: string,
+  ): Promise<{ status: string; message: string; data: SentimentDto }> {
+    return this.executeWithErrorHandlingAndMessage(
+      async () => {
+        return await this.reviewSentimentService.analyzeSentiment(id);
+      },
+      'Analyze Sentiment',
+      'Sentiment Analysis Completed',
+      'Sentiment analysis completed successfully',
+      'Failed to analyze sentiment',
+    );
+  }
+
+  /**
+   * Get verification statistics for a property
+   */
+  @Get('verification-stats/:propertyId')
+  @ApiParam({ name: 'propertyId', description: 'Property ID' })
+  @ApiEndpoint({
+    summary: 'Get property verification statistics',
+    description:
+      'Get verification statistics for a specific property (total reviews, verified reviews, verification rate)',
+    responses: {
+      success: {
+        description: 'Verification statistics retrieved successfully',
+      },
+      errors: {
+        notFound: 'Property not found',
+      },
+    },
+  })
+  async getVerificationStats(@Param('propertyId') propertyId: string) {
+    return this.executeWithErrorHandlingAndMessage(
+      async () => {
+        return await this.reviewVerificationService.getPropertyVerificationStats(propertyId);
+      },
+      'Get Verification Statistics',
+      'Verification Statistics Retrieved',
+      'Verification statistics retrieved successfully',
+      'Failed to retrieve verification statistics',
     );
   }
 }

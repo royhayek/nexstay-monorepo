@@ -9,6 +9,7 @@
  */
 import {
   useInfiniteQuery,
+  useMutation,
   useQuery
 } from '@tanstack/react-query';
 import type {
@@ -17,12 +18,15 @@ import type {
   DefinedUseInfiniteQueryResult,
   DefinedUseQueryResult,
   InfiniteData,
+  MutationFunction,
   QueryClient,
   QueryFunction,
   QueryKey,
   UndefinedInitialDataOptions,
   UseInfiniteQueryOptions,
   UseInfiniteQueryResult,
+  UseMutationOptions,
+  UseMutationResult,
   UseQueryOptions,
   UseQueryResult
 } from '@tanstack/react-query';
@@ -31,7 +35,12 @@ import type {
   AdminDashboardControllerGetDashboardParams,
   AdminDashboardControllerGetSystemHealthParams,
   BadRequestResponseDto,
+  BookingAutoCancelResultDto,
+  BookingAutoCancelStatsDto,
   BookingOverviewResponseDto,
+  CleanupMonitoringDto,
+  DeviceCleanupResultDto,
+  DeviceCleanupStatsDto,
   ForbiddenResponseDto,
   InternalServerErrorResponseDto,
   SystemHealthDataResponseDto,
@@ -1196,3 +1205,622 @@ export function useAdminDashboardControllerGetSystemStatus<TData = Awaited<Retur
 
 
 
+/**
+ * Returns combined statistics for device cleanup and booking auto-cancellation, providing overview of automated maintenance tasks
+ * @summary Get comprehensive cleanup monitoring statistics
+ */
+export const adminDashboardControllerGetCleanupMonitoring = (
+    
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+      
+      
+      return customInstance<CleanupMonitoringDto>(
+      {url: `/v1/admin/dashboard/cleanup/monitoring`, method: 'GET', signal
+    },
+      options);
+    }
+  
+
+
+
+export const getAdminDashboardControllerGetCleanupMonitoringInfiniteQueryKey = () => {
+    return [
+    'infinate', `/v1/admin/dashboard/cleanup/monitoring`
+    ] as const;
+    }
+
+export const getAdminDashboardControllerGetCleanupMonitoringQueryKey = () => {
+    return [
+    `/v1/admin/dashboard/cleanup/monitoring`
+    ] as const;
+    }
+
+    
+export const getAdminDashboardControllerGetCleanupMonitoringInfiniteQueryOptions = <TData = InfiniteData<Awaited<ReturnType<typeof adminDashboardControllerGetCleanupMonitoring>>>, TError = BadRequestResponseDto | UnauthorizedResponseDto | ForbiddenResponseDto | TooManyRequestsResponseDto | InternalServerErrorResponseDto>( options?: { query?:Partial<UseInfiniteQueryOptions<Awaited<ReturnType<typeof adminDashboardControllerGetCleanupMonitoring>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getAdminDashboardControllerGetCleanupMonitoringInfiniteQueryKey();
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof adminDashboardControllerGetCleanupMonitoring>>> = ({ signal }) => adminDashboardControllerGetCleanupMonitoring(requestOptions, signal);
+
+      
+
+      
+
+   return  { queryKey, queryFn, ...queryOptions} as UseInfiniteQueryOptions<Awaited<ReturnType<typeof adminDashboardControllerGetCleanupMonitoring>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type AdminDashboardControllerGetCleanupMonitoringInfiniteQueryResult = NonNullable<Awaited<ReturnType<typeof adminDashboardControllerGetCleanupMonitoring>>>
+export type AdminDashboardControllerGetCleanupMonitoringInfiniteQueryError = BadRequestResponseDto | UnauthorizedResponseDto | ForbiddenResponseDto | TooManyRequestsResponseDto | InternalServerErrorResponseDto
+
+
+export function useAdminDashboardControllerGetCleanupMonitoringInfinite<TData = InfiniteData<Awaited<ReturnType<typeof adminDashboardControllerGetCleanupMonitoring>>>, TError = BadRequestResponseDto | UnauthorizedResponseDto | ForbiddenResponseDto | TooManyRequestsResponseDto | InternalServerErrorResponseDto>(
+  options: { query:Partial<UseInfiniteQueryOptions<Awaited<ReturnType<typeof adminDashboardControllerGetCleanupMonitoring>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof adminDashboardControllerGetCleanupMonitoring>>,
+          TError,
+          Awaited<ReturnType<typeof adminDashboardControllerGetCleanupMonitoring>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  DefinedUseInfiniteQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useAdminDashboardControllerGetCleanupMonitoringInfinite<TData = InfiniteData<Awaited<ReturnType<typeof adminDashboardControllerGetCleanupMonitoring>>>, TError = BadRequestResponseDto | UnauthorizedResponseDto | ForbiddenResponseDto | TooManyRequestsResponseDto | InternalServerErrorResponseDto>(
+  options?: { query?:Partial<UseInfiniteQueryOptions<Awaited<ReturnType<typeof adminDashboardControllerGetCleanupMonitoring>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof adminDashboardControllerGetCleanupMonitoring>>,
+          TError,
+          Awaited<ReturnType<typeof adminDashboardControllerGetCleanupMonitoring>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseInfiniteQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useAdminDashboardControllerGetCleanupMonitoringInfinite<TData = InfiniteData<Awaited<ReturnType<typeof adminDashboardControllerGetCleanupMonitoring>>>, TError = BadRequestResponseDto | UnauthorizedResponseDto | ForbiddenResponseDto | TooManyRequestsResponseDto | InternalServerErrorResponseDto>(
+  options?: { query?:Partial<UseInfiniteQueryOptions<Awaited<ReturnType<typeof adminDashboardControllerGetCleanupMonitoring>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseInfiniteQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Get comprehensive cleanup monitoring statistics
+ */
+
+export function useAdminDashboardControllerGetCleanupMonitoringInfinite<TData = InfiniteData<Awaited<ReturnType<typeof adminDashboardControllerGetCleanupMonitoring>>>, TError = BadRequestResponseDto | UnauthorizedResponseDto | ForbiddenResponseDto | TooManyRequestsResponseDto | InternalServerErrorResponseDto>(
+  options?: { query?:Partial<UseInfiniteQueryOptions<Awaited<ReturnType<typeof adminDashboardControllerGetCleanupMonitoring>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient 
+ ):  UseInfiniteQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getAdminDashboardControllerGetCleanupMonitoringInfiniteQueryOptions(options)
+
+  const query = useInfiniteQuery(queryOptions, queryClient) as  UseInfiniteQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  query.queryKey = queryOptions.queryKey ;
+
+  return query;
+}
+
+
+
+export const getAdminDashboardControllerGetCleanupMonitoringQueryOptions = <TData = Awaited<ReturnType<typeof adminDashboardControllerGetCleanupMonitoring>>, TError = BadRequestResponseDto | UnauthorizedResponseDto | ForbiddenResponseDto | TooManyRequestsResponseDto | InternalServerErrorResponseDto>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof adminDashboardControllerGetCleanupMonitoring>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getAdminDashboardControllerGetCleanupMonitoringQueryKey();
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof adminDashboardControllerGetCleanupMonitoring>>> = ({ signal }) => adminDashboardControllerGetCleanupMonitoring(requestOptions, signal);
+
+      
+
+      
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof adminDashboardControllerGetCleanupMonitoring>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type AdminDashboardControllerGetCleanupMonitoringQueryResult = NonNullable<Awaited<ReturnType<typeof adminDashboardControllerGetCleanupMonitoring>>>
+export type AdminDashboardControllerGetCleanupMonitoringQueryError = BadRequestResponseDto | UnauthorizedResponseDto | ForbiddenResponseDto | TooManyRequestsResponseDto | InternalServerErrorResponseDto
+
+
+export function useAdminDashboardControllerGetCleanupMonitoring<TData = Awaited<ReturnType<typeof adminDashboardControllerGetCleanupMonitoring>>, TError = BadRequestResponseDto | UnauthorizedResponseDto | ForbiddenResponseDto | TooManyRequestsResponseDto | InternalServerErrorResponseDto>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof adminDashboardControllerGetCleanupMonitoring>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof adminDashboardControllerGetCleanupMonitoring>>,
+          TError,
+          Awaited<ReturnType<typeof adminDashboardControllerGetCleanupMonitoring>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useAdminDashboardControllerGetCleanupMonitoring<TData = Awaited<ReturnType<typeof adminDashboardControllerGetCleanupMonitoring>>, TError = BadRequestResponseDto | UnauthorizedResponseDto | ForbiddenResponseDto | TooManyRequestsResponseDto | InternalServerErrorResponseDto>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof adminDashboardControllerGetCleanupMonitoring>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof adminDashboardControllerGetCleanupMonitoring>>,
+          TError,
+          Awaited<ReturnType<typeof adminDashboardControllerGetCleanupMonitoring>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useAdminDashboardControllerGetCleanupMonitoring<TData = Awaited<ReturnType<typeof adminDashboardControllerGetCleanupMonitoring>>, TError = BadRequestResponseDto | UnauthorizedResponseDto | ForbiddenResponseDto | TooManyRequestsResponseDto | InternalServerErrorResponseDto>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof adminDashboardControllerGetCleanupMonitoring>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Get comprehensive cleanup monitoring statistics
+ */
+
+export function useAdminDashboardControllerGetCleanupMonitoring<TData = Awaited<ReturnType<typeof adminDashboardControllerGetCleanupMonitoring>>, TError = BadRequestResponseDto | UnauthorizedResponseDto | ForbiddenResponseDto | TooManyRequestsResponseDto | InternalServerErrorResponseDto>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof adminDashboardControllerGetCleanupMonitoring>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient 
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getAdminDashboardControllerGetCleanupMonitoringQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  query.queryKey = queryOptions.queryKey ;
+
+  return query;
+}
+
+
+
+/**
+ * Returns statistics about trusted devices eligible for cleanup without performing actual cleanup
+ * @summary Get device cleanup statistics
+ */
+export const adminDashboardControllerGetDeviceCleanupStats = (
+    
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+      
+      
+      return customInstance<DeviceCleanupStatsDto>(
+      {url: `/v1/admin/dashboard/cleanup/devices/stats`, method: 'GET', signal
+    },
+      options);
+    }
+  
+
+
+
+export const getAdminDashboardControllerGetDeviceCleanupStatsInfiniteQueryKey = () => {
+    return [
+    'infinate', `/v1/admin/dashboard/cleanup/devices/stats`
+    ] as const;
+    }
+
+export const getAdminDashboardControllerGetDeviceCleanupStatsQueryKey = () => {
+    return [
+    `/v1/admin/dashboard/cleanup/devices/stats`
+    ] as const;
+    }
+
+    
+export const getAdminDashboardControllerGetDeviceCleanupStatsInfiniteQueryOptions = <TData = InfiniteData<Awaited<ReturnType<typeof adminDashboardControllerGetDeviceCleanupStats>>>, TError = BadRequestResponseDto | UnauthorizedResponseDto | ForbiddenResponseDto | TooManyRequestsResponseDto | InternalServerErrorResponseDto>( options?: { query?:Partial<UseInfiniteQueryOptions<Awaited<ReturnType<typeof adminDashboardControllerGetDeviceCleanupStats>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getAdminDashboardControllerGetDeviceCleanupStatsInfiniteQueryKey();
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof adminDashboardControllerGetDeviceCleanupStats>>> = ({ signal }) => adminDashboardControllerGetDeviceCleanupStats(requestOptions, signal);
+
+      
+
+      
+
+   return  { queryKey, queryFn, ...queryOptions} as UseInfiniteQueryOptions<Awaited<ReturnType<typeof adminDashboardControllerGetDeviceCleanupStats>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type AdminDashboardControllerGetDeviceCleanupStatsInfiniteQueryResult = NonNullable<Awaited<ReturnType<typeof adminDashboardControllerGetDeviceCleanupStats>>>
+export type AdminDashboardControllerGetDeviceCleanupStatsInfiniteQueryError = BadRequestResponseDto | UnauthorizedResponseDto | ForbiddenResponseDto | TooManyRequestsResponseDto | InternalServerErrorResponseDto
+
+
+export function useAdminDashboardControllerGetDeviceCleanupStatsInfinite<TData = InfiniteData<Awaited<ReturnType<typeof adminDashboardControllerGetDeviceCleanupStats>>>, TError = BadRequestResponseDto | UnauthorizedResponseDto | ForbiddenResponseDto | TooManyRequestsResponseDto | InternalServerErrorResponseDto>(
+  options: { query:Partial<UseInfiniteQueryOptions<Awaited<ReturnType<typeof adminDashboardControllerGetDeviceCleanupStats>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof adminDashboardControllerGetDeviceCleanupStats>>,
+          TError,
+          Awaited<ReturnType<typeof adminDashboardControllerGetDeviceCleanupStats>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  DefinedUseInfiniteQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useAdminDashboardControllerGetDeviceCleanupStatsInfinite<TData = InfiniteData<Awaited<ReturnType<typeof adminDashboardControllerGetDeviceCleanupStats>>>, TError = BadRequestResponseDto | UnauthorizedResponseDto | ForbiddenResponseDto | TooManyRequestsResponseDto | InternalServerErrorResponseDto>(
+  options?: { query?:Partial<UseInfiniteQueryOptions<Awaited<ReturnType<typeof adminDashboardControllerGetDeviceCleanupStats>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof adminDashboardControllerGetDeviceCleanupStats>>,
+          TError,
+          Awaited<ReturnType<typeof adminDashboardControllerGetDeviceCleanupStats>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseInfiniteQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useAdminDashboardControllerGetDeviceCleanupStatsInfinite<TData = InfiniteData<Awaited<ReturnType<typeof adminDashboardControllerGetDeviceCleanupStats>>>, TError = BadRequestResponseDto | UnauthorizedResponseDto | ForbiddenResponseDto | TooManyRequestsResponseDto | InternalServerErrorResponseDto>(
+  options?: { query?:Partial<UseInfiniteQueryOptions<Awaited<ReturnType<typeof adminDashboardControllerGetDeviceCleanupStats>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseInfiniteQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Get device cleanup statistics
+ */
+
+export function useAdminDashboardControllerGetDeviceCleanupStatsInfinite<TData = InfiniteData<Awaited<ReturnType<typeof adminDashboardControllerGetDeviceCleanupStats>>>, TError = BadRequestResponseDto | UnauthorizedResponseDto | ForbiddenResponseDto | TooManyRequestsResponseDto | InternalServerErrorResponseDto>(
+  options?: { query?:Partial<UseInfiniteQueryOptions<Awaited<ReturnType<typeof adminDashboardControllerGetDeviceCleanupStats>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient 
+ ):  UseInfiniteQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getAdminDashboardControllerGetDeviceCleanupStatsInfiniteQueryOptions(options)
+
+  const query = useInfiniteQuery(queryOptions, queryClient) as  UseInfiniteQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  query.queryKey = queryOptions.queryKey ;
+
+  return query;
+}
+
+
+
+export const getAdminDashboardControllerGetDeviceCleanupStatsQueryOptions = <TData = Awaited<ReturnType<typeof adminDashboardControllerGetDeviceCleanupStats>>, TError = BadRequestResponseDto | UnauthorizedResponseDto | ForbiddenResponseDto | TooManyRequestsResponseDto | InternalServerErrorResponseDto>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof adminDashboardControllerGetDeviceCleanupStats>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getAdminDashboardControllerGetDeviceCleanupStatsQueryKey();
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof adminDashboardControllerGetDeviceCleanupStats>>> = ({ signal }) => adminDashboardControllerGetDeviceCleanupStats(requestOptions, signal);
+
+      
+
+      
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof adminDashboardControllerGetDeviceCleanupStats>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type AdminDashboardControllerGetDeviceCleanupStatsQueryResult = NonNullable<Awaited<ReturnType<typeof adminDashboardControllerGetDeviceCleanupStats>>>
+export type AdminDashboardControllerGetDeviceCleanupStatsQueryError = BadRequestResponseDto | UnauthorizedResponseDto | ForbiddenResponseDto | TooManyRequestsResponseDto | InternalServerErrorResponseDto
+
+
+export function useAdminDashboardControllerGetDeviceCleanupStats<TData = Awaited<ReturnType<typeof adminDashboardControllerGetDeviceCleanupStats>>, TError = BadRequestResponseDto | UnauthorizedResponseDto | ForbiddenResponseDto | TooManyRequestsResponseDto | InternalServerErrorResponseDto>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof adminDashboardControllerGetDeviceCleanupStats>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof adminDashboardControllerGetDeviceCleanupStats>>,
+          TError,
+          Awaited<ReturnType<typeof adminDashboardControllerGetDeviceCleanupStats>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useAdminDashboardControllerGetDeviceCleanupStats<TData = Awaited<ReturnType<typeof adminDashboardControllerGetDeviceCleanupStats>>, TError = BadRequestResponseDto | UnauthorizedResponseDto | ForbiddenResponseDto | TooManyRequestsResponseDto | InternalServerErrorResponseDto>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof adminDashboardControllerGetDeviceCleanupStats>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof adminDashboardControllerGetDeviceCleanupStats>>,
+          TError,
+          Awaited<ReturnType<typeof adminDashboardControllerGetDeviceCleanupStats>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useAdminDashboardControllerGetDeviceCleanupStats<TData = Awaited<ReturnType<typeof adminDashboardControllerGetDeviceCleanupStats>>, TError = BadRequestResponseDto | UnauthorizedResponseDto | ForbiddenResponseDto | TooManyRequestsResponseDto | InternalServerErrorResponseDto>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof adminDashboardControllerGetDeviceCleanupStats>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Get device cleanup statistics
+ */
+
+export function useAdminDashboardControllerGetDeviceCleanupStats<TData = Awaited<ReturnType<typeof adminDashboardControllerGetDeviceCleanupStats>>, TError = BadRequestResponseDto | UnauthorizedResponseDto | ForbiddenResponseDto | TooManyRequestsResponseDto | InternalServerErrorResponseDto>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof adminDashboardControllerGetDeviceCleanupStats>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient 
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getAdminDashboardControllerGetDeviceCleanupStatsQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  query.queryKey = queryOptions.queryKey ;
+
+  return query;
+}
+
+
+
+/**
+ * Manually executes the device cleanup process, deactivating all devices that have been inactive beyond the configured expiry period
+ * @summary Manually trigger device cleanup
+ */
+export const adminDashboardControllerExecuteDeviceCleanup = (
+    
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+      
+      
+      return customInstance<DeviceCleanupResultDto>(
+      {url: `/v1/admin/dashboard/cleanup/devices/execute`, method: 'POST', signal
+    },
+      options);
+    }
+  
+
+
+export const getAdminDashboardControllerExecuteDeviceCleanupMutationOptions = <TError = BadRequestResponseDto | UnauthorizedResponseDto | ForbiddenResponseDto | TooManyRequestsResponseDto | InternalServerErrorResponseDto,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof adminDashboardControllerExecuteDeviceCleanup>>, TError,void, TContext>, request?: SecondParameter<typeof customInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof adminDashboardControllerExecuteDeviceCleanup>>, TError,void, TContext> => {
+
+const mutationKey = ['adminDashboardControllerExecuteDeviceCleanup'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof adminDashboardControllerExecuteDeviceCleanup>>, void> = () => {
+          
+
+          return  adminDashboardControllerExecuteDeviceCleanup(requestOptions)
+        }
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type AdminDashboardControllerExecuteDeviceCleanupMutationResult = NonNullable<Awaited<ReturnType<typeof adminDashboardControllerExecuteDeviceCleanup>>>
+    
+    export type AdminDashboardControllerExecuteDeviceCleanupMutationError = BadRequestResponseDto | UnauthorizedResponseDto | ForbiddenResponseDto | TooManyRequestsResponseDto | InternalServerErrorResponseDto
+
+    /**
+ * @summary Manually trigger device cleanup
+ */
+export const useAdminDashboardControllerExecuteDeviceCleanup = <TError = BadRequestResponseDto | UnauthorizedResponseDto | ForbiddenResponseDto | TooManyRequestsResponseDto | InternalServerErrorResponseDto,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof adminDashboardControllerExecuteDeviceCleanup>>, TError,void, TContext>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof adminDashboardControllerExecuteDeviceCleanup>>,
+        TError,
+        void,
+        TContext
+      > => {
+
+      const mutationOptions = getAdminDashboardControllerExecuteDeviceCleanupMutationOptions(options);
+
+      return useMutation(mutationOptions, queryClient);
+    }
+    /**
+ * Returns statistics about unpaid bookings eligible for auto-cancellation without performing actual cancellation
+ * @summary Get booking auto-cancel statistics
+ */
+export const adminDashboardControllerGetBookingAutoCancelStats = (
+    
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+      
+      
+      return customInstance<BookingAutoCancelStatsDto>(
+      {url: `/v1/admin/dashboard/cleanup/bookings/stats`, method: 'GET', signal
+    },
+      options);
+    }
+  
+
+
+
+export const getAdminDashboardControllerGetBookingAutoCancelStatsInfiniteQueryKey = () => {
+    return [
+    'infinate', `/v1/admin/dashboard/cleanup/bookings/stats`
+    ] as const;
+    }
+
+export const getAdminDashboardControllerGetBookingAutoCancelStatsQueryKey = () => {
+    return [
+    `/v1/admin/dashboard/cleanup/bookings/stats`
+    ] as const;
+    }
+
+    
+export const getAdminDashboardControllerGetBookingAutoCancelStatsInfiniteQueryOptions = <TData = InfiniteData<Awaited<ReturnType<typeof adminDashboardControllerGetBookingAutoCancelStats>>>, TError = BadRequestResponseDto | UnauthorizedResponseDto | ForbiddenResponseDto | TooManyRequestsResponseDto | InternalServerErrorResponseDto>( options?: { query?:Partial<UseInfiniteQueryOptions<Awaited<ReturnType<typeof adminDashboardControllerGetBookingAutoCancelStats>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getAdminDashboardControllerGetBookingAutoCancelStatsInfiniteQueryKey();
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof adminDashboardControllerGetBookingAutoCancelStats>>> = ({ signal }) => adminDashboardControllerGetBookingAutoCancelStats(requestOptions, signal);
+
+      
+
+      
+
+   return  { queryKey, queryFn, ...queryOptions} as UseInfiniteQueryOptions<Awaited<ReturnType<typeof adminDashboardControllerGetBookingAutoCancelStats>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type AdminDashboardControllerGetBookingAutoCancelStatsInfiniteQueryResult = NonNullable<Awaited<ReturnType<typeof adminDashboardControllerGetBookingAutoCancelStats>>>
+export type AdminDashboardControllerGetBookingAutoCancelStatsInfiniteQueryError = BadRequestResponseDto | UnauthorizedResponseDto | ForbiddenResponseDto | TooManyRequestsResponseDto | InternalServerErrorResponseDto
+
+
+export function useAdminDashboardControllerGetBookingAutoCancelStatsInfinite<TData = InfiniteData<Awaited<ReturnType<typeof adminDashboardControllerGetBookingAutoCancelStats>>>, TError = BadRequestResponseDto | UnauthorizedResponseDto | ForbiddenResponseDto | TooManyRequestsResponseDto | InternalServerErrorResponseDto>(
+  options: { query:Partial<UseInfiniteQueryOptions<Awaited<ReturnType<typeof adminDashboardControllerGetBookingAutoCancelStats>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof adminDashboardControllerGetBookingAutoCancelStats>>,
+          TError,
+          Awaited<ReturnType<typeof adminDashboardControllerGetBookingAutoCancelStats>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  DefinedUseInfiniteQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useAdminDashboardControllerGetBookingAutoCancelStatsInfinite<TData = InfiniteData<Awaited<ReturnType<typeof adminDashboardControllerGetBookingAutoCancelStats>>>, TError = BadRequestResponseDto | UnauthorizedResponseDto | ForbiddenResponseDto | TooManyRequestsResponseDto | InternalServerErrorResponseDto>(
+  options?: { query?:Partial<UseInfiniteQueryOptions<Awaited<ReturnType<typeof adminDashboardControllerGetBookingAutoCancelStats>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof adminDashboardControllerGetBookingAutoCancelStats>>,
+          TError,
+          Awaited<ReturnType<typeof adminDashboardControllerGetBookingAutoCancelStats>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseInfiniteQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useAdminDashboardControllerGetBookingAutoCancelStatsInfinite<TData = InfiniteData<Awaited<ReturnType<typeof adminDashboardControllerGetBookingAutoCancelStats>>>, TError = BadRequestResponseDto | UnauthorizedResponseDto | ForbiddenResponseDto | TooManyRequestsResponseDto | InternalServerErrorResponseDto>(
+  options?: { query?:Partial<UseInfiniteQueryOptions<Awaited<ReturnType<typeof adminDashboardControllerGetBookingAutoCancelStats>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseInfiniteQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Get booking auto-cancel statistics
+ */
+
+export function useAdminDashboardControllerGetBookingAutoCancelStatsInfinite<TData = InfiniteData<Awaited<ReturnType<typeof adminDashboardControllerGetBookingAutoCancelStats>>>, TError = BadRequestResponseDto | UnauthorizedResponseDto | ForbiddenResponseDto | TooManyRequestsResponseDto | InternalServerErrorResponseDto>(
+  options?: { query?:Partial<UseInfiniteQueryOptions<Awaited<ReturnType<typeof adminDashboardControllerGetBookingAutoCancelStats>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient 
+ ):  UseInfiniteQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getAdminDashboardControllerGetBookingAutoCancelStatsInfiniteQueryOptions(options)
+
+  const query = useInfiniteQuery(queryOptions, queryClient) as  UseInfiniteQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  query.queryKey = queryOptions.queryKey ;
+
+  return query;
+}
+
+
+
+export const getAdminDashboardControllerGetBookingAutoCancelStatsQueryOptions = <TData = Awaited<ReturnType<typeof adminDashboardControllerGetBookingAutoCancelStats>>, TError = BadRequestResponseDto | UnauthorizedResponseDto | ForbiddenResponseDto | TooManyRequestsResponseDto | InternalServerErrorResponseDto>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof adminDashboardControllerGetBookingAutoCancelStats>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getAdminDashboardControllerGetBookingAutoCancelStatsQueryKey();
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof adminDashboardControllerGetBookingAutoCancelStats>>> = ({ signal }) => adminDashboardControllerGetBookingAutoCancelStats(requestOptions, signal);
+
+      
+
+      
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof adminDashboardControllerGetBookingAutoCancelStats>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type AdminDashboardControllerGetBookingAutoCancelStatsQueryResult = NonNullable<Awaited<ReturnType<typeof adminDashboardControllerGetBookingAutoCancelStats>>>
+export type AdminDashboardControllerGetBookingAutoCancelStatsQueryError = BadRequestResponseDto | UnauthorizedResponseDto | ForbiddenResponseDto | TooManyRequestsResponseDto | InternalServerErrorResponseDto
+
+
+export function useAdminDashboardControllerGetBookingAutoCancelStats<TData = Awaited<ReturnType<typeof adminDashboardControllerGetBookingAutoCancelStats>>, TError = BadRequestResponseDto | UnauthorizedResponseDto | ForbiddenResponseDto | TooManyRequestsResponseDto | InternalServerErrorResponseDto>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof adminDashboardControllerGetBookingAutoCancelStats>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof adminDashboardControllerGetBookingAutoCancelStats>>,
+          TError,
+          Awaited<ReturnType<typeof adminDashboardControllerGetBookingAutoCancelStats>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useAdminDashboardControllerGetBookingAutoCancelStats<TData = Awaited<ReturnType<typeof adminDashboardControllerGetBookingAutoCancelStats>>, TError = BadRequestResponseDto | UnauthorizedResponseDto | ForbiddenResponseDto | TooManyRequestsResponseDto | InternalServerErrorResponseDto>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof adminDashboardControllerGetBookingAutoCancelStats>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof adminDashboardControllerGetBookingAutoCancelStats>>,
+          TError,
+          Awaited<ReturnType<typeof adminDashboardControllerGetBookingAutoCancelStats>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useAdminDashboardControllerGetBookingAutoCancelStats<TData = Awaited<ReturnType<typeof adminDashboardControllerGetBookingAutoCancelStats>>, TError = BadRequestResponseDto | UnauthorizedResponseDto | ForbiddenResponseDto | TooManyRequestsResponseDto | InternalServerErrorResponseDto>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof adminDashboardControllerGetBookingAutoCancelStats>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Get booking auto-cancel statistics
+ */
+
+export function useAdminDashboardControllerGetBookingAutoCancelStats<TData = Awaited<ReturnType<typeof adminDashboardControllerGetBookingAutoCancelStats>>, TError = BadRequestResponseDto | UnauthorizedResponseDto | ForbiddenResponseDto | TooManyRequestsResponseDto | InternalServerErrorResponseDto>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof adminDashboardControllerGetBookingAutoCancelStats>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient 
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getAdminDashboardControllerGetBookingAutoCancelStatsQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  query.queryKey = queryOptions.queryKey ;
+
+  return query;
+}
+
+
+
+/**
+ * Manually executes the booking auto-cancellation process, cancelling all unpaid bookings that exceed the configured time limit
+ * @summary Manually trigger booking auto-cancellation
+ */
+export const adminDashboardControllerExecuteBookingAutoCancel = (
+    
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+      
+      
+      return customInstance<BookingAutoCancelResultDto>(
+      {url: `/v1/admin/dashboard/cleanup/bookings/execute`, method: 'POST', signal
+    },
+      options);
+    }
+  
+
+
+export const getAdminDashboardControllerExecuteBookingAutoCancelMutationOptions = <TError = BadRequestResponseDto | UnauthorizedResponseDto | ForbiddenResponseDto | TooManyRequestsResponseDto | InternalServerErrorResponseDto,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof adminDashboardControllerExecuteBookingAutoCancel>>, TError,void, TContext>, request?: SecondParameter<typeof customInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof adminDashboardControllerExecuteBookingAutoCancel>>, TError,void, TContext> => {
+
+const mutationKey = ['adminDashboardControllerExecuteBookingAutoCancel'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof adminDashboardControllerExecuteBookingAutoCancel>>, void> = () => {
+          
+
+          return  adminDashboardControllerExecuteBookingAutoCancel(requestOptions)
+        }
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type AdminDashboardControllerExecuteBookingAutoCancelMutationResult = NonNullable<Awaited<ReturnType<typeof adminDashboardControllerExecuteBookingAutoCancel>>>
+    
+    export type AdminDashboardControllerExecuteBookingAutoCancelMutationError = BadRequestResponseDto | UnauthorizedResponseDto | ForbiddenResponseDto | TooManyRequestsResponseDto | InternalServerErrorResponseDto
+
+    /**
+ * @summary Manually trigger booking auto-cancellation
+ */
+export const useAdminDashboardControllerExecuteBookingAutoCancel = <TError = BadRequestResponseDto | UnauthorizedResponseDto | ForbiddenResponseDto | TooManyRequestsResponseDto | InternalServerErrorResponseDto,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof adminDashboardControllerExecuteBookingAutoCancel>>, TError,void, TContext>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof adminDashboardControllerExecuteBookingAutoCancel>>,
+        TError,
+        void,
+        TContext
+      > => {
+
+      const mutationOptions = getAdminDashboardControllerExecuteBookingAutoCancelMutationOptions(options);
+
+      return useMutation(mutationOptions, queryClient);
+    }
+    

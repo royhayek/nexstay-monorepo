@@ -1,7 +1,7 @@
 import Ionicons from "@expo/vector-icons/Ionicons";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
-import BottomSheet, { BottomSheetBackdrop, BottomSheetView } from "@gorhom/bottom-sheet";
-import type { BottomSheetMethods } from "@gorhom/bottom-sheet/lib/typescript/types";
+import { BottomSheetModal, BottomSheetBackdrop, BottomSheetView } from "@gorhom/bottom-sheet";
+import type { BottomSheetModal as BottomSheetModalType } from "@gorhom/bottom-sheet";
 import React, { forwardRef, useCallback } from "react";
 import { Platform, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -39,7 +39,7 @@ interface CustomBottomSheetProps {
   enableDynamicSizing?: boolean;
 }
 
-export const CustomBottomSheet = forwardRef<BottomSheetMethods, CustomBottomSheetProps>(
+export const CustomBottomSheet = forwardRef<BottomSheetModalType, CustomBottomSheetProps>(
   (
     {
       variant = "info",
@@ -108,16 +108,14 @@ export const CustomBottomSheet = forwardRef<BottomSheetMethods, CustomBottomShee
     };
 
     return (
-      <BottomSheet
+      <BottomSheetModal
         ref={ref}
-        index={-1}
         snapPoints={finalSnapPoints}
         enablePanDownToClose={enablePanDownToClose}
         backdropComponent={renderBackdrop}
         handleIndicatorStyle={styles.handleIndicator}
         backgroundStyle={styles.bottomSheetBackground}
         enableDynamicSizing={shouldUseDynamicSizing}
-        bottomInset={0}
       >
         <BottomSheetView style={styles.contentContainer}>
           <View style={styles.innerContainer}>
@@ -185,7 +183,7 @@ export const CustomBottomSheet = forwardRef<BottomSheetMethods, CustomBottomShee
           {/* Safe area spacer */}
           <View style={{ height: insets.bottom + (Platform.OS === "android" ? theme.spacing.xl : theme.spacing.md) }} />
         </BottomSheetView>
-      </BottomSheet>
+      </BottomSheetModal>
     );
   }
 );

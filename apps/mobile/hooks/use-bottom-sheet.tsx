@@ -1,4 +1,4 @@
-import type { BottomSheetMethods } from '@gorhom/bottom-sheet/lib/typescript/types';
+import type { BottomSheetModal } from '@gorhom/bottom-sheet';
 import React, { createContext, useContext, useRef, ReactNode, useState } from 'react';
 
 import { CustomBottomSheet, type BottomSheetVariant } from '@/components/molecules';
@@ -37,16 +37,16 @@ interface BottomSheetProviderProps {
 }
 
 export const BottomSheetProvider: React.FC<BottomSheetProviderProps> = ({ children }) => {
-  const bottomSheetRef = useRef<BottomSheetMethods>(null);
+  const bottomSheetRef = useRef<BottomSheetModal>(null);
   const [config, setConfig] = useState<BottomSheetConfig>({});
 
   const showBottomSheet = (newConfig: BottomSheetConfig) => {
     setConfig(newConfig);
-    bottomSheetRef.current?.snapToIndex(0);
+    bottomSheetRef.current?.present();
   };
 
   const hideBottomSheet = () => {
-    bottomSheetRef.current?.close();
+    bottomSheetRef.current?.dismiss();
   };
 
   return (

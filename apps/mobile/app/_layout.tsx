@@ -16,14 +16,23 @@ import { StatusBar } from "expo-status-bar";
 import { useEffect } from "react";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider } from "react-native-safe-area-context";
+import { BottomSheetModalProvider } from "@gorhom/bottom-sheet";
 
-import { OfflineIndicator } from "@/components/OfflineIndicator";
+import { OfflineIndicator } from "@/components";
+import { RoleProvider } from "@/contexts";
 import { AuthProvider } from "@/hooks/use-auth";
 import { BottomSheetProvider } from "@/hooks/use-bottom-sheet";
 import { NetworkProvider } from "@/hooks/use-network";
 import { SharedTransitionProvider } from "@/hooks/use-shared-transition";
 import { ThemePreferenceProvider, useThemePreference } from "@/hooks/use-theme-preference";
 import "@/unistyles";
+
+// Initialize axios refresh function to avoid circular dependency
+import { setRefreshFunction } from "@/api/axios";
+import { authPublicControllerRefresh } from "@/api/queries/public/authentication/authentication";
+
+// Set the refresh function after imports to break circular dependency
+setRefreshFunction(authPublicControllerRefresh);
 
 // Prevent the splash screen from auto-hiding
 SplashScreen.preventAutoHideAsync();
@@ -135,12 +144,16 @@ export default function RootLayout() {
           <ThemePreferenceProvider>
             <NetworkProvider>
               <AuthProvider>
-                <BottomSheetProvider>
-                  <SharedTransitionProvider>
-                    <RootLayoutNav />
-                    <OfflineIndicator />
-                  </SharedTransitionProvider>
-                </BottomSheetProvider>
+                <RoleProvider>
+                  <BottomSheetModalProvider>
+                    <BottomSheetProvider>
+                      <SharedTransitionProvider>
+                        <RootLayoutNav />
+                        <OfflineIndicator />
+                      </SharedTransitionProvider>
+                    </BottomSheetProvider>
+                  </BottomSheetModalProvider>
+                </RoleProvider>
               </AuthProvider>
             </NetworkProvider>
           </ThemePreferenceProvider>

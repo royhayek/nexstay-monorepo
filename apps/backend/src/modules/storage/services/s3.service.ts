@@ -22,6 +22,7 @@ import { StorageError, ImageVariantMetadata } from '../interfaces/storage.interf
 import { ImageProcessingService, ImageSize, ProcessedImage } from './image-processing.service';
 import { LoggingUtil } from '../../../common/utils/logging.util';
 import { DateUtils } from '../../../common/utils/date.utils';
+import { NetworkUtil } from '../../../common/utils/network.util';
 
 export interface UploadResult {
   key: string;
@@ -544,15 +545,36 @@ export class S3Service {
    * Get public URL for a file (if bucket allows public access)
    */
   getPublicUrl(key: string): string {
-    // If a file serve base URL is configured, use it (for development/mobile apps)
-    if (this.s3Config.fileServeBaseUrl) {
-      return `${this.s3Config.fileServeBaseUrl}/files/${encodeURIComponent(key)}`;
+    let url: string;
+
+    // Prioritize custom endpoints (LocalStack, MinIO, etc.) over file serve proxy
+    if (this.s3Config.endpoint) {
+      // For custom endpoints like LocalStack - return direct S3-compatible URL
+      url = `${this.s3Config.endpoint}/${this.s3Config.bucketName}/${key}`;
+
+      // Replace localhost with actual server IP for mobile device access
+      if (NetworkUtil.isLocalhostUrl(url)) {
+        url = NetworkUtil.replaceLocalhostWithIp(url);
+        LoggingUtil.log(`Replaced localhost in URL: ${url}`);
+      }
+
+      return url;
     }
 
-    if (this.s3Config.endpoint) {
-      // For custom endpoints like LocalStack
-      return `${this.s3Config.endpoint}/${this.s3Config.bucketName}/${key}`;
+    // If a file serve base URL is configured, use it (for development/mobile apps)
+    // This is only used when there's no custom endpoint
+    if (this.s3Config.fileServeBaseUrl) {
+      url = `${this.s3Config.fileServeBaseUrl}/files/${encodeURIComponent(key)}`;
+
+      // Replace localhost with actual server IP for mobile device access
+      if (NetworkUtil.isLocalhostUrl(url)) {
+        url = NetworkUtil.replaceLocalhostWithIp(url);
+      }
+
+      return url;
     }
+
+    // Default to AWS S3 URL format
     return `https://${this.s3Config.bucketName}.s3.${this.s3Config.region}.amazonaws.com/${key}`;
   }
 

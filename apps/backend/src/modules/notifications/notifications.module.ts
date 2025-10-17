@@ -1,8 +1,9 @@
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
 
 import { CommonModule } from '../../common/common.modules';
+import { SharedSchemasModule } from '../../common/schemas/shared-schemas.module';
 import { DeviceToken, DeviceTokenSchema } from '../../database/schemas/device-token.schema';
 import { Notification, NotificationSchema } from '../../database/schemas/notification.schema';
 import { UsersModule } from '../users/users.module';
@@ -16,7 +17,8 @@ import { FirebaseService } from './services/firebase.service';
   imports: [
     ConfigModule,
     CommonModule,
-    UsersModule,
+    SharedSchemasModule,
+    forwardRef(() => UsersModule),
     MongooseModule.forFeature([
       { name: Notification.name, schema: NotificationSchema },
       { name: DeviceToken.name, schema: DeviceTokenSchema },

@@ -9,6 +9,6 @@
  */
 
 export interface RefreshDto {
-  /** Email address or phone number */
+  /** JWT refresh token */
   refreshToken: string;
 }

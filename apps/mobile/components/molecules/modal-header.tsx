@@ -44,8 +44,8 @@ export const ModalHeader: React.FC<ModalHeaderProps> = ({
 
 const styles = StyleSheet.create((theme) => ({
   container: {
-    borderBottomWidth: 1,
-    borderBottomColor: theme.colors.border,
+    // borderBottomWidth: 1,
+    // borderBottomColor: theme.colors.border,
     backgroundColor: theme.colors.background,
     borderTopLeftRadius: theme.borderRadius.xl,
     borderTopRightRadius: theme.borderRadius.xl,

@@ -17,4 +17,8 @@ export interface SigninVerifyDeviceDto {
   code: string;
   /** Session token from signin password step */
   sessionToken: string;
+  /** User agent string for device fingerprinting */
+  userAgent?: string;
+  /** IP address for device fingerprinting */
+  ipAddress?: string;
 }

@@ -6,6 +6,10 @@ import {
   BedType,
   CancellationPolicy,
   PropertyStatus,
+  PropertyCategory,
+  ViewType,
+  ParkingType,
+  CheckInMethod,
 } from '../../common/enums/property.enums';
 
 export type PropertyDocument = Property & Document;
@@ -339,6 +343,19 @@ export class Property {
   @Prop({ required: true, type: String, enum: BedType })
   bedType: BedType;
 
+  @Prop({ type: [String], enum: PropertyCategory, default: [] })
+  categories: PropertyCategory[];
+
+  // New property attributes (Phase 1)
+  @Prop({ type: String, enum: ViewType })
+  viewType?: ViewType;
+
+  @Prop({ type: String, enum: ParkingType })
+  parkingType?: ParkingType;
+
+  @Prop({ type: String, enum: CheckInMethod })
+  checkInMethod?: CheckInMethod;
+
   @Prop({ required: true, min: 1, default: 1 })
   minimumNights: number;
 
@@ -557,11 +574,16 @@ PropertySchema.index({ hostId: 1 });
 PropertySchema.index({ status: 1 }); // Index for the new status field
 PropertySchema.index({ isActive: 1, isListed: 1 });
 PropertySchema.index({ propertyType: 1 });
+PropertySchema.index({ categories: 1 }); // Index for categories filtering
 PropertySchema.index({ 'address.city': 1, 'address.country': 1 });
 PropertySchema.index({ pricePerNight: 1 });
 PropertySchema.index({ rating: -1 });
 PropertySchema.index({ createdAt: -1 });
 PropertySchema.index({ slug: 1 }, { unique: true, sparse: true });
+// Phase 1: New indexes for enhanced filtering
+PropertySchema.index({ viewType: 1 });
+PropertySchema.index({ parkingType: 1 });
+PropertySchema.index({ checkInMethod: 1 });
 
 // Virtual for full address
 PropertySchema.virtual('fullAddress').get(function () {

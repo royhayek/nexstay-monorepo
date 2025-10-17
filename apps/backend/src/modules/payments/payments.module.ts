@@ -20,6 +20,8 @@ import { DynamicConfigModule } from '../config/config.module';
 import { BookingsModule } from '../bookings/bookings.module';
 import { FeesModule } from '../fees/fees.module';
 import { AccountsModule } from '../accounts/accounts.module';
+import { SharedSchemasModule } from '../../common/schemas/shared-schemas.module';
+import { NotificationsModule } from '../notifications/notifications.module';
 
 @Module({
   imports: [
@@ -31,7 +33,9 @@ import { AccountsModule } from '../accounts/accounts.module';
     ]),
     ConfigModule,
     DynamicConfigModule,
+    SharedSchemasModule,
     forwardRef(() => BookingsModule),
+    forwardRef(() => NotificationsModule),
     FeesModule,
     AccountsModule,
   ],

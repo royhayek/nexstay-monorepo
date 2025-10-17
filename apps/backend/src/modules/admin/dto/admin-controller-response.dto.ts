@@ -50,7 +50,7 @@ export class AdminDashboardResponseDto extends BaseResponseDto<AdminDashboardDat
   declare data: AdminDashboardDataDto;
 }
 
-export class BookingOverviewResponseDto extends BaseResponseDto<BookingOverviewDataDto> {
+export class AdminBookingOverviewDataResponseDto extends BaseResponseDto<BookingOverviewDataDto> {
   @ApiProperty({ type: BookingOverviewDataDto })
   declare data: BookingOverviewDataDto;
 }

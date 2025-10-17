@@ -41,6 +41,10 @@ import { MultiCurrencyModule } from './modules/multi-currency/multi-currency.mod
 import { SecurityDepositsModule } from './modules/security-deposits/security-deposits.module';
 import { BookingInstallmentsModule } from './modules/booking-installments/booking-installments.module';
 import { CatalogsModule } from './modules/catalogs/catalogs.module';
+import { SupportModule } from './modules/support/support.module';
+import { ComplianceModule } from './modules/compliance/compliance.module';
+import { ApprovalWorkflowModule } from './modules/approval-workflow/approval-workflow.module';
+import { CoHostModule } from './modules/co-host/co-host.module';
 import { CommonModule } from './common/common.module';
 import { LanguageDetectionMiddleware } from './common/middleware/language-detection.middleware';
 
@@ -118,6 +122,10 @@ import { LanguageDetectionMiddleware } from './common/middleware/language-detect
     SecurityDepositsModule,
     BookingInstallmentsModule,
     CatalogsModule,
+    SupportModule,
+    ComplianceModule,
+    ApprovalWorkflowModule,
+    CoHostModule,
   ],
   providers: [
     { provide: APP_GUARD, useClass: IpThrottlerGuard },

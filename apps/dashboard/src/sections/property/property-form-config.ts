@@ -266,7 +266,7 @@ export const propertyFormSections: DynamicFormSection[] = [
         type: 'text',
         label: 'Street Address',
         required: true,
-        gridSize: { xs: 12 },
+        gridSize: { xs: 12, sm: 6, md: 4, lg: 3 },
       },
       {
         id: 'addressCity',

@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { PassportModule } from '@nestjs/passport';
 import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule, ConfigService } from '@nestjs/config';
@@ -20,6 +20,7 @@ import { DynamicConfigModule } from '../config/config.module';
 import { AuditLogService } from './services/audit-log.service';
 import { AuditLogCleanupService } from './services/audit-log-cleanup.service';
 import { TrustedDeviceCleanupService } from './services/trusted-device-cleanup.service';
+import { NotificationsModule } from '../notifications/notifications.module';
 
 @Module({
   imports: [
@@ -42,6 +43,7 @@ import { TrustedDeviceCleanupService } from './services/trusted-device-cleanup.s
     CommonModule,
     UsersModule,
     DynamicConfigModule,
+    forwardRef(() => NotificationsModule),
   ],
   controllers: [AuthPublicController],
   providers: [

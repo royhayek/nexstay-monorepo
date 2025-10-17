@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <title>Payment Receipt - Nexstay</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #333; background-color: #f5f5f5; margin: 0; padding: 0;">
+  <div style="max-width: 600px; margin: 20px auto; background-color: #ffffff; border-radius: 12px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); overflow: hidden;">
+
+    <!-- Header -->
+    <div style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; padding: 40px 24px; text-align: center;">
+      <div style="font-size: 48px; margin-bottom: 16px;">✅</div>
+      <h1 style="margin: 0; font-size: 28px; font-weight: 600; line-height: 1.2;">Payment Successful</h1>
+      <p style="margin: 12px 0 0; font-size: 16px; opacity: 0.95;">Your payment has been processed</p>
+    </div>
+
+    <!-- Content -->
+    <div style="padding: 40px 24px;">
+      <p style="margin: 0 0 24px; font-size: 16px; line-height: 1.6;">Hello <strong>{{guestName}}</strong>,</p>
+
+      <p style="margin: 0 0 24px; font-size: 16px; line-height: 1.6;">
+        Thank you for your payment! This email confirms that we have successfully received your payment for your booking at <strong>{{propertyName}}</strong>.
+      </p>
+
+      <!-- Receipt Card -->
+      <div style="background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%); border-radius: 12px; padding: 24px; margin: 24px 0; border-left: 4px solid #10b981;">
+        <h2 style="margin: 0 0 20px; font-size: 20px; font-weight: 600; color: #059669;">Receipt Details</h2>
+
+        <div style="margin-bottom: 16px;">
+          <div style="font-size: 14px; color: #6b7280; margin-bottom: 4px;">Receipt Number</div>
+          <div style="font-size: 16px; font-weight: 600; color: #1f2937;">{{receiptNumber}}</div>
+        </div>
+
+        <div style="margin-bottom: 16px;">
+          <div style="font-size: 14px; color: #6b7280; margin-bottom: 4px;">Payment Date</div>
+          <div style="font-size: 16px; font-weight: 600; color: #1f2937;">{{paymentDate}}</div>
+        </div>
+
+        <div style="margin-bottom: 16px;">
+          <div style="font-size: 14px; color: #6b7280; margin-bottom: 4px;">Payment Method</div>
+          <div style="font-size: 16px; font-weight: 600; color: #1f2937;">{{paymentMethod}}</div>
+        </div>
+
+        {{#if transactionId}}
+        <div style="margin-bottom: 16px;">
+          <div style="font-size: 14px; color: #6b7280; margin-bottom: 4px;">Transaction ID</div>
+          <div style="font-size: 14px; font-weight: 600; color: #6b7280; font-family: monospace;">{{transactionId}}</div>
+        </div>
+        {{/if}}
+      </div>
+
+      <!-- Booking Information -->
+      <div style="background-color: #f9fafb; border-radius: 8px; padding: 20px; margin: 24px 0;">
+        <h3 style="margin: 0 0 16px; font-size: 18px; font-weight: 600; color: #1f2937;">Booking Information</h3>
+
+        <div style="margin-bottom: 12px;">
+          <span style="color: #6b7280;">Property:</span>
+          <span style="font-weight: 600; color: #1f2937; margin-left: 8px;">{{propertyName}}</span>
+        </div>
+
+        <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
+          <div>
+            <span style="color: #6b7280;">Check-in:</span>
+            <span style="font-weight: 600; color: #1f2937; margin-left: 8px;">{{checkInDate}}</span>
+          </div>
+          <div>
+            <span style="color: #6b7280;">Check-out:</span>
+            <span style="font-weight: 600; color: #1f2937; margin-left: 8px;">{{checkOutDate}}</span>
+          </div>
+        </div>
+
+        <div style="margin-bottom: 12px;">
+          <span style="color: #6b7280;">Confirmation Code:</span>
+          <span style="font-weight: 700; color: #059669; margin-left: 8px; letter-spacing: 1px;">{{confirmationCode}}</span>
+        </div>
+      </div>
+
+      <!-- Payment Breakdown -->
+      <div style="background-color: #ffffff; border: 2px solid #e5e7eb; border-radius: 8px; padding: 20px; margin: 24px 0;">
+        <h3 style="margin: 0 0 16px; font-size: 18px; font-weight: 600; color: #1f2937;">Payment Breakdown</h3>
+
+        <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
+          <span style="color: #6b7280;">{{currency}} {{pricePerNight}} x {{nights}} night{{#if (gt nights 1)}}s{{/if}}</span>
+          <span style="font-weight: 600; color: #1f2937;">{{currency}} {{subtotal}}</span>
+        </div>
+
+        {{#if serviceFee}}
+        <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
+          <span style="color: #6b7280;">Service Fee</span>
+          <span style="font-weight: 600; color: #1f2937;">{{currency}} {{serviceFee}}</span>
+        </div>
+        {{/if}}
+
+        {{#if cleaningFee}}
+        <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
+          <span style="color: #6b7280;">Cleaning Fee</span>
+          <span style="font-weight: 600; color: #1f2937;">{{currency}} {{cleaningFee}}</span>
+        </div>
+        {{/if}}
+
+        {{#if taxes}}
+        <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
+          <span style="color: #6b7280;">Taxes</span>
+          <span style="font-weight: 600; color: #1f2937;">{{currency}} {{taxes}}</span>
+        </div>
+        {{/if}}
+
+        <div style="border-top: 2px solid #e5e7eb; margin: 16px 0; padding-top: 16px;">
+          <div style="display: flex; justify-content: space-between;">
+            <span style="font-size: 18px; font-weight: 700; color: #1f2937;">Total Paid</span>
+            <span style="font-size: 20px; font-weight: 700; color: #10b981;">{{currency}} {{totalAmount}}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Important Information -->
+      <div style="background-color: #eff6ff; border-radius: 8px; padding: 20px; margin: 24px 0; border-left: 4px solid #3b82f6;">
+        <h3 style="margin: 0 0 12px; font-size: 16px; font-weight: 600; color: #1e40af;">📋 Important Information</h3>
+        <ul style="margin: 0; padding-left: 20px; color: #374151;">
+          <li style="margin-bottom: 8px;">Keep this receipt for your records</li>
+          <li style="margin-bottom: 8px;">A detailed invoice has been sent to you separately</li>
+          <li style="margin-bottom: 8px;">Refunds (if applicable) will be processed to your original payment method</li>
+          <li>Contact support if you have any questions about this payment</li>
+        </ul>
+      </div>
+
+      <!-- CTA Buttons -->
+      <div style="text-align: center; margin: 32px 0;">
+        <a href="{{bookingDetailsUrl}}" style="display: inline-block; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 14px 32px; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 16px; margin: 8px;">
+          View Booking Details
+        </a>
+        <a href="{{downloadInvoiceUrl}}" style="display: inline-block; background-color: #ffffff; color: #667eea; padding: 14px 32px; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 16px; border: 2px solid #667eea; margin: 8px;">
+          Download Invoice
+        </a>
+      </div>
+
+      <p style="margin: 24px 0 0; font-size: 14px; color: #6b7280; text-align: center;">
+        Questions about this payment? Contact us at <a href="mailto:{{supportEmail}}" style="color: #667eea; text-decoration: none;">{{supportEmail}}</a>
+      </p>
+    </div>
+
+    <!-- Footer -->
+    <div style="background-color: #f8f9fa; padding: 32px 24px; text-align: center; border-top: 1px solid #e9ecef;">
+      <p style="margin: 0 0 8px; font-size: 14px; color: #6b7280;">
+        Thank you for choosing Nexstay!
+      </p>
+      <p style="margin: 8px 0 0; font-size: 12px; color: #9ca3af;">
+        © 2024 Nexstay. All rights reserved.
+      </p>
+      <p style="margin: 8px 0 0; font-size: 12px; color: #9ca3af;">
+        This email was sent to {{guestEmail}}
+      </p>
+    </div>
+
+  </div>
+</body>
+</html>

@@ -28,6 +28,8 @@ import {
 import { LoggingUtil } from '../../../common/utils/logging.util';
 import { ValidationUtils } from '../../../common/utils/validation.utils';
 import { DateUtils } from '../../../common/utils/date.utils';
+import { ReviewVerificationService } from './review-verification.service';
+import { ReviewSentimentService } from './review-sentiment.service';
 
 /**
  * Review Core Service
@@ -40,6 +42,8 @@ export class ReviewCoreService {
     @InjectModel(Booking.name) private readonly bookingModel: Model<BookingDocument>,
     @InjectModel(Property.name) private readonly propertyModel: Model<PropertyDocument>,
     @InjectModel(User.name) private readonly userModel: Model<UserDocument>,
+    private readonly reviewVerificationService: ReviewVerificationService,
+    private readonly reviewSentimentService: ReviewSentimentService,
   ) {}
 
   /**
@@ -141,6 +145,10 @@ export class ReviewCoreService {
         reviewerId,
         savedReview._id as Types.ObjectId,
       );
+
+      // 12. Trigger automatic enhancements in background (non-blocking)
+      // Note: In production, consider using a message queue (e.g., Bull, RabbitMQ) for better reliability
+      this.triggerBackgroundEnhancements(String(savedReview._id));
 
       LoggingUtil.log(
         `Review created: ${String(savedReview._id)} for booking: ${dto.bookingId}`,
@@ -615,5 +623,47 @@ export class ReviewCoreService {
     });
 
     return averages;
+  }
+
+  /**
+   * Trigger automatic enhancements in background (non-blocking)
+   * This includes verification and sentiment analysis
+   */
+  private triggerBackgroundEnhancements(reviewId: string): void {
+    // Run verification and sentiment analysis in parallel, non-blocking
+    Promise.all([
+      this.reviewVerificationService
+        .autoVerifyReview(reviewId)
+        .catch((error) => {
+          LoggingUtil.errorWithException(
+            `Background auto-verification failed for review ${reviewId}:`,
+            error,
+            'ReviewCoreService',
+          );
+        }),
+      this.reviewSentimentService
+        .analyzeSentiment(reviewId)
+        .catch((error) => {
+          LoggingUtil.errorWithException(
+            `Background sentiment analysis failed for review ${reviewId}:`,
+            error,
+            'ReviewCoreService',
+          );
+        }),
+    ])
+      .then(() => {
+        LoggingUtil.log(
+          `Background enhancements completed for review ${reviewId}`,
+          'ReviewCoreService',
+        );
+      })
+      .catch((error) => {
+        // This catch is for Promise.all rejection, though individual promises already have .catch()
+        LoggingUtil.errorWithException(
+          `Unexpected error in background enhancements for review ${reviewId}:`,
+          error,
+          'ReviewCoreService',
+        );
+      });
   }
 }

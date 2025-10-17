@@ -21,7 +21,12 @@ import type {
 } from 'msw';
 
 import type {
+  BookingAutoCancelResultDto,
+  BookingAutoCancelStatsDto,
   BookingOverviewResponseDto,
+  CleanupMonitoringDto,
+  DeviceCleanupResultDto,
+  DeviceCleanupStatsDto,
   SystemHealthDataResponseDto
 } from '../../../models/admin';
 
@@ -29,6 +34,16 @@ import type {
 export const getAdminControllerGetBookingOverviewResponseMock = (overrideResponse: Partial< BookingOverviewResponseDto > = {}): BookingOverviewResponseDto => ({status: faker.helpers.arrayElement(['success','error'] as const), title: faker.string.alpha({length: {min: 10, max: 20}}), message: faker.string.alpha({length: {min: 10, max: 20}}), data: {...{totalBookings: faker.number.float({min: undefined, max: undefined, fractionDigits: 2}), activeBookings: faker.number.float({min: undefined, max: undefined, fractionDigits: 2}), completedBookings: faker.number.float({min: undefined, max: undefined, fractionDigits: 2}), cancelledBookings: faker.number.float({min: undefined, max: undefined, fractionDigits: 2}), totalRevenue: faker.number.float({min: undefined, max: undefined, fractionDigits: 2}), recentBookings: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => (faker.string.alpha({length: {min: 10, max: 20}})))},}, metadata: faker.helpers.arrayElement([{}, undefined]), ...overrideResponse})
 
 export const getAdminControllerGetSystemHealthResponseMock = (overrideResponse: Partial< SystemHealthDataResponseDto > = {}): SystemHealthDataResponseDto => ({status: faker.helpers.arrayElement(['success','error'] as const), title: faker.string.alpha({length: {min: 10, max: 20}}), message: faker.string.alpha({length: {min: 10, max: 20}}), data: {...{status: faker.helpers.arrayElement(['healthy','warning','error','unknown'] as const), timestamp: `${faker.date.past().toISOString().split('.')[0]}Z`, services: {...{database: faker.helpers.arrayElement(['connected','disconnected','active','inactive','unknown'] as const), redis: faker.helpers.arrayElement(['connected','disconnected','active','inactive','unknown'] as const), fileStorage: faker.helpers.arrayElement(['connected','disconnected','active','inactive','unknown'] as const), notifications: faker.helpers.arrayElement(['connected','disconnected','active','inactive','unknown'] as const), payments: faker.helpers.arrayElement(['connected','disconnected','active','inactive','unknown'] as const)},}, uptime: {...{seconds: faker.number.float({min: undefined, max: undefined, fractionDigits: 2}), formatted: faker.string.alpha({length: {min: 10, max: 20}})},}, memory: {...{used: faker.number.float({min: undefined, max: undefined, fractionDigits: 2}), total: faker.number.float({min: undefined, max: undefined, fractionDigits: 2}), external: faker.number.float({min: undefined, max: undefined, fractionDigits: 2}), rss: faker.number.float({min: undefined, max: undefined, fractionDigits: 2}), usagePercentage: faker.number.float({min: undefined, max: undefined, fractionDigits: 2})},}, error: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined])},}, metadata: faker.helpers.arrayElement([{}, undefined]), ...overrideResponse})
+
+export const getAdminDashboardControllerGetCleanupMonitoringResponseMock = (overrideResponse: Partial< CleanupMonitoringDto > = {}): CleanupMonitoringDto => ({deviceCleanup: {...{eligibleForCleanup: faker.number.float({min: undefined, max: undefined, fractionDigits: 2}), expiryThresholdDate: `${faker.date.past().toISOString().split('.')[0]}Z`, cleanupEnabled: faker.datatype.boolean(), expiryDays: faker.number.float({min: undefined, max: undefined, fractionDigits: 2})},}, bookingAutoCancel: {...{eligibleForCancellation: faker.number.float({min: undefined, max: undefined, fractionDigits: 2}), cancellationThresholdDate: `${faker.date.past().toISOString().split('.')[0]}Z`, autoCancelHours: faker.number.float({min: undefined, max: undefined, fractionDigits: 2})},}, generatedAt: `${faker.date.past().toISOString().split('.')[0]}Z`, ...overrideResponse})
+
+export const getAdminDashboardControllerGetDeviceCleanupStatsResponseMock = (overrideResponse: Partial< DeviceCleanupStatsDto > = {}): DeviceCleanupStatsDto => ({eligibleForCleanup: faker.number.float({min: undefined, max: undefined, fractionDigits: 2}), expiryThresholdDate: `${faker.date.past().toISOString().split('.')[0]}Z`, cleanupEnabled: faker.datatype.boolean(), expiryDays: faker.number.float({min: undefined, max: undefined, fractionDigits: 2}), ...overrideResponse})
+
+export const getAdminDashboardControllerExecuteDeviceCleanupResponseMock = (overrideResponse: Partial< DeviceCleanupResultDto > = {}): DeviceCleanupResultDto => ({deactivatedCount: faker.number.float({min: undefined, max: undefined, fractionDigits: 2}), scannedCount: faker.number.float({min: undefined, max: undefined, fractionDigits: 2}), expiryThresholdDate: `${faker.date.past().toISOString().split('.')[0]}Z`, message: faker.string.alpha({length: {min: 10, max: 20}}), ...overrideResponse})
+
+export const getAdminDashboardControllerGetBookingAutoCancelStatsResponseMock = (overrideResponse: Partial< BookingAutoCancelStatsDto > = {}): BookingAutoCancelStatsDto => ({eligibleForCancellation: faker.number.float({min: undefined, max: undefined, fractionDigits: 2}), cancellationThresholdDate: `${faker.date.past().toISOString().split('.')[0]}Z`, autoCancelHours: faker.number.float({min: undefined, max: undefined, fractionDigits: 2}), ...overrideResponse})
+
+export const getAdminDashboardControllerExecuteBookingAutoCancelResponseMock = (overrideResponse: Partial< BookingAutoCancelResultDto > = {}): BookingAutoCancelResultDto => ({cancelledCount: faker.number.float({min: undefined, max: undefined, fractionDigits: 2}), scannedCount: faker.number.float({min: undefined, max: undefined, fractionDigits: 2}), cancellationThresholdDate: `${faker.date.past().toISOString().split('.')[0]}Z`, message: faker.string.alpha({length: {min: 10, max: 20}}), ...overrideResponse})
 
 
 export const getAdminDashboardControllerGetDashboardMockHandler = (overrideResponse?: void | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<void> | void), options?: RequestHandlerOptions) => {
@@ -104,6 +119,66 @@ export const getAdminDashboardControllerGetSystemStatusMockHandler = (overrideRe
       })
   }, options)
 }
+
+export const getAdminDashboardControllerGetCleanupMonitoringMockHandler = (overrideResponse?: CleanupMonitoringDto | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<CleanupMonitoringDto> | CleanupMonitoringDto), options?: RequestHandlerOptions) => {
+  return http.get('*/v1/admin/dashboard/cleanup/monitoring', async (info) => {await delay(1000);
+  
+    return new HttpResponse(JSON.stringify(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getAdminDashboardControllerGetCleanupMonitoringResponseMock()),
+      { status: 200,
+        headers: { 'Content-Type': 'application/json' }
+      })
+  }, options)
+}
+
+export const getAdminDashboardControllerGetDeviceCleanupStatsMockHandler = (overrideResponse?: DeviceCleanupStatsDto | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<DeviceCleanupStatsDto> | DeviceCleanupStatsDto), options?: RequestHandlerOptions) => {
+  return http.get('*/v1/admin/dashboard/cleanup/devices/stats', async (info) => {await delay(1000);
+  
+    return new HttpResponse(JSON.stringify(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getAdminDashboardControllerGetDeviceCleanupStatsResponseMock()),
+      { status: 200,
+        headers: { 'Content-Type': 'application/json' }
+      })
+  }, options)
+}
+
+export const getAdminDashboardControllerExecuteDeviceCleanupMockHandler = (overrideResponse?: DeviceCleanupResultDto | ((info: Parameters<Parameters<typeof http.post>[1]>[0]) => Promise<DeviceCleanupResultDto> | DeviceCleanupResultDto), options?: RequestHandlerOptions) => {
+  return http.post('*/v1/admin/dashboard/cleanup/devices/execute', async (info) => {await delay(1000);
+  
+    return new HttpResponse(JSON.stringify(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getAdminDashboardControllerExecuteDeviceCleanupResponseMock()),
+      { status: 200,
+        headers: { 'Content-Type': 'application/json' }
+      })
+  }, options)
+}
+
+export const getAdminDashboardControllerGetBookingAutoCancelStatsMockHandler = (overrideResponse?: BookingAutoCancelStatsDto | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<BookingAutoCancelStatsDto> | BookingAutoCancelStatsDto), options?: RequestHandlerOptions) => {
+  return http.get('*/v1/admin/dashboard/cleanup/bookings/stats', async (info) => {await delay(1000);
+  
+    return new HttpResponse(JSON.stringify(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getAdminDashboardControllerGetBookingAutoCancelStatsResponseMock()),
+      { status: 200,
+        headers: { 'Content-Type': 'application/json' }
+      })
+  }, options)
+}
+
+export const getAdminDashboardControllerExecuteBookingAutoCancelMockHandler = (overrideResponse?: BookingAutoCancelResultDto | ((info: Parameters<Parameters<typeof http.post>[1]>[0]) => Promise<BookingAutoCancelResultDto> | BookingAutoCancelResultDto), options?: RequestHandlerOptions) => {
+  return http.post('*/v1/admin/dashboard/cleanup/bookings/execute', async (info) => {await delay(1000);
+  
+    return new HttpResponse(JSON.stringify(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getAdminDashboardControllerExecuteBookingAutoCancelResponseMock()),
+      { status: 200,
+        headers: { 'Content-Type': 'application/json' }
+      })
+  }, options)
+}
 export const getAdminDashboardMock = () => [
   getAdminDashboardControllerGetDashboardMockHandler(),
   getAdminControllerGetBookingOverviewMockHandler(),
@@ -111,5 +186,10 @@ export const getAdminDashboardMock = () => [
   getAdminDashboardControllerGetStatsMockHandler(),
   getAdminDashboardControllerGetBookingOverviewMockHandler(),
   getAdminDashboardControllerGetSystemHealthMockHandler(),
-  getAdminDashboardControllerGetSystemStatusMockHandler()
+  getAdminDashboardControllerGetSystemStatusMockHandler(),
+  getAdminDashboardControllerGetCleanupMonitoringMockHandler(),
+  getAdminDashboardControllerGetDeviceCleanupStatsMockHandler(),
+  getAdminDashboardControllerExecuteDeviceCleanupMockHandler(),
+  getAdminDashboardControllerGetBookingAutoCancelStatsMockHandler(),
+  getAdminDashboardControllerExecuteBookingAutoCancelMockHandler()
 ]

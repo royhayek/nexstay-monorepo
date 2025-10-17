@@ -46,56 +46,37 @@ const ICONS = {
 
 export const navData: NavSectionProps['data'] = [
   /**
-   * Overview
+   * Overview - Guest Dashboard
+   * Accessible to: guest role (basic users)
    */
   {
     subheader: 'Overview',
     items: [
-      { title: 'App', path: paths.dashboard.root, icon: ICONS.dashboard },
-      { title: 'Overview', path: paths.dashboard.general.overview, icon: ICONS.booking },
+      { title: 'Dashboard', path: paths.dashboard.root, icon: ICONS.dashboard },
     ],
   },
   /**
-   * Management
+   * Guest Features
+   * Guest users can view properties, manage their bookings, and communicate
    */
   {
-    subheader: 'Management',
+    subheader: 'My Account',
     items: [
-      { title: 'Users', path: paths.dashboard.user.list, icon: ICONS.user },
-      { title: 'Properties', path: paths.dashboard.properties.list, icon: ICONS.banking },
-      { title: 'Bookings', path: paths.dashboard.bookings.list, icon: ICONS.booking },
-      { title: 'Invoice', path: paths.dashboard.invoices.root, icon: ICONS.invoice },
-      { title: 'Reviews', path: paths.dashboard.reviews.list, icon: ICONS.label },
-      { title: 'Payouts', path: paths.dashboard.payouts.list, icon: ICONS.banking },
-      {
-        title: 'Identity Verification',
-        path: paths.dashboard.identityVerification.root,
-        icon: ICONS.lock,
-        children: [
-          { title: 'Verifications', path: paths.dashboard.identityVerification.list },
-          { title: 'Document Types', path: paths.dashboard.identityVerification.documentTypes },
-          { title: 'Statistics', path: paths.dashboard.identityVerification.stats },
-        ],
-      },
-      {
-        title: 'Amenity Categories',
-        path: paths.dashboard.amenityCategories.list,
-        icon: ICONS.folder,
-      },
-      { title: 'Enum Displays', path: paths.dashboard.enumDisplays.list, icon: ICONS.menuItem },
-      {
-        title: 'Tax Administration',
-        path: paths.dashboard.taxAdministration.root,
-        icon: ICONS.banking,
-        children: [
-          { title: 'Analytics', path: paths.dashboard.taxAdministration.analytics },
-          { title: 'Jurisdictions', path: paths.dashboard.taxAdministration.jurisdictions.list },
-          { title: 'Rates', path: paths.dashboard.taxAdministration.rates.list },
-          { title: 'Reports', path: paths.dashboard.taxAdministration.reports.list },
-        ],
-      },
-      { title: 'Chat', path: paths.dashboard.chat, icon: ICONS.chat },
-      { title: 'Settings', path: paths.dashboard.settings.configuration, icon: ICONS.params },
+      // Guests can browse properties
+      { title: 'Browse Properties', path: paths.dashboard.properties.list, icon: ICONS.booking },
+      // Guests can view their own bookings
+      { title: 'My Bookings', path: paths.dashboard.bookings.list, icon: ICONS.booking },
+      // Guests can view their reviews
+      { title: 'My Reviews', path: paths.dashboard.reviews.list, icon: ICONS.label },
+      // Guests can view their invoices
+      { title: 'My Invoices', path: paths.dashboard.invoices.root, icon: ICONS.invoice },
     ],
+  },
+  /**
+   * Communication
+   */
+  {
+    subheader: 'Communication',
+    items: [{ title: 'Messages', path: paths.dashboard.chat, icon: ICONS.chat }],
   },
 ];

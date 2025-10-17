@@ -6,6 +6,13 @@ import { User, UserSchema } from '../../database/schemas/user.schema';
 import { Property, PropertySchema } from '../../database/schemas/property.schema';
 import { Booking, BookingSchema } from '../../database/schemas/booking.schema';
 import { Review, ReviewSchema } from '../../database/schemas/review.schema';
+import { BlockedDate, BlockedDateSchema } from '../../database/schemas/blocked-date.schema';
+import {
+  HostOnboarding,
+  HostOnboardingSchema,
+} from '../../database/schemas/host-onboarding.schema';
+import { SavedSearch, SavedSearchSchema } from '../../database/schemas/saved-search.schema';
+import { SearchHistory, SearchHistorySchema } from '../../database/schemas/search-history.schema';
 
 /**
  * Centralized module for shared schemas
@@ -24,6 +31,10 @@ import { Review, ReviewSchema } from '../../database/schemas/review.schema';
       { name: Property.name, schema: PropertySchema },
       { name: Booking.name, schema: BookingSchema },
       { name: Review.name, schema: ReviewSchema },
+      { name: BlockedDate.name, schema: BlockedDateSchema },
+      { name: HostOnboarding.name, schema: HostOnboardingSchema },
+      { name: SavedSearch.name, schema: SavedSearchSchema },
+      { name: SearchHistory.name, schema: SearchHistorySchema },
     ]),
   ],
   exports: [MongooseModule],

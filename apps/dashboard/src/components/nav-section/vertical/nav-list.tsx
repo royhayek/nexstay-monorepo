@@ -80,8 +80,8 @@ export function NavList({
       </NavCollapse>
     );
 
-  // Hidden item by role
-  if (data.allowedRoles && checkPermissions && checkPermissions(data.allowedRoles)) {
+  // Hidden item by role - hide if user DOESN'T have permission
+  if (data.allowedRoles && checkPermissions && !checkPermissions(data.allowedRoles)) {
     return null;
   }
 

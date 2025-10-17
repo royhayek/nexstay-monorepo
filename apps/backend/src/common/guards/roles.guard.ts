@@ -40,6 +40,11 @@ export class RolesGuard implements CanActivate {
       return false;
     }
 
+    // SYSTEM_ADMIN has access to everything (superuser privilege)
+    if (user.roles.includes(UserRole.SYSTEM_ADMIN)) {
+      return true;
+    }
+
     const hasRequiredRole = requiredRoles.some((role) => user.roles.includes(role));
 
     if (!hasRequiredRole) {

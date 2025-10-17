@@ -1,8 +1,9 @@
 import type { PropertyResponseDto } from "@/api/models/public/propertyResponseDto";
 import { IconButton, Text } from "@/components/atoms";
+import { EmptyState } from "@/components/molecules/empty-state";
 import { PropertyCard } from "@/components/molecules/property-card";
 import { ms, mvs } from "@/utils/scaling";
-import { CaretRightIcon } from "phosphor-react-native";
+import { CaretRightIcon, HouseSimpleIcon } from "phosphor-react-native";
 import React, { useCallback, useRef } from "react";
 import { Dimensions, FlatList, View } from "react-native";
 import Animated, {
@@ -12,7 +13,7 @@ import Animated, {
   useAnimatedStyle,
   useSharedValue,
 } from "react-native-reanimated";
-import { StyleSheet } from "react-native-unistyles";
+import { StyleSheet, useUnistyles } from "react-native-unistyles";
 
 const { width: screenWidth } = Dimensions.get("window");
 const HORIZONTAL_PADDING = ms(24); // xl padding (theme.spacing.xl)
@@ -79,6 +80,7 @@ export function PropertiesCarousel({
 }: PropertiesCarouselProps) {
   const scrollX = useSharedValue(0);
   const flatListRef = useRef<FlatList<PropertyResponseDto>>(null);
+  const { theme } = useUnistyles();
 
   const scrollHandler = useAnimatedScrollHandler({
     onScroll: (event) => {
@@ -119,9 +121,11 @@ export function PropertiesCarousel({
   if (!properties || properties.length === 0) {
     return (
       <View style={styles.emptyContainer}>
-        <Text variant="bodyLargeRegular" color="textSecondary">
-          No properties available
-        </Text>
+        <EmptyState
+          icon={<HouseSimpleIcon size={ms(80)} color={theme.colors.neutral400} weight="light" />}
+          title="No properties available"
+          description="Check back later for new listings"
+        />
       </View>
     );
   }

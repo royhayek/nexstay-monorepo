@@ -11,6 +11,7 @@ import { PayoutsMethodService } from './payouts-method.service';
 import { PayoutsCalculationService } from './payouts-calculation.service';
 import { PaymentProviderService } from './payment-provider.service';
 import { DynamicConfigService } from '../../config/config.service';
+import { NotificationHelperService } from '../../notifications/helpers/notification-helper.service';
 import { PayoutStatus, PayoutType, PayoutFrequency } from '../../../common/enums/payout.enums';
 import { AutoPayoutProcessingResult } from '../interfaces/payout-types.interface';
 import { PayoutErrorCode } from '../enums/payout-error.enums';
@@ -52,6 +53,7 @@ export class PayoutsProcessingService implements IPayoutsProcessingService {
     private calculationService: PayoutsCalculationService,
     private paymentProviderService: PaymentProviderService,
     private configService: DynamicConfigService,
+    private notificationHelper: NotificationHelperService,
   ) {}
 
   /**
@@ -285,6 +287,37 @@ export class PayoutsProcessingService implements IPayoutsProcessingService {
       payout.status = PayoutStatus.COMPLETED;
       payout.completedAt = DateUtils.now();
       await payout.save();
+
+      // Send payout notification email
+      try {
+        const payoutMethod = payout.payoutMethod;
+        const transferTime = payout.type === PayoutType.INSTANT ? '1-2 hours' : '3-5 business days';
+        const expectedArrival = DateUtils.create(
+          DateUtils.nowTimestamp() +
+            (payout.type === PayoutType.INSTANT ? 2 * 60 * 60 * 1000 : 5 * 24 * 60 * 60 * 1000),
+        );
+
+        await this.notificationHelper.sendPayoutProcessedNotification(
+          String(host._id),
+          String(payout._id),
+          payout.netAmount.amount,
+          payout.netAmount.currency,
+          payout.createdAt,
+          expectedArrival,
+        );
+
+        LoggingUtil.log(
+          `Payout notification email sent for payout ${String(payout._id)}`,
+          'PayoutsProcessingService',
+        );
+      } catch (emailError) {
+        // Don't fail the payout if email fails
+        LoggingUtil.errorWithException(
+          `Failed to send payout notification email:`,
+          emailError,
+          'PayoutsProcessingService',
+        );
+      }
 
       LoggingUtil.log(
         `Payout processed successfully through account system`,

@@ -3,7 +3,7 @@ import { Image, View } from "react-native";
 import { StyleSheet, useUnistyles } from "react-native-unistyles";
 
 import { Input } from "@/components/atoms";
-import { EmptyState, ModalHeader } from "@/components/molecules";
+import { EmptyState } from "@/components/molecules";
 import { TabScreenTemplate } from "@/components/templates";
 import { mvs } from "@/utils/scaling";
 import { SearchNormal1 } from "iconsax-react-native";
@@ -14,11 +14,8 @@ export default function FavoritesScreen() {
   const favorites = []; // This would be connected to your state management
 
   return (
-    <TabScreenTemplate>
+    <TabScreenTemplate title="My Favorites">
       <View style={styles.container}>
-        {/* Header */}
-        <ModalHeader title="My Favorites" showBackButton={false} />
-
         {/* Search Input */}
         <View style={styles.searchContainer}>
           <Input

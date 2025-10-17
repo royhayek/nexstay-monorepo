@@ -5,7 +5,7 @@ import { Controller, useForm } from "react-hook-form";
 import { StyleSheet } from "react-native-unistyles";
 
 import { Button, Input, Text } from "@/components/atoms";
-import { FormScreenTemplate } from "@/components/templates";
+import { ScreenTemplate } from "@/components/templates";
 import { ms } from "@/utils/scaling";
 
 import { Eye, EyeSlash } from "iconsax-react-native";
@@ -94,7 +94,7 @@ export default function ChangePasswordScreen() {
   );
 
   return (
-    <FormScreenTemplate
+    <ScreenTemplate
       title="Change Password"
       onBackPress={handleBack}
       bottomActions={bottomActions}
@@ -196,7 +196,7 @@ export default function ChangePasswordScreen() {
           />
         </View>
       </View>
-    </FormScreenTemplate>
+    </ScreenTemplate>
   );
 }
 

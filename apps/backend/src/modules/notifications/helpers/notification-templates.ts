@@ -295,14 +295,120 @@ export class NotificationTemplates {
     };
   }
 
+  static firstListingCongratulations(data: {
+    hostId: string;
+    hostName: string;
+    hostEmail: string;
+    propertyId: string;
+    propertyName: string;
+    propertyType: string;
+    propertyLocation: string;
+    propertyImage?: string;
+    nightlyRate: number;
+    currency: string;
+    publishedDate: Date;
+  }): CreateNotificationDto {
+    const baseUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+    const supportEmail = process.env.SUPPORT_EMAIL || 'support@nexstay.com';
+
+    return {
+      recipient_id: data.hostId,
+      type: NotificationType.FIRST_LISTING_CONGRATULATIONS,
+      title: 'Congratulations on Your First Listing! 🎉',
+      body: `Your property "${data.propertyName}" is now live and accepting bookings! Welcome to the Nexstay hosting community.`,
+      priority: NotificationPriority.HIGH,
+      data: {
+        property_id: data.propertyId,
+        property_name: data.propertyName,
+        property_type: data.propertyType,
+        property_location: data.propertyLocation,
+        property_image: data.propertyImage,
+        nightly_rate: data.nightlyRate,
+        currency: data.currency,
+        published_date: DateUtils.toISO(data.publishedDate),
+        host_name: data.hostName,
+        user_email: data.hostEmail,
+        property_url: `${baseUrl}/properties/${data.propertyId}`,
+        dashboard_url: `${baseUrl}/dashboard`,
+        host_guide_url: `${baseUrl}/host-guide`,
+        pricing_tips_url: `${baseUrl}/pricing-tips`,
+        photos_guide_url: `${baseUrl}/photos-guide`,
+        safety_guide_url: `${baseUrl}/safety-guide`,
+        support_email: supportEmail,
+      },
+      action_url: `/properties/${data.propertyId}`,
+      group_key: `first_listing_${data.hostId}`,
+    };
+  }
+
+  /**
+   * Payout-related notification templates
+   */
+  static payoutProcessed(data: {
+    hostId: string;
+    payoutId: string;
+    amount: number;
+    currency: string;
+    payoutDate: Date;
+    expectedArrival: Date;
+  }): CreateNotificationDto {
+    return {
+      recipient_id: data.hostId,
+      type: NotificationType.PAYOUT_PROCESSED,
+      title: 'Payout Processed',
+      body: `Great news! Your payout of ${data.currency} ${data.amount} has been processed and should arrive by ${data.expectedArrival.toLocaleDateString()}.`,
+      priority: NotificationPriority.HIGH,
+      data: {
+        payout_id: data.payoutId,
+        amount: data.amount,
+        currency: data.currency,
+        payout_date: DateUtils.toISO(data.payoutDate),
+        expected_arrival: DateUtils.toISO(data.expectedArrival),
+      },
+      action_url: `/payouts/${data.payoutId}`,
+      group_key: `payout_${data.payoutId}`,
+    };
+  }
+
+  /**
+   * Messaging-related notification templates
+   */
+  static newMessage(data: {
+    recipientId: string;
+    senderId: string;
+    senderName: string;
+    messagePreview: string;
+    conversationId: string;
+    propertyName?: string;
+    bookingId?: string;
+  }): CreateNotificationDto {
+    return {
+      recipient_id: data.recipientId,
+      sender_id: data.senderId,
+      type: NotificationType.NEW_MESSAGE,
+      title: 'New Message',
+      body: `${data.senderName} sent you a message${data.propertyName ? ` about "${data.propertyName}"` : ''}: ${data.messagePreview.substring(0, 50)}${data.messagePreview.length > 50 ? '...' : ''}`,
+      priority: NotificationPriority.NORMAL,
+      data: {
+        conversation_id: data.conversationId,
+        sender_name: data.senderName,
+        message_preview: data.messagePreview,
+        property_name: data.propertyName,
+        booking_id: data.bookingId,
+      },
+      action_url: `/messages/${data.conversationId}`,
+      group_key: `conversation_${data.conversationId}`,
+    };
+  }
+
   /**
    * System notification templates
    */
   static welcome(data: { userId: string; userName: string }): CreateNotificationDto {
     return {
       recipient_id: data.userId,
-      type: NotificationType.SYSTEM_UPDATE,
-      title: `Welcome to Airbnb Clone, ${data.userName}!`,
+      type: NotificationType.WELCOME,
+      title: `Welcome to Nexstay, ${data.userName}!`,
       body: 'Thank you for joining us. Start exploring amazing places to stay or list your own property.',
       priority: NotificationPriority.NORMAL,
       action_url: '/explore',
@@ -332,6 +438,35 @@ export class NotificationTemplates {
       body: `We detected ${data.activity} on your account${data.location ? ` from ${data.location}` : ''}. If this wasn't you, please secure your account immediately.`,
       priority: NotificationPriority.URGENT,
       action_url: '/settings/security',
+    };
+  }
+
+  static passwordReset(data: {
+    userId: string;
+    userEmail: string;
+    userName: string;
+    resetToken: string;
+    expiryTime: string;
+    ipAddress?: string;
+    location?: string;
+  }): CreateNotificationDto {
+    const baseUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+    return {
+      recipient_id: data.userId,
+      type: NotificationType.PASSWORD_RESET,
+      title: 'Reset Your Password',
+      body: `A password reset was requested for your account. This link will expire in ${data.expiryTime}.`,
+      priority: NotificationPriority.URGENT,
+      data: {
+        reset_token: data.resetToken,
+        expiry_time: data.expiryTime,
+        ip_address: data.ipAddress,
+        location: data.location,
+        user_email: data.userEmail,
+        user_name: data.userName,
+      },
+      action_url: `${baseUrl}/reset-password?token=${data.resetToken}`,
+      group_key: `password_reset_${data.userId}`,
     };
   }
 }

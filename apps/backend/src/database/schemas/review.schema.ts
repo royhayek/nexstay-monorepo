@@ -79,6 +79,123 @@ export class Review {
   @Prop()
   hostResponseDate?: Date;
 
+  // ========================================
+  // ENHANCEMENT 1: Photo Upload Support
+  // ========================================
+  @Prop([
+    {
+      url: String,
+      thumbnailUrl: String,
+      originalFilename: String,
+      size: Number,
+      mimeType: String,
+      uploadedAt: Date,
+    },
+  ])
+  photos?: Array<{
+    url: string;
+    thumbnailUrl: string;
+    originalFilename: string;
+    size: number;
+    mimeType: string;
+    uploadedAt: Date;
+  }>;
+
+  @Prop({ default: 0 })
+  photoCount: number;
+
+  // ========================================
+  // ENHANCEMENT 2: Review Translation
+  // ========================================
+  @Prop({ type: String, enum: ['en', 'fr', 'ar'], default: 'en' })
+  originalLanguage: string;
+
+  @Prop({
+    type: Map,
+    of: {
+      publicReview: String,
+      translatedAt: Date,
+      autoTranslated: Boolean,
+    },
+  })
+  translations?: Map<
+    string,
+    {
+      publicReview: string;
+      translatedAt: Date;
+      autoTranslated: boolean;
+    }
+  >;
+
+  // ========================================
+  // ENHANCEMENT 3: Sentiment Analysis
+  // ========================================
+  @Prop({
+    type: {
+      score: { type: Number, min: -1, max: 1 },
+      label: { type: String, enum: ['POSITIVE', 'NEGATIVE', 'NEUTRAL', 'MIXED'] },
+      confidence: { type: Number, min: 0, max: 1 },
+      analyzedAt: Date,
+    },
+  })
+  sentiment?: {
+    score: number;
+    label: 'POSITIVE' | 'NEGATIVE' | 'NEUTRAL' | 'MIXED';
+    confidence: number;
+    analyzedAt: Date;
+  };
+
+  @Prop({ default: false })
+  requiresManualReview: boolean;
+
+  // ========================================
+  // ENHANCEMENT 4: Helpful Voting System
+  // ========================================
+  @Prop([
+    {
+      userId: { type: Types.ObjectId, ref: 'User' },
+      vote: { type: String, enum: ['helpful', 'not_helpful'] },
+      votedAt: Date,
+    },
+  ])
+  votes?: Array<{
+    userId: Types.ObjectId;
+    vote: 'helpful' | 'not_helpful';
+    votedAt: Date;
+  }>;
+
+  @Prop({ default: 0 })
+  helpfulCount: number;
+
+  @Prop({ default: 0 })
+  notHelpfulCount: number;
+
+  @Prop({ default: 0 })
+  helpfulnessScore: number;
+
+  // ========================================
+  // ENHANCEMENT 5: Verified Stay Badges
+  // ========================================
+  @Prop({ default: false })
+  isVerifiedStay: boolean;
+
+  @Prop({
+    type: {
+      bookingVerified: Boolean,
+      paymentVerified: Boolean,
+      stayCompleted: Boolean,
+      verifiedAt: Date,
+      verificationMethod: { type: String, enum: ['auto', 'manual'] },
+    },
+  })
+  verification?: {
+    bookingVerified: boolean;
+    paymentVerified: boolean;
+    stayCompleted: boolean;
+    verifiedAt: Date;
+    verificationMethod: 'auto' | 'manual';
+  };
+
   // Timestamps (automatically added by Mongoose when timestamps: true)
   createdAt: Date;
   updatedAt: Date;
@@ -145,3 +262,11 @@ ReviewSchema.index(
     name: 'unique_review_per_booking',
   },
 );
+
+// Enhancement indexes
+ReviewSchema.index({ helpfulnessScore: -1 }); // Sort by helpfulness
+ReviewSchema.index({ 'votes.userId': 1 }); // Check if user voted
+ReviewSchema.index({ isVerifiedStay: 1 }); // Filter verified stays
+ReviewSchema.index({ 'sentiment.label': 1 }); // Filter by sentiment
+ReviewSchema.index({ photoCount: -1 }); // Filter reviews with photos
+ReviewSchema.index({ requiresManualReview: 1 }); // Admin moderation queue

@@ -39,6 +39,42 @@ export class NotificationData {
   host_name?: string;
 
   @Prop()
+  property_image?: string;
+
+  @Prop()
+  property_location?: string;
+
+  @Prop()
+  property_type?: string;
+
+  @Prop()
+  nightly_rate?: number;
+
+  @Prop()
+  published_date?: Date;
+
+  @Prop()
+  property_url?: string;
+
+  @Prop()
+  dashboard_url?: string;
+
+  @Prop()
+  host_guide_url?: string;
+
+  @Prop()
+  pricing_tips_url?: string;
+
+  @Prop()
+  photos_guide_url?: string;
+
+  @Prop()
+  safety_guide_url?: string;
+
+  @Prop()
+  support_email?: string;
+
+  @Prop()
   check_in_date?: Date;
 
   @Prop()
@@ -55,6 +91,107 @@ export class NotificationData {
 
   @Prop()
   rating?: number;
+
+  // Payment-related fields
+  @Prop()
+  receipt_number?: string;
+
+  @Prop()
+  payment_date?: Date;
+
+  @Prop()
+  payment_method?: string;
+
+  @Prop()
+  transaction_id?: string;
+
+  @Prop()
+  price_per_night?: number;
+
+  @Prop()
+  nights?: number;
+
+  @Prop()
+  subtotal?: number;
+
+  @Prop()
+  service_fee?: number;
+
+  @Prop()
+  cleaning_fee?: number;
+
+  @Prop()
+  taxes?: number;
+
+  // Payout-related fields
+  @Prop()
+  payout_id?: string;
+
+  @Prop()
+  payout_date?: Date;
+
+  @Prop()
+  expected_arrival?: Date;
+
+  @Prop()
+  transfer_time?: string;
+
+  @Prop()
+  payment_method_type?: string;
+
+  @Prop()
+  payment_method_details?: string;
+
+  @Prop()
+  gross_earnings?: number;
+
+  @Prop()
+  adjustments?: number;
+
+  @Prop()
+  next_payout_date?: Date;
+
+  @Prop()
+  pending_earnings?: number;
+
+  // Message-related fields
+  @Prop()
+  conversation_id?: string;
+
+  @Prop()
+  sender_name?: string;
+
+  @Prop()
+  message_preview?: string;
+
+  @Prop()
+  unread_count?: number;
+
+  // Password reset fields
+  @Prop()
+  reset_token?: string;
+
+  @Prop()
+  expiry_time?: string;
+
+  @Prop()
+  ip_address?: string;
+
+  @Prop()
+  location?: string;
+
+  @Prop()
+  device?: string;
+
+  @Prop()
+  user_email?: string;
+
+  @Prop()
+  user_name?: string;
+
+  // Review-related fields
+  @Prop()
+  review_deadline?: Date;
 
   // Any additional custom data
   @Prop({ type: Map, of: String })

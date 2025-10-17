@@ -1,3 +1,5 @@
+export { Avatar } from "./avatar";
+export type { AvatarProps } from "./avatar";
 export { Badge } from "./badge";
 export { Button } from "./button";
 export type { ButtonProps } from "./button";
@@ -6,6 +8,8 @@ export type { DividerProps } from "./divider";
 export { EmptyFolderIcon } from "./empty-folder-icon";
 export { IconButton } from "./icon-button";
 export type { IconButtonProps } from "./icon-button";
+export { IconContainer } from "./icon-container";
+export type { IconContainerProps } from "./icon-container";
 export { IconSymbol } from "./icon-symbol";
 export { Input } from "./input";
 export type { InputProps } from "./input";

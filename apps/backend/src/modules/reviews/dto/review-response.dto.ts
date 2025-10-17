@@ -4,6 +4,12 @@ import { ReviewType } from '../../../common/enums/property.enums';
 import { BaseResponseDto, createResponseDto } from '../../../common/dto/base-response.dto';
 import { PaginatedDto } from '../../../common/dto/paginated.dto';
 import type { LeanPopulatedAdminReview } from '../types/review.types';
+import {
+  ReviewPhotoDto,
+  TranslationDto,
+  SentimentDto,
+  VerificationDto,
+} from './review-enhancements.dto';
 
 /**
  * Base Review DTO with common fields
@@ -114,6 +120,87 @@ export class ReviewDataDto extends BaseReviewDto {
 
   @ApiPropertyOptional({ description: 'Moderation reason', example: 'Content review requested' })
   moderationReason?: string;
+
+  // ========================================
+  // ENHANCEMENT FIELDS
+  // ========================================
+
+  @ApiPropertyOptional({
+    description: 'Review photos',
+    type: [ReviewPhotoDto],
+    example: [
+      {
+        url: 'https://s3.amazonaws.com/bucket/reviews/photo1.jpg',
+        thumbnailUrl: 'https://s3.amazonaws.com/bucket/reviews/photo1_thumb.jpg',
+        originalFilename: 'beautiful-property.jpg',
+        size: 2048576,
+        mimeType: 'image/jpeg',
+        uploadedAt: '2025-10-12T10:30:00Z',
+      },
+    ],
+  })
+  photos?: ReviewPhotoDto[];
+
+  @ApiPropertyOptional({ description: 'Number of photos', example: 3 })
+  photoCount?: number;
+
+  @ApiPropertyOptional({ description: 'Original language', example: 'en' })
+  originalLanguage?: string;
+
+  @ApiPropertyOptional({
+    description: 'Available translations',
+    example: {
+      fr: { publicReview: 'Belle propriété...', translatedAt: '2025-10-12T10:30:00Z' },
+    },
+  })
+  translations?: Record<string, TranslationDto>;
+
+  @ApiPropertyOptional({
+    description: 'Sentiment analysis',
+    type: SentimentDto,
+    example: {
+      score: 0.85,
+      label: 'POSITIVE',
+      confidence: 0.92,
+      analyzedAt: '2025-10-12T10:30:00Z',
+    },
+  })
+  sentiment?: SentimentDto;
+
+  @ApiPropertyOptional({ description: 'Requires manual review flag', example: false })
+  requiresManualReview?: boolean;
+
+  @ApiPropertyOptional({ description: 'Helpful votes count', example: 42 })
+  helpfulCount?: number;
+
+  @ApiPropertyOptional({ description: 'Not helpful votes count', example: 3 })
+  notHelpfulCount?: number;
+
+  @ApiPropertyOptional({ description: 'Helpfulness score', example: 39 })
+  helpfulnessScore?: number;
+
+  @ApiPropertyOptional({
+    description: 'Current user vote (if any)',
+    enum: ['helpful', 'not_helpful'],
+    nullable: true,
+  })
+  userVote?: 'helpful' | 'not_helpful' | null;
+
+  @ApiPropertyOptional({ description: 'Is verified stay', example: true })
+  isVerifiedStay?: boolean;
+
+  @ApiPropertyOptional({
+    description: 'Verification details',
+    type: VerificationDto,
+    example: {
+      bookingVerified: true,
+      paymentVerified: true,
+      stayCompleted: true,
+      verifiedAt: '2025-10-12T10:30:00Z',
+      verificationMethod: 'auto',
+    },
+  })
+  verification?: VerificationDto;
 }
 
 /**

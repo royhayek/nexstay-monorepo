@@ -17,13 +17,16 @@ import { _contacts, _notifications } from 'src/_mock';
 import { Logo } from 'src/components/logo';
 import { useSettingsContext } from 'src/components/settings';
 
-import { useAuthContext } from 'src/auth/hooks';
+import { useAuth } from 'src/auth/hooks/use-auth';
+import { getNavigationConfigKey } from 'src/auth/utils/role-utils';
 
 import { NavMobile } from './nav-mobile';
 import { VerticalDivider } from './content';
 import { NavVertical } from './nav-vertical';
 import { NavHorizontal } from './nav-horizontal';
 import { _account } from '../nav-config-account';
+import { navDataHost } from '../nav-config-host';
+import { navDataAdmin } from '../nav-config-admin';
 import { Searchbar } from '../components/searchbar';
 import { _workspaces } from '../nav-config-workspace';
 import { MenuButton } from '../components/menu-button';
@@ -61,7 +64,7 @@ export function DashboardLayout({
 }: DashboardLayoutProps) {
   const theme = useTheme();
 
-  const { user } = useAuthContext();
+  const { hasRole, user } = useAuth();
 
   const settings = useSettingsContext();
 
@@ -69,14 +72,55 @@ export function DashboardLayout({
 
   const { value: open, onFalse: onClose, onTrue: onOpen } = useBoolean();
 
-  const navData = slotProps?.nav?.data ?? dashboardNavData;
+  /**
+   * Select navigation config based on user's roles
+   * - Admin roles (admin, system_admin, moderator, compliance, support) get admin nav
+   * - Host role gets host nav
+   * - Guest role gets default nav
+   */
+  const getNavData = (): NavSectionProps['data'] => {
+    // If navigation data is provided via props, use it
+    if (slotProps?.nav?.data) {
+      return slotProps.nav.data;
+    }
+
+    // Determine navigation based on user roles
+    if (user?.roles) {
+      const navConfigKey = getNavigationConfigKey(user.roles as any);
+
+      switch (navConfigKey) {
+        case 'admin':
+          return navDataAdmin;
+        case 'host':
+          return navDataHost;
+        case 'guest':
+        default:
+          return dashboardNavData;
+      }
+    }
+
+    // Fallback to default nav
+    return dashboardNavData;
+  };
+
+  const navData = getNavData();
 
   const isNavMini = settings.state.navLayout === 'mini';
   const isNavHorizontal = settings.state.navLayout === 'horizontal';
   const isNavVertical = isNavMini || settings.state.navLayout === 'vertical';
 
-  const canDisplayItemByRole = (allowedRoles: NavItemProps['allowedRoles']): boolean =>
-    !allowedRoles?.includes(user?.roles);
+  /**
+   * Check if user can display a navigation item based on allowed roles
+   * @param allowedRoles - Role or array of roles allowed to see this item
+   * @returns true if user has permission (or no roles specified), false otherwise
+   */
+  const canDisplayItemByRole = (allowedRoles: NavItemProps['allowedRoles']): boolean => {
+    // If no roles specified, item is visible to all authenticated users
+    if (!allowedRoles) return true;
+
+    // Check if user has any of the allowed roles
+    return hasRole(allowedRoles as any);
+  };
 
   const renderHeader = () => {
     const headerSlotProps: HeaderSectionProps['slotProps'] = {

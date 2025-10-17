@@ -8,6 +8,7 @@
     "scheme": "homestay",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
+    "main": "index.ts",
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.cubeholdings.homestay",

@@ -19,4 +19,8 @@ export interface SigninPasswordDto {
   sessionToken: string;
   /** Whether user wants to request SMS code instead of password (phone login only) */
   requestSmsCode?: boolean;
+  /** User agent string for device fingerprinting */
+  userAgent?: string;
+  /** IP address for device fingerprinting */
+  ipAddress?: string;
 }

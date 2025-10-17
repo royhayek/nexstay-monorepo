@@ -1,9 +1,13 @@
 import { Injectable } from '@nestjs/common';
+import { InjectModel } from '@nestjs/mongoose';
+import { Model } from 'mongoose';
 import { AccountsFacadeService } from '../../accounts/services/accounts-facade.service';
 import { FeeCalculationService } from '../../fees/services/fee-calculation.service';
 import { BookingPaymentService } from '../../bookings/services/booking-payment.service';
+import { NotificationHelperService } from '../../notifications/helpers/notification-helper.service';
 import { PaymentTransactionDocument } from '../../../database/schemas/payment-transaction.schema';
 import { PaymentIntentDocument } from '../../../database/schemas/payment-intent.schema';
+import { Booking, BookingDocument } from '../../../database/schemas/booking.schema';
 import { PaymentProvider, PaymentTransactionStatus } from '../../../common/enums/payment.enums';
 import { TransactionDocument } from '../../../database/schemas/transaction.schema';
 import { LoggingUtil } from '../../../common/utils/logging.util';
@@ -34,9 +38,12 @@ export interface PayoutIntegrationResult {
 @Injectable()
 export class PaymentAccountsIntegrationService {
   constructor(
+    @InjectModel(Booking.name)
+    private readonly bookingModel: Model<BookingDocument>,
     private readonly accountsFacade: AccountsFacadeService,
     private readonly feeCalculationService: FeeCalculationService,
     private readonly bookingPaymentService: BookingPaymentService,
+    private readonly notificationHelper: NotificationHelperService,
   ) {}
 
   /**
@@ -81,6 +88,33 @@ export class PaymentAccountsIntegrationService {
             `Booking ${String(paymentTransaction.bookingId)} successfully updated to PAID status`,
             'PaymentAccountsIntegrationService',
           );
+
+          // Step 3: Send payment receipt email notification
+          try {
+            const booking = await this.bookingModel
+              .findById(paymentTransaction.bookingId)
+              .populate('propertyId')
+              .exec();
+
+            if (booking && booking.propertyId) {
+              await this.notificationHelper.sendPaymentSuccessfulNotification(
+                booking,
+                booking.propertyId as any, // TypeScript workaround for populated field
+              );
+
+              LoggingUtil.log(
+                `Payment receipt email sent for booking ${String(booking._id)}`,
+                'PaymentAccountsIntegrationService',
+              );
+            }
+          } catch (emailError) {
+            // Don't fail the entire payment flow if email fails
+            LoggingUtil.errorWithException(
+              `Failed to send payment receipt email: ${String(emailError)}`,
+              emailError,
+              'PaymentAccountsIntegrationService',
+            );
+          }
         } catch (bookingError) {
           const errorMessage = `Failed to update booking status: ${String(bookingError)}`;
           errors.push(errorMessage);

@@ -1,4 +1,6 @@
 import { Injectable } from '@nestjs/common';
+import { InjectModel } from '@nestjs/mongoose';
+import { Model, Types } from 'mongoose';
 import { buildPaginatedResult } from '../../../common/utils/database.utils';
 import { PropertyCoreService } from './property-core.service';
 import { PropertySearchService } from './property-search.service';
@@ -8,6 +10,7 @@ import { InternalCreatePropertyDto } from '../dto/internal-property.dto';
 import { UpdatePropertyDto } from '../dto/update-property.dto';
 import { PropertySearchDto } from '../dto/property-search.dto';
 import { PropertyDocument, ImageSchema } from '../../../database/schemas/property.schema';
+import { User, UserDocument } from '../../../database/schemas/user.schema';
 import { PropertyStatus, ModerationStatus } from '../../../common/enums/property.enums';
 import { PAGINATION_CONSTANTS } from '../constants/pagination.constants';
 import { BooleanStringUtils } from '../constants/property.constants';
@@ -24,6 +27,8 @@ export class PropertiesFacadeService {
     private readonly searchService: PropertySearchService,
     private readonly managementService: PropertyManagementService,
     private readonly adminService: PropertyAdminService,
+    @InjectModel(User.name)
+    private readonly userModel: Model<UserDocument>,
   ) {}
 
   // ========== Core Operations ==========
@@ -143,6 +148,20 @@ export class PropertiesFacadeService {
 
   async getBookedDates(propertyId: string) {
     return this.managementService.getBookedDates(propertyId);
+  }
+
+  // ========== Calendar Management Operations ==========
+
+  async blockDates(propertyId: string, blockDatesDto: any, userId: string) {
+    return this.managementService.blockDates(propertyId, blockDatesDto, userId);
+  }
+
+  async unblockDates(propertyId: string, blockedDateIds: string[], userId: string) {
+    return this.managementService.unblockDates(propertyId, blockedDateIds, userId);
+  }
+
+  async getCalendarView(propertyId: string, startDate?: Date, endDate?: Date) {
+    return this.managementService.getCalendarView(propertyId, startDate, endDate);
   }
 
   // ========== Admin Operations ==========
@@ -351,5 +370,64 @@ export class PropertiesFacadeService {
         ? PropertyStatus.DRAFT
         : PropertyStatus.PUBLISHED;
     return this.updateStatus(propertyId, newStatus);
+  }
+
+  // ========== Wishlist Helper Operations ==========
+
+  /**
+   * Populate isFavorited flag for properties based on user's wishlist
+   * @param properties - Array of properties (can be plain objects or documents)
+   * @param userId - User ID to check wishlist against
+   * @returns Array of properties with isFavorited flag added
+   */
+  async populateIsFavorited<T extends { _id: any }>(
+    properties: T[],
+    userId: string,
+  ): Promise<(T & { isFavorited: boolean })[]> {
+    if (!userId || properties.length === 0) {
+      return properties.map((property) => ({ ...property, isFavorited: false }));
+    }
+
+    try {
+      // Get user's wishlist
+      const user = await this.userModel.findById(userId).select('wishlist').lean().exec();
+
+      if (!user || !user.wishlist || user.wishlist.length === 0) {
+        return properties.map((property) => ({ ...property, isFavorited: false }));
+      }
+
+      // Convert wishlist to Set of strings for efficient lookup
+      const wishlistSet = new Set(user.wishlist.map((id) => id.toString()));
+
+      // Add isFavorited flag to each property
+      return properties.map((property) => ({
+        ...property,
+        isFavorited: wishlistSet.has(property._id.toString()),
+      }));
+    } catch (error) {
+      // If there's an error, just return properties with isFavorited = false
+      return properties.map((property) => ({ ...property, isFavorited: false }));
+    }
+  }
+
+  /**
+   * Search properties with isFavorited flag for authenticated users
+   * @param searchDto - Search parameters
+   * @param userId - Optional user ID to populate isFavorited flags
+   * @returns Paginated search results with isFavorited flags
+   */
+  async searchWithFavorites(searchDto: PropertySearchDto, userId?: string) {
+    const result = await this.searchService.search(searchDto);
+
+    if (!userId || result.items.length === 0) {
+      return result;
+    }
+
+    const itemsWithFavorites = await this.populateIsFavorited(result.items, userId);
+
+    return {
+      ...result,
+      items: itemsWithFavorites,
+    };
   }
 }

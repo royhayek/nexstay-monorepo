@@ -46,9 +46,11 @@ import { AddSecondaryContactDataDto } from './dto/add-secondary-contact-response
 import { CryptoUtil } from '../../common/utils/crypto.utils';
 import { OtpUtil } from '../../common/utils/otp.util';
 import { DateUtils } from '../../common/utils/date.utils';
+import { LoggingUtil } from '../../common/utils/logging.util';
 import { NotificationService } from '../../common/services/notificaton.service';
 import { DeviceTrustConfigService } from '../../common/services/device-trust-config.service';
 import { ConfigService } from '@nestjs/config';
+import { NotificationHelperService } from '../notifications/helpers/notification-helper.service';
 import {
   JwtPayload,
   TokenPair,
@@ -71,6 +73,7 @@ export class AuthService {
     private readonly notificationService: NotificationService,
     private readonly dynamicConfigService: DynamicConfigService,
     private readonly deviceTrustConfigService: DeviceTrustConfigService,
+    private readonly notificationHelper: NotificationHelperService,
     @InjectModel(RefreshToken.name)
     private readonly refreshTokenModel: Model<RefreshTokenDocument>,
     @InjectModel(VerificationToken.name)
@@ -744,6 +747,32 @@ export class AuthService {
 
     // Calculate expiration time
     const expiresAt = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes from now
+
+    // Send password reset email notification
+    try {
+      const userName = user.firstName || 'User';
+      const userEmail = user.email || dto.identifier;
+
+      await this.notificationHelper.sendPasswordResetNotification(
+        String(user._id),
+        userEmail,
+        userName,
+        resetToken,
+        '15 minutes',
+      );
+
+      LoggingUtil.log(
+        `Password reset email sent to user ${String(user._id)}`,
+        'AuthService',
+      );
+    } catch (emailError) {
+      // Don't fail password reset flow if email fails
+      LoggingUtil.errorWithException(
+        `Failed to send password reset email: ${String(emailError)}`,
+        emailError,
+        'AuthService',
+      );
+    }
 
     return {
       resetToken,

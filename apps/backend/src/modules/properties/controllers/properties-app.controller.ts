@@ -11,6 +11,8 @@ import {
   UploadedFile,
   UploadedFiles,
   BadRequestException,
+  HttpCode,
+  HttpStatus,
 } from '@nestjs/common';
 import {
   ApiBearerAuth,
@@ -33,7 +35,13 @@ import { CreatePropertyDto } from '../dto/create-property.dto';
 import { UpdatePropertyDto } from '../dto/update-property.dto';
 import { UpdatePropertyStatusDto } from '../dto/update-property-status.dto';
 import { InternalCreatePropertyDto } from '../dto/internal-property.dto';
-import { PropertyResponseDto } from '../dto/property-response.dto';
+import {
+  PropertyResponseDto,
+  PropertyListResponseDto,
+  SinglePropertyResponseDto,
+} from '../dto/property-response.dto';
+import { PropertySearchDto } from '../dto/property-search.dto';
+import { PaginatedDto } from '../../../common/dto/paginated.dto';
 import {
   PropertyListResponse,
   PropertyDeletionResponse,
@@ -41,12 +49,10 @@ import {
   MultipleImageUploadResponse,
   ImageDeletionResponse,
   SinglePropertyResponse,
-  PropertyListResponseDto,
   PropertyDeletionResponseDto,
   ImageUploadResponseDto,
   MultipleImageUploadResponseDto,
   ImageDeletionResponseDto,
-  SinglePropertyResponseDto,
 } from '../dto/property-operation-response.dto';
 import { ProtectedEndpoint } from '../../../common/decorators/api-endpoint.decorator';
 import { PropertiesFacadeService } from '../services/properties-facade.service';
@@ -60,6 +66,17 @@ import {
   MultiplePropertyImageUploadDto,
   PropertyImageUploadDto,
 } from '../dto/property-image-response.dto';
+import {
+  BlockDatesDto,
+  UnblockDatesDto,
+  BlockDatesResponseDto,
+  UnblockDatesResponseDto,
+  CalendarViewResponseDto,
+  BlockedDateDataDto,
+  UnblockDatesDataDto,
+  CalendarViewDataDto,
+} from '../dto/calendar-management.dto';
+import { Query } from '@nestjs/common';
 
 /**
  * App Controller for Properties
@@ -97,6 +114,51 @@ export class PropertiesAppController extends BaseController {
       'My Properties List',
       'Properties retrieved successfully',
       'Failed to retrieve properties',
+    );
+  }
+
+  @Post('search')
+  @HttpCode(HttpStatus.OK)
+  @ProtectedEndpoint(
+    'Search properties with favorites flag',
+    'Search properties with comprehensive filtering and isFavorited flag for authenticated users',
+    PropertyListResponseDto,
+  )
+  async search(
+    @Body() searchDto: PropertySearchDto,
+    @CurrentUser() user: UserDocument,
+  ): Promise<PropertyListResponseDto> {
+    return this.executeWithErrorHandlingAndMessage(
+      async () => {
+        // Validate pagination parameters
+        if (searchDto.page) {
+          searchDto.page = Math.max(1, searchDto.page);
+        }
+        if (searchDto.limit) {
+          searchDto.limit = Math.min(Math.max(1, searchDto.limit), 100);
+        }
+
+        const result = await this.propertiesFacade.searchWithFavorites(
+          searchDto,
+          String(user._id),
+        );
+
+        const data: PaginatedDto<PropertyResponseDto> = {
+          items: result.items.map((property) => plainToInstance(PropertyResponseDto, property)),
+          total: result.total,
+          page: result.page,
+          limit: result.limit,
+          totalPages: result.totalPages,
+          hasNextPage: result.hasNextPage,
+          hasPrevPage: result.hasPrevPage,
+        };
+
+        return data;
+      },
+      'Search properties with favorites',
+      'Properties Search Completed',
+      'Properties search completed successfully',
+      'Failed to search properties',
     );
   }
 
@@ -537,6 +599,146 @@ export class PropertiesAppController extends BaseController {
       'Property Image Deleted',
       'Image deleted successfully',
       'Failed to delete image',
+    );
+  }
+
+  // ========== CALENDAR MANAGEMENT ENDPOINTS ==========
+
+  @Post(':id/calendar/block')
+  @UseGuards(RolesGuard)
+  @Roles(UserRole.HOST, UserRole.ADMIN, UserRole.SYSTEM_ADMIN)
+  @ProtectedEndpoint(
+    'Block dates for property',
+    'Block specific date range for a property to prevent bookings (maintenance, personal use, etc.)',
+    BlockDatesResponseDto,
+  )
+  @ApiParam({ name: 'id', description: 'Property ID', example: '507f1f77bcf86cd799439011' })
+  @ApiResponse({
+    status: 201,
+    description: 'Dates blocked successfully',
+    type: BlockDatesResponseDto,
+  })
+  @ApiResponse({ status: 400, description: 'Invalid date range or overlaps with bookings' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 403, description: 'Forbidden - Host role required or not property owner' })
+  @ApiResponse({ status: 404, description: 'Property not found' })
+  @ApiResponse({ status: 500, description: 'Internal server error' })
+  async blockDates(
+    @Param('id') id: string,
+    @Body() blockDatesDto: BlockDatesDto,
+    @CurrentUser() user: UserDocument,
+  ): Promise<BlockDatesResponseDto> {
+    return this.executeWithErrorHandlingAndMessage(
+      async () => {
+        const isOwner = await this.propertiesFacade.verifyOwnership(id, String(user._id));
+        if (!isOwner) {
+          throw new Error('FORBIDDEN');
+        }
+        const result = await this.propertiesFacade.blockDates(
+          id,
+          blockDatesDto,
+          String(user._id),
+        );
+        return plainToInstance(BlockedDateDataDto, result);
+      },
+      'Block Dates',
+      'Dates Blocked',
+      'Dates blocked successfully',
+      'Failed to block dates',
+    );
+  }
+
+  @Delete(':id/calendar/unblock')
+  @UseGuards(RolesGuard)
+  @Roles(UserRole.HOST, UserRole.ADMIN, UserRole.SYSTEM_ADMIN)
+  @ProtectedEndpoint(
+    'Unblock dates for property',
+    'Remove blocked date ranges to make them available for booking again',
+    UnblockDatesResponseDto,
+  )
+  @ApiParam({ name: 'id', description: 'Property ID', example: '507f1f77bcf86cd799439011' })
+  @ApiBody({
+    description: 'Array of blocked date record IDs to unblock',
+    type: UnblockDatesDto,
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Dates unblocked successfully',
+    type: UnblockDatesResponseDto,
+  })
+  @ApiResponse({ status: 400, description: 'Invalid blocked date IDs' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 403, description: 'Forbidden - Host role required or not property owner' })
+  @ApiResponse({ status: 404, description: 'Property or blocked dates not found' })
+  @ApiResponse({ status: 500, description: 'Internal server error' })
+  async unblockDates(
+    @Param('id') id: string,
+    @Body() unblockDatesDto: UnblockDatesDto,
+    @CurrentUser() user: UserDocument,
+  ): Promise<UnblockDatesResponseDto> {
+    return this.executeWithErrorHandlingAndMessage(
+      async () => {
+        const isOwner = await this.propertiesFacade.verifyOwnership(id, String(user._id));
+        if (!isOwner) {
+          throw new Error('FORBIDDEN');
+        }
+        const result = await this.propertiesFacade.unblockDates(
+          id,
+          unblockDatesDto.blockedDateIds,
+          String(user._id),
+        );
+        return plainToInstance(UnblockDatesDataDto, result);
+      },
+      'Unblock Dates',
+      'Dates Unblocked',
+      'Dates unblocked successfully',
+      'Failed to unblock dates',
+    );
+  }
+
+  @Get(':id/calendar')
+  @UseGuards(RolesGuard)
+  @Roles(UserRole.HOST, UserRole.ADMIN, UserRole.SYSTEM_ADMIN)
+  @ProtectedEndpoint(
+    'Get property calendar view',
+    'Retrieve calendar view showing both bookings and blocked dates for a property',
+    CalendarViewResponseDto,
+  )
+  @ApiParam({ name: 'id', description: 'Property ID', example: '507f1f77bcf86cd799439011' })
+  @ApiResponse({
+    status: 200,
+    description: 'Calendar view retrieved successfully',
+    type: CalendarViewResponseDto,
+  })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 403, description: 'Forbidden - Host role required or not property owner' })
+  @ApiResponse({ status: 404, description: 'Property not found' })
+  @ApiResponse({ status: 500, description: 'Internal server error' })
+  async getCalendar(
+    @Param('id') id: string,
+    @Query('startDate') startDate?: string,
+    @Query('endDate') endDate?: string,
+    @CurrentUser() user?: UserDocument,
+  ): Promise<CalendarViewResponseDto> {
+    return this.executeWithErrorHandlingAndMessage(
+      async () => {
+        if (user) {
+          const isOwner = await this.propertiesFacade.verifyOwnership(id, String(user._id));
+          if (!isOwner) {
+            throw new Error('FORBIDDEN');
+          }
+        }
+
+        const start = startDate ? new Date(startDate) : undefined;
+        const end = endDate ? new Date(endDate) : undefined;
+
+        const result = await this.propertiesFacade.getCalendarView(id, start, end);
+        return plainToInstance(CalendarViewDataDto, result);
+      },
+      'Get Calendar View',
+      'Calendar Retrieved',
+      'Calendar view retrieved successfully',
+      'Failed to retrieve calendar view',
     );
   }
 }

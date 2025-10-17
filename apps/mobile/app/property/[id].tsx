@@ -3,15 +3,15 @@ import { usePropertiesPublicControllerFindOne } from "@/api/queries/public/prope
 import { Button } from "@/components/atoms/button";
 import { IconButton } from "@/components/atoms/icon-button";
 import { Text } from "@/components/atoms/text";
+import { FacilityItem, LocationDisplay, RatingDisplay, SectionHeader } from "@/components/molecules";
 import { useSharedTransition } from "@/hooks/use-shared-transition";
 import { router, useLocalSearchParams } from "expo-router";
-import { Heart, Location, Wifi } from "iconsax-react-native";
+import { Heart, Wifi } from "iconsax-react-native";
 import {
   ArrowLeftIcon,
   BarbellIcon,
   IslandIcon,
   ShareNetworkIcon,
-  Star,
   SwimmingPoolIcon,
   WindIcon,
 } from "phosphor-react-native";
@@ -19,13 +19,14 @@ import React, { useEffect, useState } from "react";
 import { ActivityIndicator, Dimensions, Image, TouchableOpacity, View } from "react-native";
 import Animated, { useAnimatedStyle, useSharedValue, withTiming } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { StyleSheet } from "react-native-unistyles";
+import { StyleSheet, useUnistyles } from "react-native-unistyles";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
 export default function PropertyDetailsScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const insets = useSafeAreaInsets();
+  const { theme } = useUnistyles();
   const { transitionData, setTransitionData } = useSharedTransition();
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [showFullDescription, setShowFullDescription] = useState(false);
@@ -238,96 +239,37 @@ export default function PropertyDetailsScreen() {
           </View>
 
           {/* Location */}
-          <View style={styles.locationRow}>
-            <Location size={16} color={styles.locationIcon.color} />
-            <Text variant="bodyMediumRegular" color="neutral500" style={{ flex: 1, marginStart: 4 }}>
-              {property.address
-                ? `${property.address.street || "Jl. Danau Tamblingan No. 89"}, ${property.address.city || "Sanur"}, ${
-                    property.address.state || "Denpasar"
-                  }`
-                : "Jl. Danau Tamblingan No. 89, Sanur, Denpasar"}
-            </Text>
-          </View>
+          <LocationDisplay
+            location={
+              property.address
+                ? `${property.address.street || "Jl. Danau Tamblingan No. 89"}, ${property.address.city || "Sanur"}, ${property.address.state || "Denpasar"}`
+                : "Jl. Danau Tamblingan No. 89, Sanur, Denpasar"
+            }
+            style={styles.locationRow}
+          />
 
           {/* Rating */}
-          <View style={styles.ratingSection}>
-            <View style={styles.starContainer}>
-              {[1, 2, 3, 4, 5].map((index) => {
-                const rating = property.averageRating || 4.8;
-                const filled = index <= Math.floor(rating);
-                const half = index === Math.ceil(rating) && rating % 1 !== 0;
-
-                return (
-                  <Star
-                    key={index}
-                    size={18}
-                    color="#FFB800"
-                    weight={filled || half ? "fill" : "regular"}
-                    style={styles.starIcon}
-                  />
-                );
-              })}
-            </View>
-            <Text variant="bodySmallMedium" color="neutral800" style={{ marginRight: 4 }}>
-              {property.averageRating?.toFixed(1) || "4.8"}
-            </Text>
-            <Text variant="bodySmallRegular" color="neutral600" style={{ marginLeft: 4 }}>
-              • {property.numberOfReviews || "374"} reviews
-            </Text>
-          </View>
+          <RatingDisplay
+            rating={property.averageRating || 4.8}
+            reviewCount={property.numberOfReviews || 374}
+            style={styles.ratingSection}
+          />
 
           {/* Property Facilities */}
           <View style={styles.facilitiesSection}>
-            <View style={styles.facilitiesHeader}>
-              <Text variant="bodyLargeSemiBold">Property Facilities</Text>
-              <IconButton>
-                <Text variant="bodyMediumMedium" color="primary">
-                  See all
-                </Text>
-              </IconButton>
-            </View>
+            <SectionHeader
+              title="Property Facilities"
+              actionText="See all"
+              onActionPress={() => console.log("See all facilities")}
+              style={styles.facilitiesHeader}
+            />
 
             <View style={styles.facilitiesGrid}>
-              <View style={styles.facilityItem}>
-                <View style={styles.facilityIconWrapper}>
-                  <Wifi size={24} color={styles.facilityIcon.color} />
-                </View>
-                <Text variant="bodySmallRegular" color="neutral500" style={{ textAlign: "center" }}>
-                  Wifi
-                </Text>
-              </View>
-              <View style={styles.facilityItem}>
-                <View style={styles.facilityIconWrapper}>
-                  <SwimmingPoolIcon size={24} color={styles.facilityIcon.color} />
-                </View>
-                <Text variant="bodySmallRegular" color="neutral500" style={{ textAlign: "center" }}>
-                  Pool
-                </Text>
-              </View>
-              <View style={styles.facilityItem}>
-                <View style={styles.facilityIconWrapper}>
-                  <IslandIcon size={24} color={styles.facilityIcon.color} />
-                </View>
-                <Text variant="bodySmallRegular" color="neutral500" style={{ textAlign: "center" }}>
-                  Beach
-                </Text>
-              </View>
-              <View style={styles.facilityItem}>
-                <View style={styles.facilityIconWrapper}>
-                  <WindIcon size={24} color={styles.facilityIcon.color} />
-                </View>
-                <Text variant="bodySmallRegular" color="neutral500" style={{ textAlign: "center" }}>
-                  AC
-                </Text>
-              </View>
-              <View style={styles.facilityItem}>
-                <View style={styles.facilityIconWrapper}>
-                  <BarbellIcon size={24} color={styles.facilityIcon.color} />
-                </View>
-                <Text variant="bodySmallRegular" color="neutral500" style={{ textAlign: "center" }}>
-                  Gym
-                </Text>
-              </View>
+              <FacilityItem icon={<Wifi size={24} color={theme.colors.text} />} label="Wifi" />
+              <FacilityItem icon={<SwimmingPoolIcon size={24} color={theme.colors.text} />} label="Pool" />
+              <FacilityItem icon={<IslandIcon size={24} color={theme.colors.text} />} label="Beach" />
+              <FacilityItem icon={<WindIcon size={24} color={theme.colors.text} />} label="AC" />
+              <FacilityItem icon={<BarbellIcon size={24} color={theme.colors.text} />} label="Gym" />
             </View>
           </View>
 
@@ -513,55 +455,23 @@ const styles = StyleSheet.create((theme) => ({
   },
   // Location Section
   locationRow: {
-    flexDirection: "row",
-    alignItems: "center",
     marginBottom: theme.spacing.base,
-  },
-  locationIcon: {
-    color: theme.colors.neutral500,
-    marginRight: theme.spacing.sm,
   },
   // Rating Section
   ratingSection: {
-    flexDirection: "row",
-    alignItems: "center",
     marginBottom: theme.spacing.xxl,
-  },
-  starContainer: {
-    flexDirection: "row",
-    marginRight: theme.spacing.sm,
-  },
-  starIcon: {
-    marginRight: theme.spacing.xxs,
   },
   // Facilities Section
   facilitiesSection: {
     marginBottom: theme.spacing.xxl,
   },
   facilitiesHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
     marginBottom: theme.spacing.lg,
   },
   facilitiesGrid: {
     flexDirection: "row",
     justifyContent: "space-between",
-  },
-  facilityItem: {
-    alignItems: "center",
-    width: "18%",
-  },
-  facilityIcon: {
-    color: theme.colors.text,
-  },
-  facilityIconWrapper: {
-    marginBottom: theme.spacing.sm,
-    backgroundColor: theme.colors.neutral50,
-    padding: theme.spacing.md,
-    borderRadius: theme.borderRadius.full,
-    justifyContent: "center",
-    alignItems: "center",
+    flexWrap: "wrap",
   },
   // Description Section
   descriptionSection: {

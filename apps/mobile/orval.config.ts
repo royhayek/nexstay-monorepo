@@ -17,7 +17,7 @@ export default defineConfig({
       mock: false,
       override: {
         mutator: {
-          path: './api/axios.ts',
+          path: './api/custom-instance.ts',
           name: 'customInstance',
         },
         query: {
@@ -40,7 +40,7 @@ export default defineConfig({
       mock: false,
       override: {
         mutator: {
-          path: './api/axios.ts',
+          path: './api/custom-instance.ts',
           name: 'customInstance',
         },
         query: {

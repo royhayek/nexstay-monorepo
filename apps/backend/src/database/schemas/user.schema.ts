@@ -121,6 +121,18 @@ export class User {
         type: String,
         default: 'UTC',
       },
+      emailNotifications: {
+        type: {
+          bookingConfirmation: { type: Boolean, default: true },
+          paymentReceipt: { type: Boolean, default: true },
+          payoutNotification: { type: Boolean, default: true },
+          newMessage: { type: Boolean, default: true },
+          reviewReminder: { type: Boolean, default: true },
+          passwordReset: { type: Boolean, default: true },
+          marketingEmails: { type: Boolean, default: false },
+        },
+        required: false,
+      },
       payout: {
         type: {
           frequency: { type: String, enum: PayoutFrequency, default: PayoutFrequency.WEEKLY },
@@ -136,6 +148,15 @@ export class User {
       otpNotificationMethod: OtpNotificationMethod.EMAIL,
       language: 'en',
       timezone: 'UTC',
+      emailNotifications: {
+        bookingConfirmation: true,
+        paymentReceipt: true,
+        payoutNotification: true,
+        newMessage: true,
+        reviewReminder: true,
+        passwordReset: true,
+        marketingEmails: false,
+      },
       payout: {
         frequency: PayoutFrequency.WEEKLY,
         minimumAmount: 100,
@@ -147,6 +168,15 @@ export class User {
     otpNotificationMethod: OtpNotificationMethod;
     language: string;
     timezone: string;
+    emailNotifications?: {
+      bookingConfirmation: boolean;
+      paymentReceipt: boolean;
+      payoutNotification: boolean;
+      newMessage: boolean;
+      reviewReminder: boolean;
+      passwordReset: boolean;
+      marketingEmails: boolean;
+    };
     payout?: {
       frequency: PayoutFrequency;
       minimumAmount: number;

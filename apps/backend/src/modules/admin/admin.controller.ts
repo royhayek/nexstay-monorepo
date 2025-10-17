@@ -6,7 +6,7 @@ import { AdminFacadeService } from './services/admin-facade.service';
 import { AdminDashboardFiltersDto } from './dto/admin-filters.dto';
 import {
   AdminDashboardResponseDto,
-  BookingOverviewResponseDto,
+  AdminBookingOverviewDataResponseDto,
   SystemHealthDataResponseDto,
 } from './dto/admin-controller-response.dto';
 
@@ -46,7 +46,7 @@ export class AdminController extends BaseController {
   @AdminEndpoint(
     'Get booking overview for admin dashboard',
     'Returns booking overview with statistics and recent booking data for the admin dashboard',
-    BookingOverviewResponseDto,
+    AdminBookingOverviewDataResponseDto,
   )
   async getBookingOverview(): Promise<StandardResponse<any>> {
     return this.executeWithErrorHandlingAndMessage(

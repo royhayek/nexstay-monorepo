@@ -1,6 +1,6 @@
 import { plainToInstance } from 'class-transformer';
 import { AccountActionTypeEnum } from '../../../common/enums/account-action.enums';
-import { ApiTags, ApiConsumes, ApiBody } from '@nestjs/swagger';
+import { ApiTags, ApiConsumes, ApiBody, ApiParam } from '@nestjs/swagger';
 import { ProtectedEndpoint } from '../../../common/decorators/api-endpoint.decorator';
 import {
   Controller,
@@ -11,6 +11,7 @@ import {
   Put,
   UseInterceptors,
   UploadedFile,
+  Param,
 } from '@nestjs/common';
 import { BaseController } from '../../../common/controllers/base.controller';
 import { UsersFacadeService } from '../services/users-facade.service';
@@ -38,7 +39,30 @@ import {
   UserPreferencesResponseDto,
   UpdatePreferencesResponseDto,
   UserPreferencesDataDto,
+  UpdateEmailPreferencesDto,
+  EmailPreferencesResponseDto,
+  EmailPreferencesDataDto,
 } from '../dto/user-preferences.dto';
+import {
+  WishlistResponseDto,
+  WishlistDataDto,
+  AddToWishlistResponseDto,
+  AddToWishlistDataDto,
+  RemoveFromWishlistResponseDto,
+  RemoveFromWishlistDataDto,
+  WishlistCheckResponseDto,
+  WishlistCheckDataDto,
+} from '../dto/wishlist-response.dto';
+import {
+  BecomeHostApplicationDto,
+  BecomeHostResponseDto,
+  HostEligibilityResponseDto,
+  HostApplicationStatusResponseDto,
+  BecomeHostDataDto,
+  HostEligibilityDataDto,
+  HostApplicationStatusDataDto,
+} from '../dto/become-host.dto';
+import { UserHostService } from '../services/user-host.service';
 
 /**
  * App Controller for Users
@@ -50,6 +74,7 @@ export class UsersAppController extends BaseController {
   constructor(
     private readonly usersService: UsersFacadeService,
     private readonly s3Service: S3Service,
+    private readonly userHostService: UserHostService,
   ) {
     super();
   }
@@ -213,6 +238,55 @@ export class UsersAppController extends BaseController {
     );
   }
 
+  @Get('preferences/email')
+  @ProtectedEndpoint(
+    'Get email notification preferences',
+    "Retrieve the authenticated user's email notification preferences",
+    EmailPreferencesResponseDto,
+  )
+  async getEmailPreferences(
+    @CurrentUser() user: userSchema.UserDocument,
+  ): Promise<EmailPreferencesResponseDto> {
+    return this.executeWithErrorHandlingAndMessage(
+      async () => {
+        const emailPreferences = await this.usersService.getEmailPreferences(String(user._id));
+        return plainToInstance(EmailPreferencesDataDto, { emailNotifications: emailPreferences });
+      },
+      'Get email preferences',
+      'Email Preferences',
+      'Email preferences retrieved successfully',
+      'Failed to retrieve email preferences',
+    );
+  }
+
+  @Put('preferences/email')
+  @ProtectedEndpoint(
+    'Update email notification preferences',
+    "Update the authenticated user's email notification preferences",
+    EmailPreferencesResponseDto,
+  )
+  @ApiBody({ type: UpdateEmailPreferencesDto })
+  async updateEmailPreferences(
+    @CurrentUser() user: userSchema.UserDocument,
+    @Body() updateEmailPreferencesDto: UpdateEmailPreferencesDto,
+  ): Promise<EmailPreferencesResponseDto> {
+    return this.executeWithErrorHandlingAndMessage(
+      async () => {
+        const updatedEmailPreferences = await this.usersService.updateEmailPreferences(
+          String(user._id),
+          updateEmailPreferencesDto,
+        );
+        return plainToInstance(EmailPreferencesDataDto, {
+          emailNotifications: updatedEmailPreferences,
+        });
+      },
+      'Update email preferences',
+      'Email Preferences Updated',
+      'Email preferences updated successfully',
+      'Failed to update email preferences',
+    );
+  }
+
   @Get('account/deletion-reasons')
   @ProtectedEndpoint(
     'Get account deletion reasons',
@@ -323,6 +397,178 @@ export class UsersAppController extends BaseController {
       'Account Deleted',
       'Account deleted successfully',
       'Failed to delete account',
+    );
+  }
+
+  // ===== WISHLIST OPERATIONS =====
+
+  @Get('wishlist')
+  @ProtectedEndpoint(
+    'Get user wishlist',
+    "Retrieve the authenticated user's wishlist with property details",
+    WishlistResponseDto,
+  )
+  async getWishlist(@CurrentUser() user: userSchema.UserDocument): Promise<WishlistResponseDto> {
+    return this.executeWithErrorHandlingAndMessage(
+      async () => {
+        const result = await this.usersService.getWishlist(String(user._id));
+        return plainToInstance(WishlistDataDto, result);
+      },
+      'Get wishlist',
+      'Wishlist Retrieved',
+      'Wishlist retrieved successfully',
+      'Failed to retrieve wishlist',
+    );
+  }
+
+  @Post('wishlist/:propertyId')
+  @ProtectedEndpoint(
+    'Add property to wishlist',
+    'Add a property to the authenticated user wishlist',
+    AddToWishlistResponseDto,
+  )
+  @ApiParam({
+    name: 'propertyId',
+    description: 'Property ID to add to wishlist',
+    example: '507f1f77bcf86cd799439011',
+  })
+  async addToWishlist(
+    @CurrentUser() user: userSchema.UserDocument,
+    @Param('propertyId') propertyId: string,
+  ): Promise<AddToWishlistResponseDto> {
+    return this.executeWithErrorHandlingAndMessage(
+      async () => {
+        const result = await this.usersService.addToWishlist(String(user._id), propertyId);
+        return plainToInstance(AddToWishlistDataDto, result);
+      },
+      'Add to wishlist',
+      'Added to Wishlist',
+      'Property added to wishlist successfully',
+      'Failed to add property to wishlist',
+    );
+  }
+
+  @Delete('wishlist/:propertyId')
+  @ProtectedEndpoint(
+    'Remove property from wishlist',
+    'Remove a property from the authenticated user wishlist',
+    RemoveFromWishlistResponseDto,
+  )
+  @ApiParam({
+    name: 'propertyId',
+    description: 'Property ID to remove from wishlist',
+    example: '507f1f77bcf86cd799439011',
+  })
+  async removeFromWishlist(
+    @CurrentUser() user: userSchema.UserDocument,
+    @Param('propertyId') propertyId: string,
+  ): Promise<RemoveFromWishlistResponseDto> {
+    return this.executeWithErrorHandlingAndMessage(
+      async () => {
+        const result = await this.usersService.removeFromWishlist(String(user._id), propertyId);
+        return plainToInstance(RemoveFromWishlistDataDto, result);
+      },
+      'Remove from wishlist',
+      'Removed from Wishlist',
+      'Property removed from wishlist successfully',
+      'Failed to remove property from wishlist',
+    );
+  }
+
+  @Get('wishlist/check/:propertyId')
+  @ProtectedEndpoint(
+    'Check if property is in wishlist',
+    'Check if a property is in the authenticated user wishlist',
+    WishlistCheckResponseDto,
+  )
+  @ApiParam({
+    name: 'propertyId',
+    description: 'Property ID to check',
+    example: '507f1f77bcf86cd799439011',
+  })
+  async checkWishlistStatus(
+    @CurrentUser() user: userSchema.UserDocument,
+    @Param('propertyId') propertyId: string,
+  ): Promise<WishlistCheckResponseDto> {
+    return this.executeWithErrorHandlingAndMessage(
+      async () => {
+        const result = await this.usersService.checkWishlistStatus(String(user._id), propertyId);
+        return plainToInstance(WishlistCheckDataDto, result);
+      },
+      'Check wishlist status',
+      'Wishlist Status',
+      'Wishlist status retrieved successfully',
+      'Failed to check wishlist status',
+    );
+  }
+
+  // ===== HOST APPLICATION OPERATIONS =====
+
+  @Post('become-host')
+  @ProtectedEndpoint(
+    'Apply to become a host',
+    'Submit an application to become a host. Requires admin approval.',
+    BecomeHostResponseDto,
+  )
+  @ApiBody({ type: BecomeHostApplicationDto })
+  async applyToBeHost(
+    @CurrentUser() user: userSchema.UserDocument,
+    @Body() applicationDto: BecomeHostApplicationDto,
+  ): Promise<BecomeHostResponseDto> {
+    return this.executeWithErrorHandlingAndMessage(
+      async () => {
+        const result = await this.userHostService.applyToBeHost(
+          String(user._id),
+          applicationDto,
+        );
+        return plainToInstance(BecomeHostDataDto, result.data);
+      },
+      'Apply to become a host',
+      'Application Submitted',
+      'Your host application has been submitted successfully',
+      'Failed to submit host application',
+    );
+  }
+
+  @Get('host-application-status')
+  @ProtectedEndpoint(
+    'Get host application status',
+    'Retrieve the status of the user\'s host application',
+    HostApplicationStatusResponseDto,
+  )
+  async getHostApplicationStatus(
+    @CurrentUser() user: userSchema.UserDocument,
+  ): Promise<HostApplicationStatusResponseDto> {
+    return this.executeWithErrorHandlingAndMessage(
+      async () => {
+        const result = await this.userHostService.getHostApplicationStatus(String(user._id));
+        return plainToInstance(HostApplicationStatusDataDto, result.data);
+      },
+      'Get host application status',
+      'Application Status',
+      'Host application status retrieved successfully',
+      'Failed to retrieve host application status',
+    );
+  }
+
+  @Get('host-eligibility')
+  @ProtectedEndpoint(
+    'Check host eligibility',
+    'Check if the user is eligible to apply to become a host',
+    HostEligibilityResponseDto,
+  )
+  async checkHostEligibility(
+    @CurrentUser() user: userSchema.UserDocument,
+  ): Promise<HostEligibilityResponseDto> {
+    return this.executeWithErrorHandlingAndMessage(
+      async () => {
+        const result = await this.userHostService.checkHostEligibility(String(user._id));
+        return plainToInstance(HostEligibilityDataDto, result.data);
+      },
+      'Check host eligibility',
+      'Eligibility Check',
+      'Host eligibility check completed',
+      'Failed to check host eligibility',
     );
   }
 }

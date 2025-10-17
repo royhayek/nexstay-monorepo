@@ -2,7 +2,7 @@ import { ms, mvs } from "@/utils/scaling";
 import { Eye, EyeSlash } from "iconsax-react-native";
 import React, { useState } from "react";
 import { TextInput, TextInputProps, View } from "react-native";
-import { StyleSheet } from "react-native-unistyles";
+import { StyleSheet, useUnistyles } from "react-native-unistyles";
 import { IconButton } from "./icon-button";
 import { Text } from "./text";
 
@@ -57,6 +57,7 @@ export const Input: React.FC<InputProps> = ({
   onBlur,
   autoFocus = false,
 }) => {
+  const { theme } = useUnistyles();
   const [isFocused, setIsFocused] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
@@ -65,15 +66,6 @@ export const Input: React.FC<InputProps> = ({
   const isPassword = variant === "password" || secureTextEntry;
   const isPhone = variant === "phone";
   const isMultiline = variant === "multiline" || multiline;
-
-  // Apply variants to the styles
-  styles.useVariants({
-    variant: variant || "phone",
-    focused: isFocused,
-    error: hasError,
-    disabled: isDisabled,
-    multiline: isMultiline,
-  });
 
   const handleFocus = () => {
     setIsFocused(true);
@@ -95,9 +87,9 @@ export const Input: React.FC<InputProps> = ({
     return (
       <IconButton style={styles.iconButton} onPress={togglePasswordVisibility}>
         {showPassword ? (
-          <EyeSlash size={ms(20)} color={styles.passwordToggle.color} />
+          <EyeSlash size={ms(20)} color={theme.colors.textSecondary} />
         ) : (
-          <Eye size={ms(20)} color={styles.passwordToggle.color} />
+          <Eye size={ms(20)} color={theme.colors.textSecondary} />
         )}
       </IconButton>
     );
@@ -145,6 +137,22 @@ export const Input: React.FC<InputProps> = ({
     );
   };
 
+  // Build dynamic input container style
+  const inputContainerStyle = [
+    styles.inputContainer,
+    isMultiline && styles.inputContainerMultiline,
+    isFocused && !hasError && styles.inputContainerFocused,
+    hasError && styles.inputContainerError,
+    isDisabled && styles.inputContainerDisabled,
+  ];
+
+  // Build dynamic input style
+  const inputStyle = [
+    styles.input,
+    isMultiline && styles.inputMultiline,
+    isDisabled && styles.inputDisabled,
+  ];
+
   return (
     <View>
       {label && (
@@ -153,11 +161,11 @@ export const Input: React.FC<InputProps> = ({
         </Text>
       )}
 
-      <View style={styles.inputContainer}>
+      <View style={inputContainerStyle}>
         {renderLeftIcon()}
 
         <TextInput
-          style={styles.input}
+          style={inputStyle}
           placeholder={placeholder}
           value={value}
           onChangeText={onChangeText}
@@ -172,7 +180,7 @@ export const Input: React.FC<InputProps> = ({
           onFocus={handleFocus}
           onBlur={handleBlur}
           autoFocus={autoFocus}
-          placeholderTextColor={styles.placeholder.color}
+          placeholderTextColor={theme.colors.neutral600}
         />
 
         {renderRightIcon()}
@@ -195,58 +203,32 @@ const styles = StyleSheet.create((theme) => ({
   inputContainer: {
     flexDirection: "row",
     alignItems: "center",
+    minHeight: mvs(56),
     borderWidth: theme.borderWidth.thin,
+    borderColor: theme.colors.border,
     borderRadius: theme.borderRadius.base,
     backgroundColor: theme.colors.surface,
-    variants: {
-      variant: {
-        default: {
-          minHeight: mvs(56),
-        },
-        phone: {
-          minHeight: mvs(56),
-        },
-        password: {
-          minHeight: mvs(56),
-        },
-        multiline: {
-          minHeight: mvs(120),
-          alignItems: "flex-start",
-          paddingTop: theme.spacing.md,
-        },
-        error: {
-          minHeight: mvs(56),
-        },
-        search: {
-          minHeight: mvs(56),
-          borderRadius: theme.borderRadius.base,
-          backgroundColor: theme.colors.surface,
-        },
-      },
-      focused: {
-        true: {
-          borderColor: theme.colors.primary,
-          borderWidth: theme.borderWidth.medium,
-        },
-        false: {
-          borderColor: theme.colors.border,
-        },
-      },
-      error: {
-        true: {
-          borderColor: theme.colors.error,
-          borderWidth: theme.borderWidth.medium,
-        },
-        false: {},
-      },
-      disabled: {
-        true: {
-          backgroundColor: theme.colors.surfaceVariant,
-          borderColor: theme.colors.textDisabled,
-        },
-        false: {},
-      },
-    },
+  },
+
+  inputContainerMultiline: {
+    minHeight: mvs(120),
+    alignItems: "flex-start",
+    paddingTop: theme.spacing.md,
+  },
+
+  inputContainerFocused: {
+    borderColor: theme.colors.primary,
+    borderWidth: theme.borderWidth.medium,
+  },
+
+  inputContainerError: {
+    borderColor: theme.colors.error,
+    borderWidth: theme.borderWidth.medium,
+  },
+
+  inputContainerDisabled: {
+    backgroundColor: theme.colors.surfaceVariant,
+    borderColor: theme.colors.textDisabled,
   },
 
   input: {
@@ -256,27 +238,15 @@ const styles = StyleSheet.create((theme) => ({
     color: theme.colors.text,
     paddingHorizontal: theme.spacing.md,
     paddingVertical: theme.spacing.md,
-    variants: {
-      multiline: {
-        true: {
-          textAlignVertical: "top",
-          minHeight: mvs(80),
-        },
-        false: {
-          textAlignVertical: "center",
-        },
-      },
-      disabled: {
-        true: {
-          color: theme.colors.textDisabled,
-        },
-        false: {},
-      },
-    },
   },
 
-  placeholder: {
-    color: theme.colors.neutral600,
+  inputMultiline: {
+    textAlignVertical: "top",
+    minHeight: mvs(80),
+  },
+
+  inputDisabled: {
+    color: theme.colors.textDisabled,
   },
 
   leftIconContainer: {
@@ -290,11 +260,6 @@ const styles = StyleSheet.create((theme) => ({
     justifyContent: "center",
     alignItems: "center",
     minHeight: mvs(44),
-  },
-
-  passwordToggle: {
-    fontSize: ms(20),
-    color: theme.colors.textSecondary,
   },
 
   countryCodeContainer: {

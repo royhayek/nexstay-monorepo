@@ -5,7 +5,7 @@ import type { AuthState } from '../../types';
 import { useSetState } from 'minimal-shared/hooks';
 import { useMemo, useEffect, useCallback } from 'react';
 
-import { usersAdminControllerGetProfile } from 'src/api/queries/admin/users-management/users-management';
+import axios from 'src/lib/axios';
 
 import { AuthContext } from '../auth-context';
 import { setSession, isValidToken } from './utils';
@@ -34,9 +34,11 @@ export function AuthProvider({ children }: Props) {
       if (accessToken && isValidToken(accessToken)) {
         setSession(accessToken, refreshToken);
 
-        const res = await usersAdminControllerGetProfile();
+        // Use app profile endpoint - accessible to all authenticated users
+        // Note: Backend has API versioning enabled with /v1/ prefix
+        const res = await axios.get('/v1/app/users/profile');
 
-        const user = res.data;
+        const user = res.data?.data;
 
         setState({ user, loading: false });
       } else {

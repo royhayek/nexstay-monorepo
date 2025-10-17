@@ -8,22 +8,39 @@
  * OpenAPI spec version: 1.0
  */
 import {
-  useMutation
+  useInfiniteQuery,
+  useMutation,
+  useQuery
 } from '@tanstack/react-query';
 import type {
+  DataTag,
+  DefinedInitialDataOptions,
+  DefinedUseInfiniteQueryResult,
+  DefinedUseQueryResult,
+  InfiniteData,
   MutationFunction,
   QueryClient,
+  QueryFunction,
+  QueryKey,
+  UndefinedInitialDataOptions,
+  UseInfiniteQueryOptions,
+  UseInfiniteQueryResult,
   UseMutationOptions,
-  UseMutationResult
+  UseMutationResult,
+  UseQueryOptions,
+  UseQueryResult
 } from '@tanstack/react-query';
 
 import type {
   AddSecondaryContactDto,
   AddSecondaryContactResponseDto,
+  AuditLogListResponseDto,
+  AuthPublicControllerGetAuditLogsParams,
   BadRequestResponseDto,
   CheckIdentifierDto,
   CheckIdentifierResponseDto,
   InternalServerErrorResponseDto,
+  ListSessionsResponseDto,
   LogoutResponseDto,
   RefreshDto,
   RefreshTokenResponseDto,
@@ -33,6 +50,7 @@ import type {
   RequestVerifyResponseDto,
   ResetPasswordDto,
   ResetPasswordResponseDto,
+  SessionTerminationResponseDto,
   SigninCompleteResponseDto,
   SigninInitiateDto,
   SigninInitiateResponseDto,
@@ -966,4 +984,294 @@ export const useAuthPublicControllerAddSecondaryContact = <TError = BadRequestRe
 
       return useMutation(mutationOptions, queryClient);
     }
+    /**
+ * Get all active sessions/devices for the authenticated user
+ * @summary List active sessions
+ */
+export const authPublicControllerListSessions = (
     
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+      
+      
+      return customInstance<ListSessionsResponseDto>(
+      {url: `/v1/public/auth/sessions`, method: 'POST', signal
+    },
+      options);
+    }
+  
+
+
+export const getAuthPublicControllerListSessionsMutationOptions = <TError = BadRequestResponseDto | UnauthorizedResponseDto | TooManyRequestsResponseDto | InternalServerErrorResponseDto,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof authPublicControllerListSessions>>, TError,void, TContext>, request?: SecondParameter<typeof customInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof authPublicControllerListSessions>>, TError,void, TContext> => {
+
+const mutationKey = ['authPublicControllerListSessions'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof authPublicControllerListSessions>>, void> = () => {
+          
+
+          return  authPublicControllerListSessions(requestOptions)
+        }
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type AuthPublicControllerListSessionsMutationResult = NonNullable<Awaited<ReturnType<typeof authPublicControllerListSessions>>>
+    
+    export type AuthPublicControllerListSessionsMutationError = BadRequestResponseDto | UnauthorizedResponseDto | TooManyRequestsResponseDto | InternalServerErrorResponseDto
+
+    /**
+ * @summary List active sessions
+ */
+export const useAuthPublicControllerListSessions = <TError = BadRequestResponseDto | UnauthorizedResponseDto | TooManyRequestsResponseDto | InternalServerErrorResponseDto,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof authPublicControllerListSessions>>, TError,void, TContext>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof authPublicControllerListSessions>>,
+        TError,
+        void,
+        TContext
+      > => {
+
+      const mutationOptions = getAuthPublicControllerListSessionsMutationOptions(options);
+
+      return useMutation(mutationOptions, queryClient);
+    }
+    /**
+ * Logout a specific session/device by ID
+ * @summary Terminate session
+ */
+export const authPublicControllerTerminateSession = (
+    sessionId: string,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+      
+      
+      return customInstance<SessionTerminationResponseDto>(
+      {url: `/v1/public/auth/sessions/${sessionId}/terminate`, method: 'POST', signal
+    },
+      options);
+    }
+  
+
+
+export const getAuthPublicControllerTerminateSessionMutationOptions = <TError = BadRequestResponseDto | UnauthorizedResponseDto | TooManyRequestsResponseDto | InternalServerErrorResponseDto,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof authPublicControllerTerminateSession>>, TError,{sessionId: string}, TContext>, request?: SecondParameter<typeof customInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof authPublicControllerTerminateSession>>, TError,{sessionId: string}, TContext> => {
+
+const mutationKey = ['authPublicControllerTerminateSession'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof authPublicControllerTerminateSession>>, {sessionId: string}> = (props) => {
+          const {sessionId} = props ?? {};
+
+          return  authPublicControllerTerminateSession(sessionId,requestOptions)
+        }
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type AuthPublicControllerTerminateSessionMutationResult = NonNullable<Awaited<ReturnType<typeof authPublicControllerTerminateSession>>>
+    
+    export type AuthPublicControllerTerminateSessionMutationError = BadRequestResponseDto | UnauthorizedResponseDto | TooManyRequestsResponseDto | InternalServerErrorResponseDto
+
+    /**
+ * @summary Terminate session
+ */
+export const useAuthPublicControllerTerminateSession = <TError = BadRequestResponseDto | UnauthorizedResponseDto | TooManyRequestsResponseDto | InternalServerErrorResponseDto,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof authPublicControllerTerminateSession>>, TError,{sessionId: string}, TContext>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof authPublicControllerTerminateSession>>,
+        TError,
+        {sessionId: string},
+        TContext
+      > => {
+
+      const mutationOptions = getAuthPublicControllerTerminateSessionMutationOptions(options);
+
+      return useMutation(mutationOptions, queryClient);
+    }
+    /**
+ * Get audit logs for the authenticated user with optional filtering
+ * @summary View audit logs
+ */
+export const authPublicControllerGetAuditLogs = (
+    params?: AuthPublicControllerGetAuditLogsParams,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+      
+      
+      return customInstance<AuditLogListResponseDto>(
+      {url: `/v1/public/auth/audit-logs`, method: 'GET',
+        params, signal
+    },
+      options);
+    }
+  
+
+
+
+export const getAuthPublicControllerGetAuditLogsInfiniteQueryKey = (params?: AuthPublicControllerGetAuditLogsParams,) => {
+    return [
+    'infinate', `/v1/public/auth/audit-logs`, ...(params ? [params]: [])
+    ] as const;
+    }
+
+export const getAuthPublicControllerGetAuditLogsQueryKey = (params?: AuthPublicControllerGetAuditLogsParams,) => {
+    return [
+    `/v1/public/auth/audit-logs`, ...(params ? [params]: [])
+    ] as const;
+    }
+
+    
+export const getAuthPublicControllerGetAuditLogsInfiniteQueryOptions = <TData = InfiniteData<Awaited<ReturnType<typeof authPublicControllerGetAuditLogs>>>, TError = BadRequestResponseDto | UnauthorizedResponseDto | TooManyRequestsResponseDto | InternalServerErrorResponseDto>(params?: AuthPublicControllerGetAuditLogsParams, options?: { query?:Partial<UseInfiniteQueryOptions<Awaited<ReturnType<typeof authPublicControllerGetAuditLogs>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getAuthPublicControllerGetAuditLogsInfiniteQueryKey(params);
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof authPublicControllerGetAuditLogs>>> = ({ signal }) => authPublicControllerGetAuditLogs(params, requestOptions, signal);
+
+      
+
+      
+
+   return  { queryKey, queryFn, ...queryOptions} as UseInfiniteQueryOptions<Awaited<ReturnType<typeof authPublicControllerGetAuditLogs>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type AuthPublicControllerGetAuditLogsInfiniteQueryResult = NonNullable<Awaited<ReturnType<typeof authPublicControllerGetAuditLogs>>>
+export type AuthPublicControllerGetAuditLogsInfiniteQueryError = BadRequestResponseDto | UnauthorizedResponseDto | TooManyRequestsResponseDto | InternalServerErrorResponseDto
+
+
+export function useAuthPublicControllerGetAuditLogsInfinite<TData = InfiniteData<Awaited<ReturnType<typeof authPublicControllerGetAuditLogs>>>, TError = BadRequestResponseDto | UnauthorizedResponseDto | TooManyRequestsResponseDto | InternalServerErrorResponseDto>(
+ params: undefined |  AuthPublicControllerGetAuditLogsParams, options: { query:Partial<UseInfiniteQueryOptions<Awaited<ReturnType<typeof authPublicControllerGetAuditLogs>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof authPublicControllerGetAuditLogs>>,
+          TError,
+          Awaited<ReturnType<typeof authPublicControllerGetAuditLogs>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  DefinedUseInfiniteQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useAuthPublicControllerGetAuditLogsInfinite<TData = InfiniteData<Awaited<ReturnType<typeof authPublicControllerGetAuditLogs>>>, TError = BadRequestResponseDto | UnauthorizedResponseDto | TooManyRequestsResponseDto | InternalServerErrorResponseDto>(
+ params?: AuthPublicControllerGetAuditLogsParams, options?: { query?:Partial<UseInfiniteQueryOptions<Awaited<ReturnType<typeof authPublicControllerGetAuditLogs>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof authPublicControllerGetAuditLogs>>,
+          TError,
+          Awaited<ReturnType<typeof authPublicControllerGetAuditLogs>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseInfiniteQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useAuthPublicControllerGetAuditLogsInfinite<TData = InfiniteData<Awaited<ReturnType<typeof authPublicControllerGetAuditLogs>>>, TError = BadRequestResponseDto | UnauthorizedResponseDto | TooManyRequestsResponseDto | InternalServerErrorResponseDto>(
+ params?: AuthPublicControllerGetAuditLogsParams, options?: { query?:Partial<UseInfiniteQueryOptions<Awaited<ReturnType<typeof authPublicControllerGetAuditLogs>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseInfiniteQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary View audit logs
+ */
+
+export function useAuthPublicControllerGetAuditLogsInfinite<TData = InfiniteData<Awaited<ReturnType<typeof authPublicControllerGetAuditLogs>>>, TError = BadRequestResponseDto | UnauthorizedResponseDto | TooManyRequestsResponseDto | InternalServerErrorResponseDto>(
+ params?: AuthPublicControllerGetAuditLogsParams, options?: { query?:Partial<UseInfiniteQueryOptions<Awaited<ReturnType<typeof authPublicControllerGetAuditLogs>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient 
+ ):  UseInfiniteQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getAuthPublicControllerGetAuditLogsInfiniteQueryOptions(params,options)
+
+  const query = useInfiniteQuery(queryOptions, queryClient) as  UseInfiniteQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  query.queryKey = queryOptions.queryKey ;
+
+  return query;
+}
+
+
+
+export const getAuthPublicControllerGetAuditLogsQueryOptions = <TData = Awaited<ReturnType<typeof authPublicControllerGetAuditLogs>>, TError = BadRequestResponseDto | UnauthorizedResponseDto | TooManyRequestsResponseDto | InternalServerErrorResponseDto>(params?: AuthPublicControllerGetAuditLogsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof authPublicControllerGetAuditLogs>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getAuthPublicControllerGetAuditLogsQueryKey(params);
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof authPublicControllerGetAuditLogs>>> = ({ signal }) => authPublicControllerGetAuditLogs(params, requestOptions, signal);
+
+      
+
+      
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof authPublicControllerGetAuditLogs>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type AuthPublicControllerGetAuditLogsQueryResult = NonNullable<Awaited<ReturnType<typeof authPublicControllerGetAuditLogs>>>
+export type AuthPublicControllerGetAuditLogsQueryError = BadRequestResponseDto | UnauthorizedResponseDto | TooManyRequestsResponseDto | InternalServerErrorResponseDto
+
+
+export function useAuthPublicControllerGetAuditLogs<TData = Awaited<ReturnType<typeof authPublicControllerGetAuditLogs>>, TError = BadRequestResponseDto | UnauthorizedResponseDto | TooManyRequestsResponseDto | InternalServerErrorResponseDto>(
+ params: undefined |  AuthPublicControllerGetAuditLogsParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof authPublicControllerGetAuditLogs>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof authPublicControllerGetAuditLogs>>,
+          TError,
+          Awaited<ReturnType<typeof authPublicControllerGetAuditLogs>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useAuthPublicControllerGetAuditLogs<TData = Awaited<ReturnType<typeof authPublicControllerGetAuditLogs>>, TError = BadRequestResponseDto | UnauthorizedResponseDto | TooManyRequestsResponseDto | InternalServerErrorResponseDto>(
+ params?: AuthPublicControllerGetAuditLogsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof authPublicControllerGetAuditLogs>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof authPublicControllerGetAuditLogs>>,
+          TError,
+          Awaited<ReturnType<typeof authPublicControllerGetAuditLogs>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useAuthPublicControllerGetAuditLogs<TData = Awaited<ReturnType<typeof authPublicControllerGetAuditLogs>>, TError = BadRequestResponseDto | UnauthorizedResponseDto | TooManyRequestsResponseDto | InternalServerErrorResponseDto>(
+ params?: AuthPublicControllerGetAuditLogsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof authPublicControllerGetAuditLogs>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary View audit logs
+ */
+
+export function useAuthPublicControllerGetAuditLogs<TData = Awaited<ReturnType<typeof authPublicControllerGetAuditLogs>>, TError = BadRequestResponseDto | UnauthorizedResponseDto | TooManyRequestsResponseDto | InternalServerErrorResponseDto>(
+ params?: AuthPublicControllerGetAuditLogsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof authPublicControllerGetAuditLogs>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient 
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getAuthPublicControllerGetAuditLogsQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  query.queryKey = queryOptions.queryKey ;
+
+  return query;
+}
+
+
+

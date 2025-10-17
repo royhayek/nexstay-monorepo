@@ -1,10 +1,11 @@
 import type { PropertyResponseDto } from "@/api/models/public/propertyResponseDto";
 import { IconButton, Text } from "@/components/atoms";
+import { EmptyState } from "@/components/molecules/empty-state";
 import { ms, mvs } from "@/utils/scaling";
-import { CaretRightIcon } from "phosphor-react-native";
+import { CaretRightIcon, HouseSimpleIcon } from "phosphor-react-native";
 import React from "react";
 import { ActivityIndicator, FlatList, View } from "react-native";
-import { StyleSheet } from "react-native-unistyles";
+import { StyleSheet, useUnistyles } from "react-native-unistyles";
 import { PropertyCard } from "../molecules/property-card";
 
 const CARD_WIDTH = ms(160);
@@ -27,6 +28,7 @@ export function PropertiesList({
   onSeeAllPress,
 }: PropertiesListProps) {
   const styles = propertiesListStyles;
+  const { theme } = useUnistyles();
 
   const renderProperty = ({ item }: { item: PropertyResponseDto }) => (
     <PropertyCard
@@ -48,9 +50,11 @@ export function PropertiesList({
   if (!properties || properties.length === 0) {
     return (
       <View style={styles.emptyContainer}>
-        <Text variant="bodyLargeRegular" color="textSecondary">
-          No properties available
-        </Text>
+        <EmptyState
+          icon={<HouseSimpleIcon size={ms(80)} color={theme.colors.neutral400} weight="light" />}
+          title="No properties available"
+          description="Check back later for new listings"
+        />
       </View>
     );
   }

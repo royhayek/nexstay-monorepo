@@ -5,6 +5,7 @@ import { Injectable } from '@nestjs/common';
 import { Booking, BookingDocument, BookingPricing } from '../../../database/schemas/booking.schema';
 import { Property, PropertyDocument } from '../../../database/schemas/property.schema';
 import { User, UserDocument } from '../../../database/schemas/user.schema';
+import { BlockedDate, BlockedDateDocument } from '../../../database/schemas/blocked-date.schema';
 import { CreateBookingDto } from '../dto/create-booking.dto';
 import { BookingStatus, PaymentStatus } from '../../../common/enums/booking.enums';
 import { PayoutStatus } from '../../../common/enums/payout.enums';
@@ -35,6 +36,8 @@ export class BookingCoreService {
     private readonly propertyModel: Model<PropertyDocument>,
     @InjectModel(User.name)
     private readonly userModel: Model<UserDocument>,
+    @InjectModel(BlockedDate.name)
+    private readonly blockedDateModel: Model<BlockedDateDocument>,
     private readonly feeCalculationService: FeeCalculationService,
     private readonly bookingConfigService: BookingConfigService,
   ) {}
@@ -250,6 +253,7 @@ export class BookingCoreService {
 
   /**
    * Check property availability for given dates
+   * Now also checks for blocked dates in addition to bookings
    */
   private async validateAvailability(
     propertyId: string,
@@ -259,6 +263,7 @@ export class BookingCoreService {
     const checkInDate = DateUtils.create(checkIn);
     const checkOutDate = DateUtils.create(checkOut);
 
+    // Check for conflicting bookings
     const conflictingBookings = await this.bookingModel
       .find({
         propertyId: new Types.ObjectId(propertyId),
@@ -273,6 +278,21 @@ export class BookingCoreService {
       .exec();
 
     if (conflictingBookings.length > 0) {
+      throw new PropertyNotAvailableException(checkIn, checkOut, propertyId);
+    }
+
+    // Check for blocked dates
+    const blockedDates = await this.blockedDateModel
+      .findOne({
+        propertyId: new Types.ObjectId(propertyId),
+        $or: [
+          { startDate: { $lt: checkOutDate }, endDate: { $gt: checkInDate } },
+          { startDate: { $lte: checkInDate }, endDate: { $gte: checkOutDate } },
+        ],
+      })
+      .exec();
+
+    if (blockedDates) {
       throw new PropertyNotAvailableException(checkIn, checkOut, propertyId);
     }
   }

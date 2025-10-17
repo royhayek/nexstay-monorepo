@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <title>Congratulations on Your First Listing! - Nexstay</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #333; background-color: #f5f5f5; margin: 0; padding: 0;">
+  <div style="max-width: 600px; margin: 20px auto; background-color: #ffffff; border-radius: 12px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); overflow: hidden;">
+
+    <!-- Header -->
+    <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 40px 24px; text-align: center;">
+      <div style="font-size: 64px; margin-bottom: 16px;">🎉</div>
+      <h1 style="margin: 0; font-size: 32px; font-weight: 700; line-height: 1.2;">Congratulations!</h1>
+      <p style="margin: 12px 0 0; font-size: 18px; opacity: 0.95;">Your listing is now live on Nexstay</p>
+    </div>
+
+    <!-- Content -->
+    <div style="padding: 40px 24px;">
+      <p style="margin: 0 0 24px; font-size: 16px; line-height: 1.6;">Hello <strong>{{hostName}}</strong>,</p>
+
+      <p style="margin: 0 0 24px; font-size: 18px; line-height: 1.6; font-weight: 600; color: #667eea;">
+        🎊 You've just published your first listing on Nexstay!
+      </p>
+
+      <p style="margin: 0 0 24px; font-size: 16px; line-height: 1.6;">
+        This is an exciting milestone in your hosting journey. Your property <strong>"{{propertyName}}"</strong> is now visible to thousands of potential guests looking for their next perfect stay.
+      </p>
+
+      <!-- Property Card -->
+      <div style="background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); border-radius: 12px; padding: 24px; margin: 24px 0; border-left: 4px solid #f59e0b;">
+        <h2 style="margin: 0 0 20px; font-size: 20px; font-weight: 600; color: #92400e;">Your Published Listing</h2>
+
+        {{#if propertyImage}}
+        <div style="margin-bottom: 16px; border-radius: 8px; overflow: hidden;">
+          <img src="{{propertyImage}}" alt="{{propertyName}}" style="width: 100%; height: auto; display: block;" />
+        </div>
+        {{/if}}
+
+        <div style="margin-bottom: 16px;">
+          <div style="font-size: 14px; color: #92400e; margin-bottom: 4px;">Property Name</div>
+          <div style="font-size: 18px; font-weight: 700; color: #78350f;">{{propertyName}}</div>
+        </div>
+
+        <div style="margin-bottom: 16px;">
+          <div style="font-size: 14px; color: #92400e; margin-bottom: 4px;">Location</div>
+          <div style="font-size: 16px; font-weight: 600; color: #78350f;">{{propertyLocation}}</div>
+        </div>
+
+        <div style="margin-bottom: 16px;">
+          <div style="font-size: 14px; color: #92400e; margin-bottom: 4px;">Property Type</div>
+          <div style="font-size: 16px; font-weight: 600; color: #78350f;">{{propertyType}}</div>
+        </div>
+
+        <div style="margin-bottom: 16px;">
+          <div style="font-size: 14px; color: #92400e; margin-bottom: 4px;">Nightly Rate</div>
+          <div style="font-size: 20px; font-weight: 700; color: #78350f;">{{currency}} {{nightlyRate}}</div>
+        </div>
+
+        <div>
+          <div style="font-size: 14px; color: #92400e; margin-bottom: 4px;">Published Date</div>
+          <div style="font-size: 16px; font-weight: 600; color: #78350f;">{{publishedDate}}</div>
+        </div>
+      </div>
+
+      <!-- What Happens Next -->
+      <div style="background-color: #f0fdf4; border-radius: 8px; padding: 20px; margin: 24px 0; border-left: 4px solid #10b981;">
+        <h3 style="margin: 0 0 16px; font-size: 18px; font-weight: 600; color: #059669;">✨ What Happens Next?</h3>
+        <ul style="margin: 0; padding-left: 20px; color: #065f46;">
+          <li style="margin-bottom: 12px; line-height: 1.6;"><strong>Your listing is searchable:</strong> Guests can now find and book your property</li>
+          <li style="margin-bottom: 12px; line-height: 1.6;"><strong>Get notified:</strong> You'll receive instant notifications when guests inquire or book</li>
+          <li style="margin-bottom: 12px; line-height: 1.6;"><strong>Manage bookings:</strong> Accept or decline booking requests from your dashboard</li>
+          <li style="margin-bottom: 0; line-height: 1.6;"><strong>Earn money:</strong> Receive payouts directly to your account after successful stays</li>
+        </ul>
+      </div>
+
+      <!-- Tips for Success -->
+      <div style="background-color: #eff6ff; border-radius: 8px; padding: 20px; margin: 24px 0; border-left: 4px solid #3b82f6;">
+        <h3 style="margin: 0 0 16px; font-size: 18px; font-weight: 600; color: #1e40af;">💡 Tips for Your First Booking</h3>
+        <ul style="margin: 0; padding-left: 20px; color: #1e3a8a;">
+          <li style="margin-bottom: 12px; line-height: 1.6;"><strong>Respond quickly:</strong> Fast responses increase your chances of getting bookings</li>
+          <li style="margin-bottom: 12px; line-height: 1.6;"><strong>Keep your calendar updated:</strong> Block dates when your property isn't available</li>
+          <li style="margin-bottom: 12px; line-height: 1.6;"><strong>Great photos attract guests:</strong> Make sure your photos showcase your property's best features</li>
+          <li style="margin-bottom: 12px; line-height: 1.6;"><strong>Competitive pricing:</strong> Research similar properties in your area to set the right price</li>
+          <li style="margin-bottom: 0; line-height: 1.6;"><strong>Excellent service:</strong> Provide a 5-star experience to earn great reviews</li>
+        </ul>
+      </div>
+
+      <!-- Statistics -->
+      <div style="background-color: #fef2f2; border-radius: 8px; padding: 20px; margin: 24px 0; text-align: center;">
+        <h3 style="margin: 0 0 16px; font-size: 18px; font-weight: 600; color: #dc2626;">📊 Did You Know?</h3>
+        <p style="margin: 0; color: #991b1b; font-size: 15px; line-height: 1.6;">
+          Hosts with high-quality photos and detailed descriptions receive <strong>3x more bookings</strong> than average listings. Keep your listing up-to-date and respond to inquiries within 24 hours to maximize your success!
+        </p>
+      </div>
+
+      <!-- CTA Buttons -->
+      <div style="text-align: center; margin: 32px 0;">
+        <a href="{{propertyUrl}}" style="display: inline-block; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 14px 32px; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 16px; margin: 8px;">
+          View Your Listing
+        </a>
+        <a href="{{dashboardUrl}}" style="display: inline-block; background-color: #ffffff; color: #667eea; padding: 14px 32px; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 16px; border: 2px solid #667eea; margin: 8px;">
+          Go to Dashboard
+        </a>
+      </div>
+
+      <!-- Resources -->
+      <div style="background-color: #f9fafb; border-radius: 8px; padding: 20px; margin: 24px 0;">
+        <h3 style="margin: 0 0 16px; font-size: 18px; font-weight: 600; color: #1f2937;">📚 Helpful Resources</h3>
+        <div style="margin-bottom: 12px;">
+          <a href="{{hostGuideUrl}}" style="color: #667eea; text-decoration: none; font-weight: 600; display: block; padding: 8px 0;">
+            → Host Getting Started Guide
+          </a>
+        </div>
+        <div style="margin-bottom: 12px;">
+          <a href="{{pricingTipsUrl}}" style="color: #667eea; text-decoration: none; font-weight: 600; display: block; padding: 8px 0;">
+            → Pricing Tips for Maximum Bookings
+          </a>
+        </div>
+        <div style="margin-bottom: 12px;">
+          <a href="{{photosGuideUrl}}" style="color: #667eea; text-decoration: none; font-weight: 600; display: block; padding: 8px 0;">
+            → Photography Tips for Stunning Listings
+          </a>
+        </div>
+        <div>
+          <a href="{{safetyGuideUrl}}" style="color: #667eea; text-decoration: none; font-weight: 600; display: block; padding: 8px 0;">
+            → Safety & Security Best Practices
+          </a>
+        </div>
+      </div>
+
+      <!-- Support -->
+      <div style="background-color: #faf5ff; border-radius: 8px; padding: 20px; margin: 24px 0; text-align: center; border: 1px solid #e9d5ff;">
+        <p style="margin: 0; color: #6b21a8; font-size: 14px;">
+          <strong>Need Help?</strong><br/>
+          Our support team is here 24/7 to help you succeed.<br/>
+          Contact us at <a href="mailto:{{supportEmail}}" style="color: #7c3aed; text-decoration: none; font-weight: 600;">{{supportEmail}}</a>
+        </p>
+      </div>
+
+      <p style="margin: 24px 0 0; font-size: 16px; color: #1f2937; text-align: center; line-height: 1.6;">
+        Welcome to the Nexstay hosting community! We're thrilled to have you with us and can't wait to see your first guests enjoying your property.
+      </p>
+
+      <p style="margin: 16px 0 0; font-size: 16px; color: #6b7280; text-align: center; font-weight: 600;">
+        Happy Hosting! 🏡✨
+      </p>
+    </div>
+
+    <!-- Footer -->
+    <div style="background-color: #f8f9fa; padding: 32px 24px; text-align: center; border-top: 1px solid #e9ecef;">
+      <p style="margin: 0 0 8px; font-size: 14px; color: #6b7280;">
+        Congratulations on becoming a Nexstay host!
+      </p>
+      <p style="margin: 8px 0 0; font-size: 12px; color: #9ca3af;">
+        © 2024 Nexstay. All rights reserved.
+      </p>
+      <p style="margin: 8px 0 0; font-size: 12px; color: #9ca3af;">
+        This email was sent to {{hostEmail}}
+      </p>
+    </div>
+
+  </div>
+</body>
+</html>

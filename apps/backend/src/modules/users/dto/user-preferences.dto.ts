@@ -1,4 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { IsBoolean, IsOptional } from 'class-validator';
 import { OtpNotificationMethod } from '../../../database/schemas/user.schema';
 import { BaseResponseDto } from '../../../common/dto/base-response.dto';
 import {
@@ -24,6 +25,81 @@ export class UpdatePreferencesDto {
     description: 'User preferred timezone',
   })
   timezone?: string;
+}
+
+export class EmailNotificationsDto {
+  @ApiProperty({
+    description: 'Receive booking confirmation emails',
+    example: true,
+    required: false,
+  })
+  @IsOptional()
+  @IsBoolean()
+  bookingConfirmation?: boolean;
+
+  @ApiProperty({
+    description: 'Receive payment receipt emails',
+    example: true,
+    required: false,
+  })
+  @IsOptional()
+  @IsBoolean()
+  paymentReceipt?: boolean;
+
+  @ApiProperty({
+    description: 'Receive payout notification emails',
+    example: true,
+    required: false,
+  })
+  @IsOptional()
+  @IsBoolean()
+  payoutNotification?: boolean;
+
+  @ApiProperty({
+    description: 'Receive new message notification emails',
+    example: true,
+    required: false,
+  })
+  @IsOptional()
+  @IsBoolean()
+  newMessage?: boolean;
+
+  @ApiProperty({
+    description: 'Receive review reminder emails',
+    example: true,
+    required: false,
+  })
+  @IsOptional()
+  @IsBoolean()
+  reviewReminder?: boolean;
+
+  @ApiProperty({
+    description: 'Receive password reset emails',
+    example: true,
+    required: false,
+  })
+  @IsOptional()
+  @IsBoolean()
+  passwordReset?: boolean;
+
+  @ApiProperty({
+    description: 'Receive marketing and promotional emails',
+    example: false,
+    required: false,
+  })
+  @IsOptional()
+  @IsBoolean()
+  marketingEmails?: boolean;
+}
+
+export class UpdateEmailPreferencesDto {
+  @ApiProperty({
+    description: 'Email notification preferences',
+    type: EmailNotificationsDto,
+    required: false,
+  })
+  @IsOptional()
+  emailNotifications?: EmailNotificationsDto;
 }
 
 export class OtpMethodAvailabilityDto {
@@ -79,6 +155,13 @@ export class UserPreferencesDataDto {
     example: 'America/New_York',
   })
   timezone: string;
+
+  @ApiProperty({
+    description: 'Email notification preferences',
+    type: EmailNotificationsDto,
+    required: false,
+  })
+  emailNotifications?: EmailNotificationsDto;
 }
 
 export class UserPreferencesResponseDto extends BaseResponseDto<UserPreferencesDataDto> {
@@ -95,4 +178,20 @@ export class UpdatePreferencesResponseDto extends BaseResponseDto<UserPreference
     type: UserPreferencesDataDto,
   })
   declare data: UserPreferencesDataDto;
+}
+
+export class EmailPreferencesDataDto {
+  @ApiProperty({
+    description: 'Email notification preferences',
+    type: EmailNotificationsDto,
+  })
+  emailNotifications: EmailNotificationsDto;
+}
+
+export class EmailPreferencesResponseDto extends BaseResponseDto<EmailPreferencesDataDto> {
+  @ApiProperty({
+    description: 'Email notification preferences data',
+    type: EmailPreferencesDataDto,
+  })
+  declare data: EmailPreferencesDataDto;
 }

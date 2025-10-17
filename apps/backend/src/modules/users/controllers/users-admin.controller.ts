@@ -47,6 +47,8 @@ import { S3Service, FileCategory } from '../../storage/services/s3.service';
 import { ProfileImageUploadInterceptor } from '../../storage/interceptors/file-upload.interceptor';
 import { ProfileImageValidationPipe } from '../../storage/pipes/file-validation.pipe';
 import { GuestDropdownResponseDto, HostDropdownResponseDto } from '../dto/user-search.dto';
+import { ApproveHostDto, RejectHostDto } from '../dto/become-host.dto';
+import { UserHostService } from '../services/user-host.service';
 import {
   UpdatePreferencesDto,
   UserPreferencesResponseDto,
@@ -66,6 +68,7 @@ export class UsersAdminController extends BaseController {
   constructor(
     private readonly usersService: UsersFacadeService,
     private readonly s3Service: S3Service,
+    private readonly userHostService: UserHostService,
   ) {
     super();
   }
@@ -549,6 +552,66 @@ export class UsersAdminController extends BaseController {
       'Hosts Search',
       'Host users retrieved successfully',
       'Failed to retrieve host users',
+    );
+  }
+
+  // ===== HOST APPLICATION ADMIN OPERATIONS =====
+
+  @Post(':applicationId/approve-host')
+  @AdminEndpoint(
+    'Approve host application (Admin only)',
+    'Approve a pending host application and grant the user host privileges',
+    UserResponseDto,
+  )
+  @ApiParam({ name: 'applicationId', description: 'Application ID (Admin Action Approval ID)' })
+  @ApiBody({ type: ApproveHostDto })
+  async approveHostApplication(
+    @Param('applicationId') applicationId: string,
+    @Body() approveDto: ApproveHostDto,
+    @CurrentUser() adminUser: userSchema.UserDocument,
+  ): Promise<UserResponseDto> {
+    return this.executeWithErrorHandlingAndMessage(
+      async () => {
+        const user = await this.userHostService.approveHostApplication(
+          applicationId,
+          String(adminUser._id),
+          approveDto.notes,
+        );
+        return plainToInstance(UserDataDto, user);
+      },
+      'Approve host application',
+      'Application Approved',
+      'Host application approved successfully',
+      'Failed to approve host application',
+    );
+  }
+
+  @Post(':applicationId/reject-host')
+  @AdminEndpoint(
+    'Reject host application (Admin only)',
+    'Reject a pending host application with a reason',
+    UserResponseDto,
+  )
+  @ApiParam({ name: 'applicationId', description: 'Application ID (Admin Action Approval ID)' })
+  @ApiBody({ type: RejectHostDto })
+  async rejectHostApplication(
+    @Param('applicationId') applicationId: string,
+    @Body() rejectDto: RejectHostDto,
+    @CurrentUser() adminUser: userSchema.UserDocument,
+  ): Promise<any> {
+    return this.executeWithErrorHandlingAndMessage(
+      async () => {
+        await this.userHostService.rejectHostApplication(
+          applicationId,
+          String(adminUser._id),
+          rejectDto.reason,
+        );
+        return {};
+      },
+      'Reject host application',
+      'Application Rejected',
+      'Host application rejected successfully',
+      'Failed to reject host application',
     );
   }
 }

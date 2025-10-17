@@ -1,6 +1,14 @@
 import { Types } from 'mongoose';
 
-import { PropertyType, RoomType, CancellationPolicy } from '../../../common/enums/property.enums';
+import {
+  PropertyType,
+  RoomType,
+  CancellationPolicy,
+  PropertyCategory,
+  ViewType,
+  ParkingType,
+  CheckInMethod,
+} from '../../../common/enums/property.enums';
 import { BookingStatus, PaymentStatus } from '../../../common/enums/booking.enums';
 
 export interface MongoQuery {
@@ -15,6 +23,10 @@ export interface MongoQuery {
   _id?: { $nin: Types.ObjectId[] };
   propertyType?: PropertyType | { $in: PropertyType[] };
   roomType?: { $in: RoomType[] };
+  categories?: { $in: PropertyCategory[] };
+  viewType?: ViewType;
+  parkingType?: ParkingType;
+  checkInMethod?: CheckInMethod;
   pricePerNight?: {
     $gte?: number;
     $lte?: number;
@@ -65,6 +77,10 @@ export interface PropertySearchFilters {
   };
   propertyType?: PropertyType[];
   roomType?: RoomType[];
+  categories?: PropertyCategory[];
+  viewType?: ViewType;
+  parkingType?: ParkingType;
+  checkInMethod?: CheckInMethod;
   priceMin?: number;
   priceMax?: number;
   currency?: string;

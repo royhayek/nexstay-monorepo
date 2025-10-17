@@ -427,6 +427,12 @@ export class PropertyResponseDto {
 
   @ApiProperty({ description: 'Last update date' })
   updatedAt: Date;
+
+  @ApiPropertyOptional({
+    description: 'Whether this property is in the current user wishlist (only populated for authenticated requests)',
+    example: true,
+  })
+  isFavorited?: boolean;
 }
 
 // Create a concrete paginated DTO for properties to ensure proper Swagger generation

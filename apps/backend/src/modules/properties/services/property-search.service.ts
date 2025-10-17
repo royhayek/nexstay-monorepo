@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { DateUtils } from '../../../common/utils/date.utils';
+import { FlexibleDatesUtil } from '../../../common/utils/flexible-dates.util';
 import { Property, PropertyDocument } from '../../../database/schemas/property.schema';
 import { PropertySearchDto } from '../dto/property-search.dto';
 import { MongoQuery } from '../types/property-query.interface';
@@ -244,6 +245,22 @@ export class PropertySearchService {
       query.propertyType = { $in: searchDto.propertyTypes };
     }
 
+    // Categories (new)
+    if (searchDto.categories && searchDto.categories.length > 0) {
+      query.categories = { $in: searchDto.categories };
+    }
+
+    // Phase 1: New property attributes
+    if (searchDto.viewType) {
+      query.viewType = searchDto.viewType;
+    }
+    if (searchDto.parkingType) {
+      query.parkingType = searchDto.parkingType;
+    }
+    if (searchDto.checkInMethod) {
+      query.checkInMethod = searchDto.checkInMethod;
+    }
+
     // Price range
     if (searchDto.minPrice || searchDto.maxPrice) {
       const priceQuery: { $gte?: number; $lte?: number } = {};
@@ -282,12 +299,24 @@ export class PropertySearchService {
       query.instantBooking = true;
     }
 
-    // Availability dates
-    if (searchDto.checkIn && searchDto.checkOut) {
+    // Availability dates - handle both explicit dates and flexible date ranges
+    let checkIn = searchDto.checkIn;
+    let checkOut = searchDto.checkOut;
+
+    // If flexible date range is provided, convert it to actual dates
+    if (searchDto.flexibleDateRange && !checkIn && !checkOut) {
+      const flexibleDates = FlexibleDatesUtil.convertFlexibleDateRange(
+        searchDto.flexibleDateRange,
+      );
+      checkIn = flexibleDates.checkIn.toISOString();
+      checkOut = flexibleDates.checkOut.toISOString();
+    }
+
+    if (checkIn && checkOut) {
       query.availableDates = {
         $elemMatch: {
-          $gte: DateUtils.create(searchDto.checkIn),
-          $lte: DateUtils.create(searchDto.checkOut),
+          $gte: DateUtils.create(checkIn),
+          $lte: DateUtils.create(checkOut),
         },
       };
     }

@@ -2,13 +2,25 @@ import React from "react";
 import { View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { StyleSheet } from "react-native-unistyles";
+import { ModalHeader } from "../molecules";
 
 export interface TabScreenTemplateProps {
   children: React.ReactNode;
   backgroundColor?: string;
+  title?: string;
+  showBackButton?: boolean;
+  onBackPress?: () => void;
+  headerRightElement?: React.ReactNode;
 }
 
-export const TabScreenTemplate: React.FC<TabScreenTemplateProps> = ({ children, backgroundColor }) => {
+export const TabScreenTemplate: React.FC<TabScreenTemplateProps> = ({
+  children,
+  backgroundColor,
+  title,
+  showBackButton = false,
+  onBackPress,
+  headerRightElement,
+}) => {
   const insets = useSafeAreaInsets();
 
   return (
@@ -21,6 +33,14 @@ export const TabScreenTemplate: React.FC<TabScreenTemplateProps> = ({ children, 
         backgroundColor && { backgroundColor },
       ]}
     >
+      {title && (
+        <ModalHeader
+          title={title}
+          showBackButton={showBackButton}
+          onBackPress={onBackPress}
+          rightElement={headerRightElement}
+        />
+      )}
       {children}
     </View>
   );

@@ -14,7 +14,7 @@ import { CreateUserDto } from '../dto/create-user.dto';
 import { UpdateProfileDto } from '../dto/update-profile.dto';
 import { DeactivateAccountDto } from '../dto/deactivate-account.dto';
 import { DeleteAccountDto } from '../dto/delete-account.dto';
-import { UpdatePreferencesDto } from '../dto/user-preferences.dto';
+import { UpdatePreferencesDto, UpdateEmailPreferencesDto } from '../dto/user-preferences.dto';
 import { AdminUpdateUserDto } from '../dto/admin-update-user.dto';
 
 /**
@@ -113,6 +113,14 @@ export class UsersFacadeService {
 
   async updateUserPreferences(userId: string, dto: UpdatePreferencesDto) {
     return this.profileService.updateUserPreferences(userId, dto);
+  }
+
+  async getEmailPreferences(userId: string) {
+    return this.profileService.getEmailPreferences(userId);
+  }
+
+  async updateEmailPreferences(userId: string, dto: UpdateEmailPreferencesDto) {
+    return this.profileService.updateEmailPreferences(userId, dto);
   }
 
   // ===== ACCOUNT LIFECYCLE =====
@@ -235,5 +243,23 @@ export class UsersFacadeService {
   async updateByAdmin(userId: string, updateData: AdminUpdateUserDto): Promise<UserDocument> {
     const result = await this.adminService.adminUpdateUser(userId, updateData);
     return result.user;
+  }
+
+  // ===== WISHLIST OPERATIONS =====
+
+  async getWishlist(userId: string) {
+    return this.profileService.getWishlist(userId);
+  }
+
+  async addToWishlist(userId: string, propertyId: string) {
+    return this.profileService.addToWishlist(userId, propertyId);
+  }
+
+  async removeFromWishlist(userId: string, propertyId: string) {
+    return this.profileService.removeFromWishlist(userId, propertyId);
+  }
+
+  async checkWishlistStatus(userId: string, propertyId: string) {
+    return this.profileService.checkWishlistStatus(userId, propertyId);
   }
 }

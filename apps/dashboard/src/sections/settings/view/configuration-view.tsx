@@ -475,7 +475,6 @@ export function ConfigurationView() {
           }
         }
       );
-      console.log('Flat configs:', flatConfigs);
       setConfigData(flatConfigs);
     }
   }, [groupedConfigResponse]);

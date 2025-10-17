@@ -7,6 +7,7 @@ import { SharedSchemasModule } from '../../common/schemas/shared-schemas.module'
 import { CommonModule } from '../../common/common.modules';
 import { Conversation, ConversationSchema } from '../../database/schemas/conversation.schema';
 import { Message, MessageSchema } from '../../database/schemas/message.schema';
+import { NotificationsModule } from '../notifications/notifications.module';
 import { UsersModule } from '../users/users.module';
 import { MessagingAppController } from './controllers/messaging-app.controller';
 import { MessagingAdminController } from './controllers/messaging-admin.controller';
@@ -19,6 +20,7 @@ import { MessagingService } from './messaging.service';
     ConfigModule,
     CommonModule,
     UsersModule,
+    NotificationsModule,
     JwtModule.registerAsync({
       imports: [ConfigModule],
       useFactory: (cs: ConfigService) => ({

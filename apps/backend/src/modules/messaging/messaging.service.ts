@@ -14,6 +14,7 @@ import { promisify } from 'util';
 import { validatePagination, buildPaginatedResult } from '../../common/utils/database.utils';
 import { LoggingUtil } from '../../common/utils/logging.util';
 import { ValidationUtils } from '../../common/utils/validation.utils';
+import { NotificationHelperService } from '../notifications/helpers/notification-helper.service';
 import {
   Conversation,
   ConversationDocument,
@@ -83,6 +84,7 @@ export class MessagingService {
     @InjectModel(User.name)
     private userModel: Model<UserDocument>,
     private configService: ConfigService,
+    private notificationHelper: NotificationHelperService,
   ) {
     this.encryptionKey = this.configService.get<string>(
       'MESSAGE_ENCRYPTION_KEY',
@@ -329,6 +331,54 @@ export class MessagingService {
       `Message ${String(message._id)} sent in conversation ${conversationId}`,
       'MessagingService',
     );
+
+    // Send email notifications to recipients (all participants except sender)
+    try {
+      const sender = await this.userModel.findById(senderId).select('firstName lastName').lean();
+      const senderName = sender ? `${sender.firstName} ${sender.lastName}` : 'A user';
+
+      // Get message preview (first 100 characters of decrypted content)
+      const messagePreview = await this.decryptMessage(encryptedContent);
+      const preview = messagePreview.substring(0, 100);
+
+      // Get property name if conversation is property-related
+      let propertyName: string | undefined;
+      if (conversation.property_id) {
+        const property = await this.userModel.db
+          .collection('properties')
+          .findOne({ _id: conversation.property_id }, { projection: { name: 1 } });
+        propertyName = property?.name;
+      }
+
+      // Send notification to all recipients (participants except sender)
+      const recipients = conversation.participants.filter(
+        (participantId) => participantId.toString() !== senderId,
+      );
+
+      for (const recipientId of recipients) {
+        await this.notificationHelper.sendNewMessageNotification(
+          String(recipientId),
+          senderId,
+          senderName,
+          preview,
+          conversationId,
+          propertyName,
+          conversation.booking_id ? String(conversation.booking_id) : undefined,
+        );
+      }
+
+      LoggingUtil.log(
+        `New message email notifications sent to ${recipients.length} recipient(s)`,
+        'MessagingService',
+      );
+    } catch (emailError) {
+      // Don't fail message sending if email fails
+      LoggingUtil.errorWithException(
+        `Failed to send new message email notifications: ${String(emailError)}`,
+        emailError,
+        'MessagingService',
+      );
+    }
 
     return await this.formatMessageResponse(message as PopulatedMessage, senderId);
   }

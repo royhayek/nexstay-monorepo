@@ -49,6 +49,33 @@ export enum AuditLogAction {
   // Sensitive data access
   SENSITIVE_DATA_ACCESSED = 'sensitive_data_accessed',
   ADMIN_ACTION_PERFORMED = 'admin_action_performed',
+
+  // Support actions
+  SUPPORT_TICKET_CREATED = 'support_ticket_created',
+  SUPPORT_TICKET_ASSIGNED = 'support_ticket_assigned',
+  SUPPORT_TICKET_RESOLVED = 'support_ticket_resolved',
+  SUPPORT_TICKET_CLOSED = 'support_ticket_closed',
+  SUPPORT_TICKET_REOPENED = 'support_ticket_reopened',
+  SUPPORT_REFUND_ISSUED = 'support_refund_issued',
+  SUPPORT_REFUND_REJECTED = 'support_refund_rejected',
+  SUPPORT_MESSAGE_SENT = 'support_message_sent',
+  SUPPORT_USER_CONTACTED = 'support_user_contacted',
+  SUPPORT_BOOKING_MODIFIED = 'support_booking_modified',
+  SUPPORT_ESCALATION_REQUESTED = 'support_escalation_requested',
+
+  // Compliance actions
+  IDENTITY_VERIFICATION_APPROVED = 'identity_verification_approved',
+  IDENTITY_VERIFICATION_REJECTED = 'identity_verification_rejected',
+  IDENTITY_VERIFICATION_BULK_APPROVED = 'identity_verification_bulk_approved',
+  IDENTITY_VERIFICATION_BULK_REJECTED = 'identity_verification_bulk_rejected',
+
+  // Approval workflow actions
+  APPROVAL_REQUEST_CREATED = 'approval_request_created',
+  APPROVAL_REQUEST_APPROVED = 'approval_request_approved',
+  APPROVAL_REQUEST_REJECTED = 'approval_request_rejected',
+  APPROVAL_REQUEST_CANCELLED = 'approval_request_cancelled',
+  APPROVAL_REQUEST_ASSIGNED = 'approval_request_assigned',
+  APPROVAL_REQUEST_EXPIRED = 'approval_request_expired',
 }
 
 /**

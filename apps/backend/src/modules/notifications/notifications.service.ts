@@ -203,6 +203,21 @@ export class NotificationsService {
         return;
       }
 
+      // Check email preferences before sending
+      if (!this.shouldSendEmailNotification(notification.type, user)) {
+        LoggingUtil.log(
+          `Email notification skipped for user ${String(notification.recipient_id)} - preference disabled for ${notification.type}`,
+          'NotificationsService',
+        );
+        await this.markDeliveryStatus(
+          String(notification._id),
+          NotificationChannel.EMAIL,
+          NotificationStatus.SKIPPED,
+          'User has disabled this email notification type',
+        );
+        return;
+      }
+
       // Determine template and context based on notification type
       const { templateName, context } = this.getEmailTemplateAndContext(notification, user);
 
@@ -229,6 +244,41 @@ export class NotificationsService {
         error instanceof Error ? error.message : 'Unknown error',
       );
     }
+  }
+
+  /**
+   * Check if user has enabled email notifications for the given type
+   */
+  private shouldSendEmailNotification(
+    notificationType: NotificationType,
+    user: UserDocument,
+  ): boolean {
+    // Map notification types to email preference keys
+    const preferenceMap: Record<string, string> = {
+      [NotificationType.BOOKING_CONFIRMED]: 'bookingConfirmation',
+      [NotificationType.PAYMENT_SUCCESSFUL]: 'paymentReceipt',
+      [NotificationType.PAYOUT_PROCESSED]: 'payoutNotification',
+      [NotificationType.NEW_MESSAGE]: 'newMessage',
+      [NotificationType.REVIEW_REMINDER]: 'reviewReminder',
+      [NotificationType.PASSWORD_RESET]: 'passwordReset',
+    };
+
+    const preferenceKey = preferenceMap[notificationType];
+    if (!preferenceKey) {
+      // If no preference mapping exists, allow the email (default behavior)
+      return true;
+    }
+
+    // Check user's email preferences
+    const emailNotifications = user.preferences?.emailNotifications as Record<string, boolean> | undefined;
+    if (!emailNotifications) {
+      // If no preferences set, use defaults (all enabled except marketing)
+      return true;
+    }
+
+    const preference = emailNotifications[preferenceKey];
+    // If preference is undefined, default to enabled
+    return preference !== false;
   }
 
   /**
@@ -736,6 +786,155 @@ export class NotificationsService {
           context: {
             ...baseContext,
             userName: user.firstName || 'User',
+          },
+        };
+
+      case NotificationType.PAYMENT_SUCCESSFUL:
+        return {
+          templateName: 'payment-receipt',
+          context: {
+            ...baseContext,
+            guestName: user.firstName || 'Guest',
+            propertyName: notificationData.property_name,
+            receiptNumber: notificationData.receipt_number || notificationData.booking_id,
+            paymentDate: notificationData.payment_date
+              ? DateUtils.create(notificationData.payment_date).toLocaleDateString()
+              : DateUtils.now().toLocaleDateString(),
+            paymentMethod: notificationData.payment_method || 'Credit Card',
+            transactionId: notificationData.transaction_id,
+            checkInDate: notificationData.check_in_date
+              ? DateUtils.create(notificationData.check_in_date).toLocaleDateString()
+              : '',
+            checkOutDate: notificationData.check_out_date
+              ? DateUtils.create(notificationData.check_out_date).toLocaleDateString()
+              : '',
+            confirmationCode: notificationData.confirmation_code,
+            currency: notificationData.currency || '$',
+            pricePerNight: notificationData.price_per_night,
+            nights: notificationData.nights,
+            subtotal: notificationData.subtotal,
+            serviceFee: notificationData.service_fee,
+            cleaningFee: notificationData.cleaning_fee,
+            taxes: notificationData.taxes,
+            totalAmount: notificationData.amount,
+            guestEmail: user.email,
+          },
+        };
+
+      case NotificationType.REVIEW_REMINDER:
+        return {
+          templateName: 'review-reminder',
+          context: {
+            ...baseContext,
+            guestName: user.firstName || 'Guest',
+            propertyName: notificationData.property_name,
+            checkInDate: notificationData.check_in_date
+              ? DateUtils.create(notificationData.check_in_date).toLocaleDateString()
+              : '',
+            checkOutDate: notificationData.check_out_date
+              ? DateUtils.create(notificationData.check_out_date).toLocaleDateString()
+              : '',
+            hostName: notificationData.host_name,
+            reviewDeadline: notificationData.review_deadline
+              ? DateUtils.create(notificationData.review_deadline).toLocaleDateString()
+              : '',
+            guestEmail: user.email,
+          },
+        };
+
+      case NotificationType.PAYOUT_PROCESSED:
+        return {
+          templateName: 'payout-notification',
+          context: {
+            ...baseContext,
+            hostName: user.firstName || 'Host',
+            payoutId: notificationData.payout_id,
+            payoutDate: notificationData.payout_date
+              ? DateUtils.create(notificationData.payout_date).toLocaleDateString()
+              : DateUtils.now().toLocaleDateString(),
+            expectedArrival: notificationData.expected_arrival
+              ? DateUtils.create(notificationData.expected_arrival).toLocaleDateString()
+              : '',
+            amount: notificationData.amount,
+            currency: notificationData.currency || '$',
+            transferTime: notificationData.transfer_time || '3-5 business days',
+            paymentMethodType: notificationData.payment_method_type || 'Bank Account',
+            paymentMethodDetails: notificationData.payment_method_details,
+            grossEarnings: notificationData.gross_earnings,
+            serviceFee: notificationData.service_fee,
+            taxes: notificationData.taxes,
+            adjustments: notificationData.adjustments,
+            nextPayoutDate: notificationData.next_payout_date
+              ? DateUtils.create(notificationData.next_payout_date).toLocaleDateString()
+              : '',
+            pendingEarnings: notificationData.pending_earnings,
+            hostEmail: user.email,
+          },
+        };
+
+      case NotificationType.NEW_MESSAGE:
+        return {
+          templateName: 'new-message',
+          context: {
+            ...baseContext,
+            recipientName: user.firstName || 'User',
+            senderName: notificationData.sender_name,
+            senderInitials: notificationData.sender_name
+              ? notificationData.sender_name
+                  .split(' ')
+                  .map((n: string) => n[0])
+                  .join('')
+                  .toUpperCase()
+              : 'U',
+            messagePreview: notificationData.message_preview,
+            propertyName: notificationData.property_name,
+            bookingId: notificationData.booking_id,
+            sentAt: DateUtils.now().toLocaleString(),
+            isBookingRelated: !!notificationData.booking_id,
+            unreadCount: notificationData.unread_count,
+            recipientEmail: user.email,
+          },
+        };
+
+      case NotificationType.PASSWORD_RESET:
+        return {
+          templateName: 'password-reset',
+          context: {
+            ...baseContext,
+            userName: user.firstName || 'User',
+            userEmail: user.email,
+            resetToken: notificationData.reset_token,
+            expiryTime: notificationData.expiry_time || '1 hour',
+            requestTime: DateUtils.now().toLocaleString(),
+            ipAddress: notificationData.ip_address,
+            location: notificationData.location,
+            device: notificationData.device,
+          },
+        };
+
+      case NotificationType.FIRST_LISTING_CONGRATULATIONS:
+        return {
+          templateName: 'first-listing-congratulations',
+          context: {
+            ...baseContext,
+            hostName: user.firstName || 'Host',
+            hostEmail: user.email,
+            propertyName: notificationData.property_name,
+            propertyType: notificationData.property_type,
+            propertyLocation: notificationData.property_location,
+            propertyImage: notificationData.property_image,
+            nightlyRate: notificationData.nightly_rate,
+            currency: notificationData.currency || 'USD',
+            publishedDate: notificationData.published_date
+              ? DateUtils.create(notificationData.published_date).toLocaleDateString()
+              : DateUtils.now().toLocaleDateString(),
+            propertyUrl: notificationData.property_url,
+            dashboardUrl: notificationData.dashboard_url,
+            hostGuideUrl: notificationData.host_guide_url,
+            pricingTipsUrl: notificationData.pricing_tips_url,
+            photosGuideUrl: notificationData.photos_guide_url,
+            safetyGuideUrl: notificationData.safety_guide_url,
+            supportEmail: notificationData.support_email,
           },
         };
 

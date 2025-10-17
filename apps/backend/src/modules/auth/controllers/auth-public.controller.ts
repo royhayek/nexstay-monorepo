@@ -1,4 +1,4 @@
-import { Controller, Post, Get, Body, Query, HttpCode, HttpStatus, Req } from '@nestjs/common';
+import { Controller, Post, Get, Body, Query, Param, HttpCode, HttpStatus, Req } from '@nestjs/common';
 import { BaseController } from '../../../common/controllers/base.controller';
 import { ApiTags } from '@nestjs/swagger';
 import { AuthService } from '../auth.service';
@@ -380,8 +380,7 @@ export class AuthPublicController extends BaseController {
   @AuditLog({
     ...AuditLogPresets.SESSION_TERMINATED,
     getResourceId: (req) => {
-      const body = req.body as Record<string, unknown>;
-      return typeof body?.sessionId === 'string' ? body.sessionId : undefined;
+      return req.params?.sessionId;
     },
   })
   @ProtectedEndpoint(
@@ -391,7 +390,7 @@ export class AuthPublicController extends BaseController {
   )
   async terminateSession(
     @Req() req: AuthRequest,
-    @Body('sessionId') sessionId: string,
+    @Param('sessionId') sessionId: string,
   ): Promise<SessionTerminationResponseDto> {
     return this.executeWithErrorHandlingAndMessage(
       async () => {

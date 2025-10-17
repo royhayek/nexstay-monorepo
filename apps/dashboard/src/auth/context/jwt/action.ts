@@ -3,20 +3,20 @@
 import type {
   RequestResetDto,
   ResetPasswordDto,
+  VerifyResetResponseDto,
   SigninInitiateResponseDto,
   SigninPasswordResponseDto,
   SigninCompleteResponseDto,
-  VerifyResetResponseDto,
 } from 'src/api/models/public';
 
 import {
   authPublicControllerLogout,
+  authPublicControllerVerifyReset,
   authPublicControllerRequestReset,
   authPublicControllerResetPassword,
   authPublicControllerSigninInitiate,
   authPublicControllerSigninPassword,
   authPublicControllerSigninVerifyDevice,
-  authPublicControllerVerifyReset,
 } from 'src/api/queries/public/authentication/authentication';
 
 import { setSession } from './utils';

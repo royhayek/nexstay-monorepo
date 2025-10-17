@@ -4,6 +4,10 @@ import { tokenManager } from "../utils/auth";
 import { API_CONFIG } from "./config";
 import { handleApiError } from "./error-handler";
 
+// Forward declaration for refresh function to avoid circular dependency
+// This will be assigned after module initialization
+let authPublicControllerRefresh: any = null;
+
 // Extend AxiosRequestConfig to include our custom metadata
 declare module "axios" {
   export interface AxiosRequestConfig {
@@ -107,10 +111,10 @@ axiosInstance.interceptors.response.use(
               throw new Error("No refresh token available");
             }
 
-            // Import the generated refresh function dynamically to avoid circular dependency
-            const { authPublicControllerRefresh } = await import(
-              "./queries/public/authentication/authentication"
-            );
+            // Use the refresh function (set via setRefreshFunction after module initialization)
+            if (!authPublicControllerRefresh) {
+              throw new Error("Refresh function not initialized");
+            }
 
             // Call refresh using the generated Orval function
             const response = await authPublicControllerRefresh({
@@ -170,7 +174,8 @@ axiosInstance.interceptors.response.use(
   }
 );
 
-// Custom instance function for Orval - matches orval documentation
+// Custom instance function for generated Orval code
+// This will be used by the generated API client after post-processing
 export const customInstance = <T>(config: AxiosRequestConfig, options?: AxiosRequestConfig): Promise<T> => {
   // eslint-disable-next-line import/no-named-as-default-member
   const source = axios.CancelToken.source();
@@ -193,5 +198,11 @@ export const customInstance = <T>(config: AxiosRequestConfig, options?: AxiosReq
 export type ErrorType<Error> = AxiosError<Error>;
 export type BodyType<BodyData> = BodyData;
 
-// Export configured instance for use with Orval and React Query
+// Function to set the refresh function after module initialization
+// This breaks the circular dependency by allowing late binding
+export const setRefreshFunction = (refreshFn: any) => {
+  authPublicControllerRefresh = refreshFn;
+};
+
+// Export configured instance for direct use
 export default axiosInstance;

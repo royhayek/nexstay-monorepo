@@ -1,0 +1,9 @@
+{
+  "ios": {
+    "bundleIdentifier": "com.cube-holdings.nexstay-monorepo",
+    "appleTeamId": "DVGN5DN5ST"
+  },
+  "android": {
+    "package": "com.cubeholdings.nexstaymonorepo"
+  }
+}

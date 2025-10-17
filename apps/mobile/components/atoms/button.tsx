@@ -114,8 +114,42 @@ export const Button: React.FC<ButtonProps> = ({
           >
             {children}
           </Text>
-        ) : (
+        ) : React.isValidElement(children) ? (
           children
+        ) : (
+          // If children is not a string or valid element, wrap it in Text
+          <Text
+            variant={size === "small" ? "bodySmallSemiBold" : size === "large" ? "bodyLargeMedium" : "bodyMediumMedium"}
+            color={
+              variant === "filled"
+                ? color === "warning"
+                  ? "text"
+                  : color === "primary"
+                  ? "onPrimary"
+                  : color === "secondary"
+                  ? "onSecondary"
+                  : "background"
+                : variant === "ghost"
+                ? "textSecondary"
+                : color === "primary"
+                ? "primary"
+                : color === "secondary"
+                ? "secondary"
+                : color === "success"
+                ? "success"
+                : color === "warning"
+                ? "warning"
+                : color === "error"
+                ? "error"
+                : color === "neutral"
+                ? "neutral800"
+                : "info"
+            }
+            textAlign="center"
+            style={textStyle}
+          >
+            {String(children)}
+          </Text>
         )}
         {rightIcon && <View style={styles.rightIcon}>{rightIcon}</View>}
       </View>

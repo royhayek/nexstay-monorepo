@@ -23,6 +23,7 @@ import { DynamicConfigModule } from '../config/config.module';
 import { PropertiesModule } from '../properties/properties.module';
 import { TaxModule } from '../tax/tax.module';
 import { AccountsModule } from '../accounts/accounts.module';
+import { UsersModule } from '../users/users.module';
 
 @Module({
   imports: [
@@ -36,6 +37,7 @@ import { AccountsModule } from '../accounts/accounts.module';
     DynamicConfigModule,
     PropertiesModule,
     TaxModule,
+    UsersModule,
     forwardRef(() => AccountsModule),
   ],
   providers: [

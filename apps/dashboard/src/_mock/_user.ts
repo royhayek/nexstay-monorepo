@@ -1,4 +1,4 @@
-import type { UserDataDto } from 'src/api/models';
+import type { UserDataDto } from 'src/api/models/admin';
 
 import { _mock } from './_mock';
 

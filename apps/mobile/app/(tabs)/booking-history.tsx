@@ -3,7 +3,7 @@ import { Image, View } from "react-native";
 import { StyleSheet } from "react-native-unistyles";
 
 import type { SegmentedControlOption } from "@/components/molecules";
-import { EmptyState, ModalHeader, SegmentedControl } from "@/components/molecules";
+import { EmptyState, SegmentedControl } from "@/components/molecules";
 import { TabScreenTemplate } from "@/components/templates";
 import { mvs } from "@/utils/scaling";
 
@@ -53,11 +53,8 @@ export default function BookingHistoryScreen() {
   const emptyMessage = getEmptyStateMessage();
 
   return (
-    <TabScreenTemplate>
+    <TabScreenTemplate title="My Booking History">
       <View style={styles.container}>
-        {/* Header */}
-        <ModalHeader title="My Booking History" showBackButton={false} />
-
         {/* Tabs */}
         <View style={styles.tabsContainer}>
           <SegmentedControl
