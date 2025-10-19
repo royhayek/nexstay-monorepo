@@ -107,6 +107,7 @@ export default function PasswordScreen() {
           setIsLoading(false);
           // Navigate back to tabs - login already handled in signinPassword
           router.dismissAll();
+          router.replace("/(tabs)");
         } else {
           setIsLoading(false);
           Alert.alert("Error", "Unexpected response. Please try again.");

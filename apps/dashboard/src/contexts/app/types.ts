@@ -1,20 +1,20 @@
 'use client';
 
-import type { EnumDisplayGroupsResponseDtoData } from 'src/api/models/admin';
+import type { CatalogItemDataDto } from 'src/api/models/admin';
 import type { SupportedLanguagesDataDtoSupportedItem } from 'src/api/models/public';
 
 // ----------------------------------------------------------------------
 
 export interface AppContextValue {
-  enumDisplays: {
-    data: EnumDisplayGroupsResponseDtoData;
+  currentLanguage: string;
+  supportedLanguages: {
+    data: SupportedLanguagesDataDtoSupportedItem[];
     isLoading: boolean;
     error: Error | null;
     refetch: () => void;
   };
-  currentLanguage: string;
-  supportedLanguages: {
-    data: SupportedLanguagesDataDtoSupportedItem[] | null;
+  catalogs: {
+    data: CatalogItemDataDto[];
     isLoading: boolean;
     error: Error | null;
     refetch: () => void;

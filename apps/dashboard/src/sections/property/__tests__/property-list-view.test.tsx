@@ -16,8 +16,8 @@ jest.mock('src/api/queries/admin/users-management/users-management', () => ({
 }));
 
 // Mock the enum display options hook
-jest.mock('src/hooks/use-enum-display-options', () => ({
-  useEnumDisplayOptions: jest.fn((enumName: string, options?: any) => {
+jest.mock('src/hooks/use-enum-options', () => ({
+  useEnumOptions: jest.fn((enumName: string, options?: any) => {
     const baseOptions = options?.prependOptions || [];
     if (enumName === 'PropertyType') {
       return [

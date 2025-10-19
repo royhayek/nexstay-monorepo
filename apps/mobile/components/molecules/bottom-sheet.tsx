@@ -8,7 +8,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { StyleSheet, useUnistyles } from "react-native-unistyles";
 
 import { Button } from "@/components/atoms";
-import { StatusHeader } from "@/components/molecules";
+import { StatusHeader } from "./status-header";
 import { ms, mvs } from "@/utils/scaling";
 
 export type BottomSheetVariant = "success" | "warning" | "error" | "info" | "confirmation";
@@ -42,7 +42,7 @@ interface CustomBottomSheetProps {
 export const CustomBottomSheet = forwardRef<BottomSheetModalType, CustomBottomSheetProps>(
   (
     {
-      variant = "info",
+      variant,
       title,
       message,
       icon,

@@ -4,13 +4,13 @@ import { useEffect } from "react";
 import { useAuth } from "@/hooks/use-auth";
 
 export function AuthModalHandler() {
-  const { showLoginModal, isLoading } = useAuth();
+  const { showLoginModal, isLoading, isAuthenticated } = useAuth();
 
   useEffect(() => {
-    if (!isLoading && showLoginModal) {
+    if (!isLoading && showLoginModal && !isAuthenticated) {
       router.push("/(auth)/login");
     }
-  }, [showLoginModal, isLoading]);
+  }, [showLoginModal, isLoading, isAuthenticated]);
 
   return null;
 }

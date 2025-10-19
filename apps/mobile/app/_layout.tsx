@@ -18,8 +18,8 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { BottomSheetModalProvider } from "@gorhom/bottom-sheet";
 
-import { OfflineIndicator } from "@/components";
-import { RoleProvider } from "@/contexts";
+import { AuthModalHandler, OfflineIndicator } from "@/components";
+import { AppProvider, BookingProvider, RoleProvider } from "@/contexts";
 import { AuthProvider } from "@/hooks/use-auth";
 import { BottomSheetProvider } from "@/hooks/use-bottom-sheet";
 import { NetworkProvider } from "@/hooks/use-network";
@@ -53,6 +53,7 @@ export const unstable_settings = {
 
 function RootLayoutNav() {
   const { effectiveTheme } = useThemePreference();
+  const backgroundColor = effectiveTheme === "dark" ? "#000" : "#fff";
 
   return (
     <ThemeProvider value={effectiveTheme === "dark" ? DarkTheme : DefaultTheme}>
@@ -110,6 +111,51 @@ function RootLayoutNav() {
             contentStyle: { backgroundColor: "transparent" },
           }}
         />
+        <Stack.Screen
+          name="booking/initiate/[propertyId]"
+          options={{
+            headerShown: false,
+            presentation: "modal",
+            animation: "slide_from_bottom",
+            contentStyle: { backgroundColor },
+          }}
+        />
+        <Stack.Screen
+          name="booking/details/[propertyId]"
+          options={{
+            headerShown: false,
+            presentation: "card",
+            animation: "slide_from_right",
+            contentStyle: { backgroundColor },
+          }}
+        />
+        <Stack.Screen
+          name="booking/review/[propertyId]"
+          options={{
+            headerShown: false,
+            presentation: "card",
+            animation: "slide_from_right",
+            contentStyle: { backgroundColor },
+          }}
+        />
+        <Stack.Screen
+          name="booking/success/[bookingId]"
+          options={{
+            headerShown: false,
+            presentation: "card",
+            gestureEnabled: false,
+            contentStyle: { backgroundColor },
+          }}
+        />
+        <Stack.Screen
+          name="booking/[id]"
+          options={{
+            headerShown: false,
+            presentation: "card",
+            animation: "slide_from_right",
+            contentStyle: { backgroundColor },
+          }}
+        />
       </Stack>
       <StatusBar style={effectiveTheme === "dark" ? "light" : "dark"} />
     </ThemeProvider>
@@ -141,22 +187,27 @@ export default function RootLayout() {
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaProvider>
         <QueryClientProvider client={queryClient}>
-          <ThemePreferenceProvider>
-            <NetworkProvider>
-              <AuthProvider>
-                <RoleProvider>
-                  <BottomSheetModalProvider>
-                    <BottomSheetProvider>
-                      <SharedTransitionProvider>
-                        <RootLayoutNav />
-                        <OfflineIndicator />
-                      </SharedTransitionProvider>
-                    </BottomSheetProvider>
-                  </BottomSheetModalProvider>
-                </RoleProvider>
-              </AuthProvider>
-            </NetworkProvider>
-          </ThemePreferenceProvider>
+          <AppProvider>
+            <ThemePreferenceProvider>
+              <NetworkProvider>
+                <AuthProvider>
+                  <RoleProvider>
+                    <BookingProvider>
+                      <BottomSheetModalProvider>
+                        <BottomSheetProvider>
+                          <SharedTransitionProvider>
+                            <RootLayoutNav />
+                            <AuthModalHandler />
+                            <OfflineIndicator />
+                          </SharedTransitionProvider>
+                        </BottomSheetProvider>
+                      </BottomSheetModalProvider>
+                    </BookingProvider>
+                  </RoleProvider>
+                </AuthProvider>
+              </NetworkProvider>
+            </ThemePreferenceProvider>
+          </AppProvider>
         </QueryClientProvider>
       </SafeAreaProvider>
     </GestureHandlerRootView>

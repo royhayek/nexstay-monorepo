@@ -8,6 +8,11 @@
  * OpenAPI spec version: 1.0
  */
 import type { ReviewAdminDtoReviewType } from './reviewAdminDtoReviewType';
+import type { ReviewPhotoDto } from './reviewPhotoDto';
+import type { ReviewAdminDtoTranslations } from './reviewAdminDtoTranslations';
+import type { SentimentDto } from './sentimentDto';
+import type { ReviewAdminDtoUserVote } from './reviewAdminDtoUserVote';
+import type { VerificationDto } from './verificationDto';
 
 export interface ReviewAdminDto {
   /** Review ID */
@@ -56,6 +61,33 @@ export interface ReviewAdminDto {
   moderatedAt?: string;
   /** Moderation reason */
   moderationReason?: string;
+  /** Review photos */
+  photos?: ReviewPhotoDto[];
+  /** Number of photos */
+  photoCount?: number;
+  /** Original language */
+  originalLanguage?: string;
+  /** Available translations */
+  translations?: ReviewAdminDtoTranslations;
+  /** Sentiment analysis */
+  sentiment?: SentimentDto;
+  /** Requires manual review flag */
+  requiresManualReview?: boolean;
+  /** Helpful votes count */
+  helpfulCount?: number;
+  /** Not helpful votes count */
+  notHelpfulCount?: number;
+  /** Helpfulness score */
+  helpfulnessScore?: number;
+  /**
+   * Current user vote (if any)
+   * @nullable
+   */
+  userVote?: ReviewAdminDtoUserVote;
+  /** Is verified stay */
+  isVerifiedStay?: boolean;
+  /** Verification details */
+  verification?: VerificationDto;
   /** Reviewer email */
   reviewerEmail?: string;
   /** Reviewee email */

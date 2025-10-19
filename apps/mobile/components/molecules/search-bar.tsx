@@ -12,7 +12,7 @@ interface SearchBarProps {
 }
 
 export function SearchBar({
-  placeholder = "Search for your homestay",
+  placeholder = "Search for your nexstay",
   filterCount = 0,
   onSearchPress,
   onFilterPress,
@@ -33,10 +33,7 @@ export function SearchBar({
             </Text>
           </View>
 
-          <IconButton
-            style={styles.filterButton}
-            onPress={onFilterPress}
-          >
+          <IconButton style={styles.filterButton} onPress={onFilterPress}>
             <Badge showDot={filterCount > 0}>
               <Setting4 size={ms(20)} color={theme.colors.neutral800} variant="Outline" />
             </Badge>

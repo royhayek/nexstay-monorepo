@@ -1,7 +1,7 @@
 import { Tabs, useRouter } from "expo-router";
 import React, { useEffect, useRef } from "react";
 
-import { AuthModalHandler, CustomTabBar, IconSymbol } from "@/components";
+import { CustomTabBar, IconSymbol } from "@/components";
 import { useRoleContext } from "@/contexts";
 import { Colors } from "@/constants/theme";
 import { useColorScheme } from "@/hooks/use-color-scheme";
@@ -50,88 +50,88 @@ export default function TabLayout() {
   }
 
   return (
-    <>
-      <AuthModalHandler />
-      <Tabs
-        tabBar={(props) => <CustomTabBar {...props} />}
-        screenOptions={{
-          tabBarActiveTintColor: Colors[colorScheme ?? "light"].tint,
-          headerShown: false,
+    <Tabs
+      tabBar={(props) => <CustomTabBar {...props} />}
+      screenOptions={{
+        tabBarActiveTintColor: Colors[colorScheme ?? "light"].tint,
+        headerShown: false,
+      }}
+    >
+      {/* Guest Tabs - Hidden when showing host stack */}
+      <Tabs.Screen
+        name="index"
+        options={{
+          title: "Home",
+          tabBarIcon: ({ color }) => <IconSymbol size={28} name="house.fill" color={color} />,
+          href: showHostStack ? null : "/(tabs)/",
         }}
-      >
-        {showHostStack ? (
-          // Host Tab Layout - 5 tabs for hosts (Dashboard, Listings, Calendar, Messages, Menu)
-          <>
-            <Tabs.Screen
-              name="host-dashboard"
-              options={{
-                title: "Dashboard",
-                tabBarIcon: ({ color }) => <IconSymbol size={28} name="house.fill" color={color} />,
-              }}
-            />
-            <Tabs.Screen
-              name="host-listings"
-              options={{
-                title: "Listings",
-                tabBarIcon: ({ color }) => <IconSymbol size={28} name="list.bullet" color={color} />,
-              }}
-            />
-            <Tabs.Screen
-              name="host-calendar"
-              options={{
-                title: "Calendar",
-                tabBarIcon: ({ color }) => <IconSymbol size={28} name="calendar" color={color} />,
-              }}
-            />
-            <Tabs.Screen
-              name="host-messages"
-              options={{
-                title: "Messages",
-                tabBarIcon: ({ color }) => <IconSymbol size={28} name="message.fill" color={color} />,
-              }}
-            />
-            <Tabs.Screen
-              name="host-menu"
-              options={{
-                title: "Menu",
-                tabBarIcon: ({ color }) => <IconSymbol size={28} name="line.3.horizontal" color={color} />,
-              }}
-            />
-          </>
-        ) : (
-          // Guest Tab Layout - Only render guest tabs
-          <>
-            <Tabs.Screen
-              name="index"
-              options={{
-                title: "Home",
-                tabBarIcon: ({ color }) => <IconSymbol size={28} name="house.fill" color={color} />,
-              }}
-            />
-            <Tabs.Screen
-              name="favorites"
-              options={{
-                title: "Favorites",
-                tabBarIcon: ({ color }) => <IconSymbol size={28} name="heart.fill" color={color} />,
-              }}
-            />
-            <Tabs.Screen
-              name="booking-history"
-              options={{
-                title: "Bookings",
-                tabBarIcon: ({ color }) => <IconSymbol size={28} name="calendar" color={color} />,
-              }}
-            />
-            <Tabs.Screen
-              name="profile"
-              options={{
-                title: "Profile",
-                tabBarIcon: ({ color }) => <IconSymbol size={28} name="person.fill" color={color} />,
-              }}
-            />
-          </>
-        )}
-      </Tabs>
-    </>
+      />
+      <Tabs.Screen
+        name="favorites"
+        options={{
+          title: "Favorites",
+          tabBarIcon: ({ color }) => <IconSymbol size={28} name="heart.fill" color={color} />,
+          href: showHostStack ? null : "/(tabs)/favorites",
+        }}
+      />
+      <Tabs.Screen
+        name="booking-history"
+        options={{
+          title: "Bookings",
+          tabBarIcon: ({ color }) => <IconSymbol size={28} name="calendar" color={color} />,
+          href: showHostStack ? null : "/(tabs)/booking-history",
+        }}
+      />
+      <Tabs.Screen
+        name="profile"
+        options={{
+          title: "Profile",
+          tabBarIcon: ({ color }) => <IconSymbol size={28} name="person.fill" color={color} />,
+          href: showHostStack ? null : "/(tabs)/profile",
+        }}
+      />
+
+      {/* Host Tabs - Hidden when showing guest stack */}
+      <Tabs.Screen
+        name="host-dashboard"
+        options={{
+          title: "Dashboard",
+          tabBarIcon: ({ color }) => <IconSymbol size={28} name="house.fill" color={color} />,
+          href: showHostStack ? "/(tabs)/host-dashboard" : null,
+        }}
+      />
+      <Tabs.Screen
+        name="host-listings"
+        options={{
+          title: "Listings",
+          tabBarIcon: ({ color }) => <IconSymbol size={28} name="list.bullet" color={color} />,
+          href: showHostStack ? "/(tabs)/host-listings" : null,
+        }}
+      />
+      <Tabs.Screen
+        name="host-calendar"
+        options={{
+          title: "Calendar",
+          tabBarIcon: ({ color }) => <IconSymbol size={28} name="calendar" color={color} />,
+          href: showHostStack ? "/(tabs)/host-calendar" : null,
+        }}
+      />
+      <Tabs.Screen
+        name="host-messages"
+        options={{
+          title: "Messages",
+          tabBarIcon: ({ color }) => <IconSymbol size={28} name="message.fill" color={color} />,
+          href: showHostStack ? "/(tabs)/host-messages" : null,
+        }}
+      />
+      <Tabs.Screen
+        name="host-menu"
+        options={{
+          title: "Menu",
+          tabBarIcon: ({ color }) => <IconSymbol size={28} name="line.3.horizontal" color={color} />,
+          href: showHostStack ? "/(tabs)/host-menu" : null,
+        }}
+      />
+    </Tabs>
   );
 }

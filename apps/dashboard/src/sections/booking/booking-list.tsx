@@ -15,7 +15,7 @@ import { paths } from 'src/routes/paths';
 import { useRouter } from 'src/routes/hooks';
 import { RouterLink } from 'src/routes/components';
 
-import { useEnumDisplayOptions } from 'src/hooks/use-enum-display-options';
+import { useEnumOptions } from 'src/hooks/use-enum-options';
 
 import { fCurrency } from 'src/utils/format-number';
 import { fDate, fTime } from 'src/utils/format-time';
@@ -316,11 +316,11 @@ const createPropertySearchFunction =
   };
 
 export function BookingList() {
-  const bookingStatusOptions = useEnumDisplayOptions('BookingStatus', {
+  const bookingStatusOptions = useEnumOptions('BookingStatus', {
     prependOptions: [{ value: 'all', label: 'All' }],
   });
 
-  const paymentStatusOptions = useEnumDisplayOptions('PaymentStatus');
+  const paymentStatusOptions = useEnumOptions('PaymentStatus');
 
   // State to store fetched guest options
   const [guestOptions, setGuestOptions] = useState<

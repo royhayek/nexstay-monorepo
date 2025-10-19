@@ -3,7 +3,6 @@ import { DateUtils } from '../../../common/utils/date.utils';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { Property, PropertyDocument } from '../../../database/schemas/property.schema';
-import { PropertyType } from '../../../common/enums/property.enums';
 import { AccountsFacadeService } from '../../accounts/services/accounts-facade.service';
 import { DynamicConfigService } from '../../config/config.service';
 import { FeeCalculationService } from '../../fees/services/fee-calculation.service';
@@ -229,9 +228,9 @@ export class PropertyFeeService {
         adjustedRate = Math.max(0.03, adjustedRate - highValueDiscountRate); // Minimum 3% for high-value bookings
       }
 
-      // Property category adjustments
-      const propertyType = property.propertyType;
-      if (propertyType === PropertyType.VILLA || propertyType === PropertyType.CASTLE) {
+      // Property category adjustments (now using catalog string values)
+      const propertyType = property.propertyType.toUpperCase();
+      if (propertyType === 'VILLA' || propertyType === 'CASTLE') {
         const luxuryFeeRate = parseFloat(
           await this.configService.get('LUXURY_PROPERTY_FEE_RATE', '0.07'),
         );

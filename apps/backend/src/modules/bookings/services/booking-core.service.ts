@@ -93,7 +93,7 @@ export class BookingCoreService {
       const booking = new this.bookingModel({
         propertyId: new Types.ObjectId(dto.propertyId),
         guestId: new Types.ObjectId(guestId),
-        hostId: property.hostId,
+        hostId: new Types.ObjectId(property.hostId),
         checkIn: DateUtils.create(dto.checkIn),
         checkOut: DateUtils.create(dto.checkOut),
         nights: dto.nights,

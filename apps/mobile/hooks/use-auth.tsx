@@ -29,10 +29,11 @@ import {
   useAuthPublicControllerVerifyReset,
 } from "@/api/queries/public/authentication/authentication";
 import { usersAppControllerGetProfile } from "@/api/queries/protected/users/users";
-import { logout, tokenManager, userManager } from "@/utils/auth";
+import { logout, tokenManager, userManager, authEvents } from "@/utils/auth";
 import { isDevelopment } from "@/utils/environment";
-import React, { createContext, useContext, useEffect, useState } from "react";
+import React, { createContext, useContext, useEffect, useRef, useState } from "react";
 import { Alert } from "react-native";
+import { router } from "expo-router";
 import { useAppStateAuth } from "./use-app-state-auth";
 import { useNetwork } from "./use-network";
 
@@ -85,15 +86,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<UserDataDto | null>(null);
   const [showLoginModal, setShowLoginModal] = useState(false);
 
+  // Use ref to track logout state to prevent duplicate alerts
+  const isLoggingOutRef = useRef(false);
+
   // Get network status
   const { isOffline } = useNetwork();
 
   // Setup app state monitoring for token validation on resume
+  // This provides better UX by checking token existence when app resumes
   useAppStateAuth({
     minIntervalMs: 30000, // Check at most once every 30 seconds
     onTokenExpired: () => {
-      // Token expired on app resume - force logout
-      console.info("[Auth] Token expired on app resume, forcing logout");
+      // Token missing or invalid - force logout
+      console.info("[Auth] No valid tokens found on app resume, logging out");
       setIsAuthenticated(false);
       setUser(null);
       setShowLoginModal(true);
@@ -145,13 +150,82 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     checkAuthStatus();
   }, []);
 
+  // Listen for logout events from axios interceptor or other parts of the app
+  useEffect(() => {
+    const unsubscribeRefreshFailed = authEvents.on("REFRESH_FAILED", () => {
+      console.warn("[Auth] Refresh token failed, forcing logout");
+      handleForceLogout();
+    });
+
+    const unsubscribeLogoutRequired = authEvents.on("LOGOUT_REQUIRED", () => {
+      console.warn("[Auth] Logout required, forcing logout");
+      handleForceLogout();
+    });
+
+    return () => {
+      unsubscribeRefreshFailed();
+      unsubscribeLogoutRequired();
+    };
+  }, []);
+
+  const handleForceLogout = async () => {
+    // Prevent multiple simultaneous logout attempts
+    if (isLoggingOutRef.current) {
+      console.log("[Auth] Logout already in progress, skipping");
+      return;
+    }
+
+    try {
+      isLoggingOutRef.current = true;
+      await logout();
+      setIsAuthenticated(false);
+      setUser(null);
+      setShowLoginModal(true);
+
+      // Show alert to user (only once) and navigate to login
+      Alert.alert(
+        "Session Expired",
+        "Your session has expired. Please log in again.",
+        [
+          {
+            text: "OK",
+            onPress: () => {
+              // Navigate to login screen after alert is dismissed
+              try {
+                router.replace("/(auth)/login");
+              } catch (navError) {
+                console.error("Navigation error:", navError);
+                // Fallback: try different navigation method
+                router.push("/(auth)/login");
+              }
+            },
+          },
+        ]
+      );
+    } catch (error) {
+      console.error("Force logout failed:", error);
+    } finally {
+      // Reset flag after a short delay to allow UI to settle
+      setTimeout(() => {
+        isLoggingOutRef.current = false;
+      }, 1000);
+    }
+  };
+
   const checkAuthStatus = async () => {
     try {
       setIsLoading(true);
-      const authenticated = await tokenManager.isAuthenticated();
-      setIsAuthenticated(authenticated);
 
-      if (authenticated) {
+      // Simple check: do we have tokens stored?
+      // Backend will validate token validity on first API call
+      const accessToken = await tokenManager.getAccessToken();
+      const refreshToken = await tokenManager.getRefreshToken();
+      const hasTokens = !!(accessToken || refreshToken);
+
+      setIsAuthenticated(hasTokens);
+
+      if (hasTokens) {
+        // Load cached user data (if available)
         const userData = await userManager.getUserData();
         setUser(userData);
         setShowLoginModal(false);

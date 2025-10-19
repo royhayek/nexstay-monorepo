@@ -5,6 +5,7 @@ import { StyleSheet } from "react-native-unistyles";
 import { Home, House, Building, DocumentText } from "iconsax-react-native";
 import { SelectionCard } from "./selection-card";
 import { Text } from "../atoms/text";
+import { useCatalogOptions } from "@/contexts";
 
 export interface PropertyTypeSelectorProps {
   value?: string;
@@ -12,59 +13,39 @@ export interface PropertyTypeSelectorProps {
   style?: ViewStyle;
 }
 
-const PROPERTY_TYPES = [
-  {
-    value: "apartment",
-    label: "Apartment",
-    description: "A place within a building",
-    icon: Building,
-  },
-  {
-    value: "house",
-    label: "House",
-    description: "A standalone property",
-    icon: House,
-  },
-  {
-    value: "villa",
-    label: "Villa",
-    description: "Luxury residential home",
-    icon: Home,
-  },
-  {
-    value: "condo",
-    label: "Condominium",
-    description: "Owned apartment unit",
-    icon: Building,
-  },
-  {
-    value: "studio",
-    label: "Studio",
-    description: "Open-plan living space",
-    icon: DocumentText,
-  },
-];
+// Icon mapping for property types
+const PROPERTY_TYPE_ICONS: Record<string, any> = {
+  building: Building,
+  home: Home,
+  house: House,
+  document: DocumentText,
+};
 
 export const PropertyTypeSelector: React.FC<PropertyTypeSelectorProps> = ({
   value,
   onChange,
   style,
 }) => {
+  const propertyTypes = useCatalogOptions('PropertyType');
+
   return (
     <View style={[styles.container, style]}>
-      {PROPERTY_TYPES.map((type) => {
-        const IconComponent = type.icon;
+      {propertyTypes.map((type) => {
+        const IconComponent = type.icon ? PROPERTY_TYPE_ICONS[type.icon] : null;
+
         return (
           <SelectionCard
             key={type.value}
             title={type.label}
             description={type.description}
             icon={
-              <IconComponent
-                size={ms(24)}
-                color={value === type.value ? styles.iconSelected.color : styles.icon.color}
-                variant={value === type.value ? "Bold" : "Outline"}
-              />
+              IconComponent ? (
+                <IconComponent
+                  size={ms(24)}
+                  color={value === type.value ? styles.iconSelected.color : styles.icon.color}
+                  variant={value === type.value ? "Bold" : "Outline"}
+                />
+              ) : undefined
             }
             selected={value === type.value}
             onPress={() => onChange(type.value)}
@@ -81,32 +62,16 @@ export interface RoomTypeSelectorProps {
   style?: ViewStyle;
 }
 
-const ROOM_TYPES = [
-  {
-    value: "entire_place",
-    label: "Entire place",
-    description: "Guests have the whole place to themselves",
-  },
-  {
-    value: "private_room",
-    label: "Private room",
-    description: "Guests have their own room in a shared space",
-  },
-  {
-    value: "shared_room",
-    label: "Shared room",
-    description: "Guests sleep in a room with others",
-  },
-];
-
 export const RoomTypeSelector: React.FC<RoomTypeSelectorProps> = ({
   value,
   onChange,
   style,
 }) => {
+  const roomTypes = useCatalogOptions('RoomType');
+
   return (
     <View style={[styles.container, style]}>
-      {ROOM_TYPES.map((type) => (
+      {roomTypes.map((type) => (
         <SelectionCard
           key={type.value}
           title={type.label}
@@ -125,27 +90,20 @@ export interface BedTypeSelectorProps {
   style?: ViewStyle;
 }
 
-const BED_TYPES = [
-  { value: "king", label: "King", description: "76 x 80 inches" },
-  { value: "queen", label: "Queen", description: "60 x 80 inches" },
-  { value: "double", label: "Double", description: "54 x 75 inches" },
-  { value: "single", label: "Single", description: "39 x 75 inches" },
-  { value: "sofa_bed", label: "Sofa bed", description: "Convertible furniture" },
-  { value: "bunk_bed", label: "Bunk bed", description: "Stacked beds" },
-];
-
 export const BedTypeSelector: React.FC<BedTypeSelectorProps> = ({
   value,
   onChange,
   style,
 }) => {
+  const bedTypes = useCatalogOptions('BedType');
+
   return (
     <ScrollView
       style={[styles.container, style]}
       showsVerticalScrollIndicator={false}
       nestedScrollEnabled
     >
-      {BED_TYPES.map((type) => (
+      {bedTypes.map((type) => (
         <SelectionCard
           key={type.value}
           title={type.label}

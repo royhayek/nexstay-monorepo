@@ -8,10 +8,7 @@
  * OpenAPI spec version: 1.0
  */
 import type { UpdateSavedSearchDtoFlexibleDateRange } from './updateSavedSearchDtoFlexibleDateRange';
-import type { UpdateSavedSearchDtoPropertyTypesItem } from './updateSavedSearchDtoPropertyTypesItem';
-import type { UpdateSavedSearchDtoRoomTypesItem } from './updateSavedSearchDtoRoomTypesItem';
 import type { UpdateSavedSearchDtoCategoriesItem } from './updateSavedSearchDtoCategoriesItem';
-import type { UpdateSavedSearchDtoCancellationPolicy } from './updateSavedSearchDtoCancellationPolicy';
 
 export interface UpdateSavedSearchDto {
   /**
@@ -60,10 +57,10 @@ export interface UpdateSavedSearchDto {
   checkOut?: string;
   /** Flexible date range for quick date selections */
   flexibleDateRange?: UpdateSavedSearchDtoFlexibleDateRange;
-  /** Filter by property types */
-  propertyTypes?: UpdateSavedSearchDtoPropertyTypesItem[];
-  /** Filter by room types */
-  roomTypes?: UpdateSavedSearchDtoRoomTypesItem[];
+  /** Filter by property types (validated against catalog) */
+  propertyTypes?: string[];
+  /** Filter by room types (validated against catalog) */
+  roomTypes?: string[];
   /** Filter by property categories */
   categories?: UpdateSavedSearchDtoCategoriesItem[];
   /**
@@ -127,8 +124,8 @@ export interface UpdateSavedSearchDto {
   instantBookable?: boolean;
   /** Show only superhost properties */
   isSuperhost?: boolean;
-  /** Preferred cancellation policy */
-  cancellationPolicy?: UpdateSavedSearchDtoCancellationPolicy;
+  /** Preferred cancellation policy (validated against catalog) */
+  cancellationPolicy?: string;
   /**
    * Sort properties by
    * @minLength 0

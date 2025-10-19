@@ -66,6 +66,7 @@ export interface DynamicFormSelectField extends DynamicFormFieldBase {
   options: Array<{
     value: string | number;
     label: string;
+    description?: string;
     disabled?: boolean;
   }>;
   multiple?: boolean;
@@ -74,6 +75,7 @@ export interface DynamicFormSelectField extends DynamicFormFieldBase {
   onSearch?: (searchTerm: string) => Promise<Array<{
     value: string | number;
     label: string;
+    description?: string;
     disabled?: boolean;
   }>>;
   freeSolo?: boolean;
@@ -89,6 +91,7 @@ export interface DynamicFormAutocompleteField extends DynamicFormFieldBase {
   options: Array<{
     value: string | number;
     label: string;
+    description?: string;
     disabled?: boolean;
   }>;
   multiple?: boolean;
@@ -100,6 +103,7 @@ export interface DynamicFormCheckboxField extends DynamicFormFieldBase {
   options?: Array<{
     value: string | number;
     label: string;
+    description?: string;
     disabled?: boolean;
   }>;
 }
@@ -109,6 +113,7 @@ export interface DynamicFormRadioField extends DynamicFormFieldBase {
   options: Array<{
     value: string | number;
     label: string;
+    description?: string;
     disabled?: boolean;
   }>;
   row?: boolean;
@@ -119,6 +124,7 @@ export interface DynamicFormSwitchField extends DynamicFormFieldBase {
   options?: Array<{
     value: string | number;
     label: string;
+    description?: string;
     disabled?: boolean;
   }>;
 }

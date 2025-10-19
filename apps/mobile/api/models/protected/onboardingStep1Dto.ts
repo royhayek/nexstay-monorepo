@@ -7,14 +7,12 @@
 **Raw OpenAPI:** [/api/docs-json](/api/docs-json) · [/api/docs-yaml](/api/docs-yaml)
  * OpenAPI spec version: 1.0
  */
-import type { OnboardingStep1DtoPropertyType } from './onboardingStep1DtoPropertyType';
-import type { OnboardingStep1DtoRoomType } from './onboardingStep1DtoRoomType';
 
 export interface OnboardingStep1Dto {
-  /** Property type */
-  propertyType?: OnboardingStep1DtoPropertyType;
-  /** Room type */
-  roomType?: OnboardingStep1DtoRoomType;
+  /** Property type (validated against catalog) */
+  propertyType: string;
+  /** Room type (validated against catalog) */
+  roomType: string;
   /**
    * Property name
    * @minLength 1

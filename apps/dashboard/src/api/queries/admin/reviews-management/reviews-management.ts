@@ -34,16 +34,20 @@ import type {
 import type {
   BadRequestResponseDto,
   InternalServerErrorResponseDto,
+  ManualVerificationDto,
   NotFoundResponseDto,
   ReviewAdminsPaginatedDtoResponseDto,
   ReviewDeletionDataDtoResponseDto,
   ReviewModerationDataDtoResponseDto,
   ReviewStatsDtoResponseDto,
+  ReviewVerificationDataDto,
   ReviewsAdminControllerBulkModerateReviewsBody,
   ReviewsAdminControllerGetAllReviewsParams,
   ReviewsAdminControllerGetFlaggedReviewsParams,
   ReviewsAdminControllerGetReviewStatisticsParams,
+  ReviewsAdminControllerGetReviewsRequiringReviewParams,
   ReviewsAdminControllerModerateReviewBody,
+  SentimentDto,
   TooManyRequestsResponseDto,
   UnauthorizedResponseDto
 } from '../../../models/admin';
@@ -742,4 +746,461 @@ export const useReviewsAdminControllerDeleteReview = <TError = BadRequestRespons
 
       return useMutation(mutationOptions, queryClient);
     }
+    /**
+ * Override automatic verification status. Use this to verify or unverify reviews manually.
+ * @summary Manually verify review
+ */
+export const reviewsAdminControllerManuallyVerifyReview = (
+    id: string,
+    manualVerificationDto: ManualVerificationDto,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+      
+      
+      return customInstance<ReviewVerificationDataDto>(
+      {url: `/v1/admin/reviews/${id}/verify`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: manualVerificationDto, signal
+    },
+      options);
+    }
+  
+
+
+export const getReviewsAdminControllerManuallyVerifyReviewMutationOptions = <TError = BadRequestResponseDto | UnauthorizedResponseDto | NotFoundResponseDto | TooManyRequestsResponseDto | InternalServerErrorResponseDto,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof reviewsAdminControllerManuallyVerifyReview>>, TError,{id: string;data: ManualVerificationDto}, TContext>, request?: SecondParameter<typeof customInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof reviewsAdminControllerManuallyVerifyReview>>, TError,{id: string;data: ManualVerificationDto}, TContext> => {
+
+const mutationKey = ['reviewsAdminControllerManuallyVerifyReview'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof reviewsAdminControllerManuallyVerifyReview>>, {id: string;data: ManualVerificationDto}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  reviewsAdminControllerManuallyVerifyReview(id,data,requestOptions)
+        }
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ReviewsAdminControllerManuallyVerifyReviewMutationResult = NonNullable<Awaited<ReturnType<typeof reviewsAdminControllerManuallyVerifyReview>>>
+    export type ReviewsAdminControllerManuallyVerifyReviewMutationBody = ManualVerificationDto
+    export type ReviewsAdminControllerManuallyVerifyReviewMutationError = BadRequestResponseDto | UnauthorizedResponseDto | NotFoundResponseDto | TooManyRequestsResponseDto | InternalServerErrorResponseDto
+
+    /**
+ * @summary Manually verify review
+ */
+export const useReviewsAdminControllerManuallyVerifyReview = <TError = BadRequestResponseDto | UnauthorizedResponseDto | NotFoundResponseDto | TooManyRequestsResponseDto | InternalServerErrorResponseDto,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof reviewsAdminControllerManuallyVerifyReview>>, TError,{id: string;data: ManualVerificationDto}, TContext>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof reviewsAdminControllerManuallyVerifyReview>>,
+        TError,
+        {id: string;data: ManualVerificationDto},
+        TContext
+      > => {
+
+      const mutationOptions = getReviewsAdminControllerManuallyVerifyReviewMutationOptions(options);
+
+      return useMutation(mutationOptions, queryClient);
+    }
+    /**
+ * Get reviews flagged by sentiment analysis as requiring manual moderation (negative or mixed sentiment)
+ * @summary Get reviews requiring manual review
+ */
+export const reviewsAdminControllerGetReviewsRequiringReview = (
+    params?: ReviewsAdminControllerGetReviewsRequiringReviewParams,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+      
+      
+      return customInstance<ReviewAdminsPaginatedDtoResponseDto>(
+      {url: `/v1/admin/reviews/requiring-review`, method: 'GET',
+        params, signal
+    },
+      options);
+    }
+  
+
+
+
+export const getReviewsAdminControllerGetReviewsRequiringReviewInfiniteQueryKey = (params?: ReviewsAdminControllerGetReviewsRequiringReviewParams,) => {
+    return [
+    'infinate', `/v1/admin/reviews/requiring-review`, ...(params ? [params]: [])
+    ] as const;
+    }
+
+export const getReviewsAdminControllerGetReviewsRequiringReviewQueryKey = (params?: ReviewsAdminControllerGetReviewsRequiringReviewParams,) => {
+    return [
+    `/v1/admin/reviews/requiring-review`, ...(params ? [params]: [])
+    ] as const;
+    }
+
     
+export const getReviewsAdminControllerGetReviewsRequiringReviewInfiniteQueryOptions = <TData = InfiniteData<Awaited<ReturnType<typeof reviewsAdminControllerGetReviewsRequiringReview>>>, TError = BadRequestResponseDto | UnauthorizedResponseDto | TooManyRequestsResponseDto | InternalServerErrorResponseDto>(params?: ReviewsAdminControllerGetReviewsRequiringReviewParams, options?: { query?:Partial<UseInfiniteQueryOptions<Awaited<ReturnType<typeof reviewsAdminControllerGetReviewsRequiringReview>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getReviewsAdminControllerGetReviewsRequiringReviewInfiniteQueryKey(params);
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof reviewsAdminControllerGetReviewsRequiringReview>>> = ({ signal }) => reviewsAdminControllerGetReviewsRequiringReview(params, requestOptions, signal);
+
+      
+
+      
+
+   return  { queryKey, queryFn, ...queryOptions} as UseInfiniteQueryOptions<Awaited<ReturnType<typeof reviewsAdminControllerGetReviewsRequiringReview>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ReviewsAdminControllerGetReviewsRequiringReviewInfiniteQueryResult = NonNullable<Awaited<ReturnType<typeof reviewsAdminControllerGetReviewsRequiringReview>>>
+export type ReviewsAdminControllerGetReviewsRequiringReviewInfiniteQueryError = BadRequestResponseDto | UnauthorizedResponseDto | TooManyRequestsResponseDto | InternalServerErrorResponseDto
+
+
+export function useReviewsAdminControllerGetReviewsRequiringReviewInfinite<TData = InfiniteData<Awaited<ReturnType<typeof reviewsAdminControllerGetReviewsRequiringReview>>>, TError = BadRequestResponseDto | UnauthorizedResponseDto | TooManyRequestsResponseDto | InternalServerErrorResponseDto>(
+ params: undefined |  ReviewsAdminControllerGetReviewsRequiringReviewParams, options: { query:Partial<UseInfiniteQueryOptions<Awaited<ReturnType<typeof reviewsAdminControllerGetReviewsRequiringReview>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof reviewsAdminControllerGetReviewsRequiringReview>>,
+          TError,
+          Awaited<ReturnType<typeof reviewsAdminControllerGetReviewsRequiringReview>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  DefinedUseInfiniteQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useReviewsAdminControllerGetReviewsRequiringReviewInfinite<TData = InfiniteData<Awaited<ReturnType<typeof reviewsAdminControllerGetReviewsRequiringReview>>>, TError = BadRequestResponseDto | UnauthorizedResponseDto | TooManyRequestsResponseDto | InternalServerErrorResponseDto>(
+ params?: ReviewsAdminControllerGetReviewsRequiringReviewParams, options?: { query?:Partial<UseInfiniteQueryOptions<Awaited<ReturnType<typeof reviewsAdminControllerGetReviewsRequiringReview>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof reviewsAdminControllerGetReviewsRequiringReview>>,
+          TError,
+          Awaited<ReturnType<typeof reviewsAdminControllerGetReviewsRequiringReview>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseInfiniteQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useReviewsAdminControllerGetReviewsRequiringReviewInfinite<TData = InfiniteData<Awaited<ReturnType<typeof reviewsAdminControllerGetReviewsRequiringReview>>>, TError = BadRequestResponseDto | UnauthorizedResponseDto | TooManyRequestsResponseDto | InternalServerErrorResponseDto>(
+ params?: ReviewsAdminControllerGetReviewsRequiringReviewParams, options?: { query?:Partial<UseInfiniteQueryOptions<Awaited<ReturnType<typeof reviewsAdminControllerGetReviewsRequiringReview>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseInfiniteQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Get reviews requiring manual review
+ */
+
+export function useReviewsAdminControllerGetReviewsRequiringReviewInfinite<TData = InfiniteData<Awaited<ReturnType<typeof reviewsAdminControllerGetReviewsRequiringReview>>>, TError = BadRequestResponseDto | UnauthorizedResponseDto | TooManyRequestsResponseDto | InternalServerErrorResponseDto>(
+ params?: ReviewsAdminControllerGetReviewsRequiringReviewParams, options?: { query?:Partial<UseInfiniteQueryOptions<Awaited<ReturnType<typeof reviewsAdminControllerGetReviewsRequiringReview>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient 
+ ):  UseInfiniteQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getReviewsAdminControllerGetReviewsRequiringReviewInfiniteQueryOptions(params,options)
+
+  const query = useInfiniteQuery(queryOptions, queryClient) as  UseInfiniteQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  query.queryKey = queryOptions.queryKey ;
+
+  return query;
+}
+
+
+
+export const getReviewsAdminControllerGetReviewsRequiringReviewQueryOptions = <TData = Awaited<ReturnType<typeof reviewsAdminControllerGetReviewsRequiringReview>>, TError = BadRequestResponseDto | UnauthorizedResponseDto | TooManyRequestsResponseDto | InternalServerErrorResponseDto>(params?: ReviewsAdminControllerGetReviewsRequiringReviewParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof reviewsAdminControllerGetReviewsRequiringReview>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getReviewsAdminControllerGetReviewsRequiringReviewQueryKey(params);
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof reviewsAdminControllerGetReviewsRequiringReview>>> = ({ signal }) => reviewsAdminControllerGetReviewsRequiringReview(params, requestOptions, signal);
+
+      
+
+      
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof reviewsAdminControllerGetReviewsRequiringReview>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ReviewsAdminControllerGetReviewsRequiringReviewQueryResult = NonNullable<Awaited<ReturnType<typeof reviewsAdminControllerGetReviewsRequiringReview>>>
+export type ReviewsAdminControllerGetReviewsRequiringReviewQueryError = BadRequestResponseDto | UnauthorizedResponseDto | TooManyRequestsResponseDto | InternalServerErrorResponseDto
+
+
+export function useReviewsAdminControllerGetReviewsRequiringReview<TData = Awaited<ReturnType<typeof reviewsAdminControllerGetReviewsRequiringReview>>, TError = BadRequestResponseDto | UnauthorizedResponseDto | TooManyRequestsResponseDto | InternalServerErrorResponseDto>(
+ params: undefined |  ReviewsAdminControllerGetReviewsRequiringReviewParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof reviewsAdminControllerGetReviewsRequiringReview>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof reviewsAdminControllerGetReviewsRequiringReview>>,
+          TError,
+          Awaited<ReturnType<typeof reviewsAdminControllerGetReviewsRequiringReview>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useReviewsAdminControllerGetReviewsRequiringReview<TData = Awaited<ReturnType<typeof reviewsAdminControllerGetReviewsRequiringReview>>, TError = BadRequestResponseDto | UnauthorizedResponseDto | TooManyRequestsResponseDto | InternalServerErrorResponseDto>(
+ params?: ReviewsAdminControllerGetReviewsRequiringReviewParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof reviewsAdminControllerGetReviewsRequiringReview>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof reviewsAdminControllerGetReviewsRequiringReview>>,
+          TError,
+          Awaited<ReturnType<typeof reviewsAdminControllerGetReviewsRequiringReview>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useReviewsAdminControllerGetReviewsRequiringReview<TData = Awaited<ReturnType<typeof reviewsAdminControllerGetReviewsRequiringReview>>, TError = BadRequestResponseDto | UnauthorizedResponseDto | TooManyRequestsResponseDto | InternalServerErrorResponseDto>(
+ params?: ReviewsAdminControllerGetReviewsRequiringReviewParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof reviewsAdminControllerGetReviewsRequiringReview>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Get reviews requiring manual review
+ */
+
+export function useReviewsAdminControllerGetReviewsRequiringReview<TData = Awaited<ReturnType<typeof reviewsAdminControllerGetReviewsRequiringReview>>, TError = BadRequestResponseDto | UnauthorizedResponseDto | TooManyRequestsResponseDto | InternalServerErrorResponseDto>(
+ params?: ReviewsAdminControllerGetReviewsRequiringReviewParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof reviewsAdminControllerGetReviewsRequiringReview>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient 
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getReviewsAdminControllerGetReviewsRequiringReviewQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  query.queryKey = queryOptions.queryKey ;
+
+  return query;
+}
+
+
+
+/**
+ * Trigger sentiment analysis for a specific review. Useful for re-analyzing after edits or manual review.
+ * @summary Analyze review sentiment
+ */
+export const reviewsAdminControllerAnalyzeSentiment = (
+    id: string,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+      
+      
+      return customInstance<SentimentDto>(
+      {url: `/v1/admin/reviews/${id}/analyze-sentiment`, method: 'POST', signal
+    },
+      options);
+    }
+  
+
+
+export const getReviewsAdminControllerAnalyzeSentimentMutationOptions = <TError = BadRequestResponseDto | UnauthorizedResponseDto | NotFoundResponseDto | TooManyRequestsResponseDto | InternalServerErrorResponseDto,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof reviewsAdminControllerAnalyzeSentiment>>, TError,{id: string}, TContext>, request?: SecondParameter<typeof customInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof reviewsAdminControllerAnalyzeSentiment>>, TError,{id: string}, TContext> => {
+
+const mutationKey = ['reviewsAdminControllerAnalyzeSentiment'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof reviewsAdminControllerAnalyzeSentiment>>, {id: string}> = (props) => {
+          const {id} = props ?? {};
+
+          return  reviewsAdminControllerAnalyzeSentiment(id,requestOptions)
+        }
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ReviewsAdminControllerAnalyzeSentimentMutationResult = NonNullable<Awaited<ReturnType<typeof reviewsAdminControllerAnalyzeSentiment>>>
+    
+    export type ReviewsAdminControllerAnalyzeSentimentMutationError = BadRequestResponseDto | UnauthorizedResponseDto | NotFoundResponseDto | TooManyRequestsResponseDto | InternalServerErrorResponseDto
+
+    /**
+ * @summary Analyze review sentiment
+ */
+export const useReviewsAdminControllerAnalyzeSentiment = <TError = BadRequestResponseDto | UnauthorizedResponseDto | NotFoundResponseDto | TooManyRequestsResponseDto | InternalServerErrorResponseDto,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof reviewsAdminControllerAnalyzeSentiment>>, TError,{id: string}, TContext>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof reviewsAdminControllerAnalyzeSentiment>>,
+        TError,
+        {id: string},
+        TContext
+      > => {
+
+      const mutationOptions = getReviewsAdminControllerAnalyzeSentimentMutationOptions(options);
+
+      return useMutation(mutationOptions, queryClient);
+    }
+    /**
+ * Get verification statistics for a specific property (total reviews, verified reviews, verification rate)
+ * @summary Get property verification statistics
+ */
+export const reviewsAdminControllerGetVerificationStats = (
+    propertyId: string,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+      
+      
+      return customInstance<void>(
+      {url: `/v1/admin/reviews/verification-stats/${propertyId}`, method: 'GET', signal
+    },
+      options);
+    }
+  
+
+
+
+export const getReviewsAdminControllerGetVerificationStatsInfiniteQueryKey = (propertyId?: string,) => {
+    return [
+    'infinate', `/v1/admin/reviews/verification-stats/${propertyId}`
+    ] as const;
+    }
+
+export const getReviewsAdminControllerGetVerificationStatsQueryKey = (propertyId?: string,) => {
+    return [
+    `/v1/admin/reviews/verification-stats/${propertyId}`
+    ] as const;
+    }
+
+    
+export const getReviewsAdminControllerGetVerificationStatsInfiniteQueryOptions = <TData = InfiniteData<Awaited<ReturnType<typeof reviewsAdminControllerGetVerificationStats>>>, TError = BadRequestResponseDto | UnauthorizedResponseDto | NotFoundResponseDto | TooManyRequestsResponseDto | InternalServerErrorResponseDto>(propertyId: string, options?: { query?:Partial<UseInfiniteQueryOptions<Awaited<ReturnType<typeof reviewsAdminControllerGetVerificationStats>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getReviewsAdminControllerGetVerificationStatsInfiniteQueryKey(propertyId);
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof reviewsAdminControllerGetVerificationStats>>> = ({ signal }) => reviewsAdminControllerGetVerificationStats(propertyId, requestOptions, signal);
+
+      
+
+      
+
+   return  { queryKey, queryFn, enabled: !!(propertyId), ...queryOptions} as UseInfiniteQueryOptions<Awaited<ReturnType<typeof reviewsAdminControllerGetVerificationStats>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ReviewsAdminControllerGetVerificationStatsInfiniteQueryResult = NonNullable<Awaited<ReturnType<typeof reviewsAdminControllerGetVerificationStats>>>
+export type ReviewsAdminControllerGetVerificationStatsInfiniteQueryError = BadRequestResponseDto | UnauthorizedResponseDto | NotFoundResponseDto | TooManyRequestsResponseDto | InternalServerErrorResponseDto
+
+
+export function useReviewsAdminControllerGetVerificationStatsInfinite<TData = InfiniteData<Awaited<ReturnType<typeof reviewsAdminControllerGetVerificationStats>>>, TError = BadRequestResponseDto | UnauthorizedResponseDto | NotFoundResponseDto | TooManyRequestsResponseDto | InternalServerErrorResponseDto>(
+ propertyId: string, options: { query:Partial<UseInfiniteQueryOptions<Awaited<ReturnType<typeof reviewsAdminControllerGetVerificationStats>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof reviewsAdminControllerGetVerificationStats>>,
+          TError,
+          Awaited<ReturnType<typeof reviewsAdminControllerGetVerificationStats>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  DefinedUseInfiniteQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useReviewsAdminControllerGetVerificationStatsInfinite<TData = InfiniteData<Awaited<ReturnType<typeof reviewsAdminControllerGetVerificationStats>>>, TError = BadRequestResponseDto | UnauthorizedResponseDto | NotFoundResponseDto | TooManyRequestsResponseDto | InternalServerErrorResponseDto>(
+ propertyId: string, options?: { query?:Partial<UseInfiniteQueryOptions<Awaited<ReturnType<typeof reviewsAdminControllerGetVerificationStats>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof reviewsAdminControllerGetVerificationStats>>,
+          TError,
+          Awaited<ReturnType<typeof reviewsAdminControllerGetVerificationStats>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseInfiniteQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useReviewsAdminControllerGetVerificationStatsInfinite<TData = InfiniteData<Awaited<ReturnType<typeof reviewsAdminControllerGetVerificationStats>>>, TError = BadRequestResponseDto | UnauthorizedResponseDto | NotFoundResponseDto | TooManyRequestsResponseDto | InternalServerErrorResponseDto>(
+ propertyId: string, options?: { query?:Partial<UseInfiniteQueryOptions<Awaited<ReturnType<typeof reviewsAdminControllerGetVerificationStats>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseInfiniteQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Get property verification statistics
+ */
+
+export function useReviewsAdminControllerGetVerificationStatsInfinite<TData = InfiniteData<Awaited<ReturnType<typeof reviewsAdminControllerGetVerificationStats>>>, TError = BadRequestResponseDto | UnauthorizedResponseDto | NotFoundResponseDto | TooManyRequestsResponseDto | InternalServerErrorResponseDto>(
+ propertyId: string, options?: { query?:Partial<UseInfiniteQueryOptions<Awaited<ReturnType<typeof reviewsAdminControllerGetVerificationStats>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient 
+ ):  UseInfiniteQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getReviewsAdminControllerGetVerificationStatsInfiniteQueryOptions(propertyId,options)
+
+  const query = useInfiniteQuery(queryOptions, queryClient) as  UseInfiniteQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  query.queryKey = queryOptions.queryKey ;
+
+  return query;
+}
+
+
+
+export const getReviewsAdminControllerGetVerificationStatsQueryOptions = <TData = Awaited<ReturnType<typeof reviewsAdminControllerGetVerificationStats>>, TError = BadRequestResponseDto | UnauthorizedResponseDto | NotFoundResponseDto | TooManyRequestsResponseDto | InternalServerErrorResponseDto>(propertyId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof reviewsAdminControllerGetVerificationStats>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getReviewsAdminControllerGetVerificationStatsQueryKey(propertyId);
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof reviewsAdminControllerGetVerificationStats>>> = ({ signal }) => reviewsAdminControllerGetVerificationStats(propertyId, requestOptions, signal);
+
+      
+
+      
+
+   return  { queryKey, queryFn, enabled: !!(propertyId), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof reviewsAdminControllerGetVerificationStats>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ReviewsAdminControllerGetVerificationStatsQueryResult = NonNullable<Awaited<ReturnType<typeof reviewsAdminControllerGetVerificationStats>>>
+export type ReviewsAdminControllerGetVerificationStatsQueryError = BadRequestResponseDto | UnauthorizedResponseDto | NotFoundResponseDto | TooManyRequestsResponseDto | InternalServerErrorResponseDto
+
+
+export function useReviewsAdminControllerGetVerificationStats<TData = Awaited<ReturnType<typeof reviewsAdminControllerGetVerificationStats>>, TError = BadRequestResponseDto | UnauthorizedResponseDto | NotFoundResponseDto | TooManyRequestsResponseDto | InternalServerErrorResponseDto>(
+ propertyId: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof reviewsAdminControllerGetVerificationStats>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof reviewsAdminControllerGetVerificationStats>>,
+          TError,
+          Awaited<ReturnType<typeof reviewsAdminControllerGetVerificationStats>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useReviewsAdminControllerGetVerificationStats<TData = Awaited<ReturnType<typeof reviewsAdminControllerGetVerificationStats>>, TError = BadRequestResponseDto | UnauthorizedResponseDto | NotFoundResponseDto | TooManyRequestsResponseDto | InternalServerErrorResponseDto>(
+ propertyId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof reviewsAdminControllerGetVerificationStats>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof reviewsAdminControllerGetVerificationStats>>,
+          TError,
+          Awaited<ReturnType<typeof reviewsAdminControllerGetVerificationStats>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useReviewsAdminControllerGetVerificationStats<TData = Awaited<ReturnType<typeof reviewsAdminControllerGetVerificationStats>>, TError = BadRequestResponseDto | UnauthorizedResponseDto | NotFoundResponseDto | TooManyRequestsResponseDto | InternalServerErrorResponseDto>(
+ propertyId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof reviewsAdminControllerGetVerificationStats>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Get property verification statistics
+ */
+
+export function useReviewsAdminControllerGetVerificationStats<TData = Awaited<ReturnType<typeof reviewsAdminControllerGetVerificationStats>>, TError = BadRequestResponseDto | UnauthorizedResponseDto | NotFoundResponseDto | TooManyRequestsResponseDto | InternalServerErrorResponseDto>(
+ propertyId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof reviewsAdminControllerGetVerificationStats>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient 
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getReviewsAdminControllerGetVerificationStatsQueryOptions(propertyId,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  query.queryKey = queryOptions.queryKey ;
+
+  return query;
+}
+
+
+

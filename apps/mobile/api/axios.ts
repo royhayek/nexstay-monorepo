@@ -1,6 +1,6 @@
 import axios, { AxiosError, AxiosInstance, AxiosRequestConfig, AxiosResponse } from "axios";
 import NetInfo from "@react-native-community/netinfo";
-import { tokenManager } from "../utils/auth";
+import { tokenManager, authEvents } from "../utils/auth";
 import { API_CONFIG } from "./config";
 import { handleApiError } from "./error-handler";
 
@@ -27,7 +27,6 @@ const axiosInstance: AxiosInstance = axios.create({
 // Request interceptor
 axiosInstance.interceptors.request.use(
   async (config) => {
-    console.log("[Axios] :: ", config);
     // Add auth token to requests
     const token = await tokenManager.getAccessToken();
     if (token) {
@@ -58,6 +57,9 @@ axiosInstance.interceptors.request.use(
 // Track concurrent refresh attempts
 let refreshPromise: Promise<string | null> | null = null;
 
+// Track if logout event has been emitted to prevent duplicate alerts
+let hasEmittedLogout = false;
+
 // Response interceptor
 axiosInstance.interceptors.response.use(
   (response: AxiosResponse) => {
@@ -76,6 +78,7 @@ axiosInstance.interceptors.response.use(
   async (error: AxiosError) => {
     const originalRequest = error.config as AxiosRequestConfig & { _retry?: boolean };
 
+    console.log("[Axios Error] :: ", error);
     // Handle 401 Unauthorized - attempt token refresh
     if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
@@ -116,7 +119,12 @@ axiosInstance.interceptors.response.use(
               throw new Error("Refresh function not initialized");
             }
 
+            if (__DEV__) {
+              console.log("🔄 Attempting token refresh...");
+            }
+
             // Call refresh using the generated Orval function
+            // Backend will validate refresh token and return error if expired
             const response = await authPublicControllerRefresh({
               refreshToken: refreshToken,
             });
@@ -131,16 +139,30 @@ axiosInstance.interceptors.response.use(
             await tokenManager.setTokens(accessToken, newRefreshToken);
 
             if (__DEV__) {
-              console.info("🔄 Tokens refreshed successfully");
+              console.info("✅ Tokens refreshed successfully");
             }
 
             return accessToken;
-          } catch (error) {
-            // Clear tokens on refresh failure
+          } catch (error: any) {
+            // Backend rejected refresh token (expired, revoked, or invalid)
             await tokenManager.clearTokens();
+
             if (__DEV__) {
-              console.error("🔄 Token refresh failed:", error);
+              console.error("❌ Token refresh failed:", error.message || error);
             }
+
+            // Emit logout event to notify the app that user needs to re-authenticate
+            // Only emit once to prevent duplicate alerts
+            if (!hasEmittedLogout) {
+              hasEmittedLogout = true;
+              authEvents.emit("REFRESH_FAILED");
+
+              // Reset flag after a delay
+              setTimeout(() => {
+                hasEmittedLogout = false;
+              }, 2000);
+            }
+
             throw error;
           } finally {
             refreshPromise = null; // Clear the promise
@@ -153,11 +175,23 @@ axiosInstance.interceptors.response.use(
           originalRequest.headers!.Authorization = `Bearer ${newAccessToken}`;
           return axiosInstance(originalRequest);
         }
-      } catch {
+      } catch (refreshError) {
         // Token refresh failed, error is already logged in the refresh promise
         // User will need to login again
         if (__DEV__) {
-          console.error("🔄 Token refresh failed, user needs to re-authenticate");
+          console.error("🔄 Token refresh failed, user needs to re-authenticate", refreshError);
+        }
+
+        // Emit logout event to ensure user is logged out
+        // Only emit once to prevent duplicate alerts
+        if (!hasEmittedLogout) {
+          hasEmittedLogout = true;
+          authEvents.emit("LOGOUT_REQUIRED");
+
+          // Reset flag after a delay
+          setTimeout(() => {
+            hasEmittedLogout = false;
+          }, 2000);
         }
       }
     }

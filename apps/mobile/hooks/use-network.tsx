@@ -1,5 +1,5 @@
 import NetInfo, { NetInfoState, NetInfoStateType } from "@react-native-community/netinfo";
-import React, { createContext, useContext, useEffect, useState } from "react";
+import React, { createContext, useContext, useEffect, useRef, useState, useCallback, useMemo } from "react";
 
 /**
  * Network state interface
@@ -42,10 +42,13 @@ export function NetworkProvider({ children }: { children: React.ReactNode }) {
   const [connectionType, setConnectionType] = useState<NetInfoStateType>(NetInfoStateType.unknown);
   const [isChecking, setIsChecking] = useState<boolean>(true);
 
+  // Track previous state to avoid duplicate logs
+  const prevStateRef = useRef<{ connected: boolean; type: NetInfoStateType } | null>(null);
+
   /**
    * Check if device is connected based on NetInfo state
    */
-  const isConnected = (state: NetInfoState): boolean => {
+  const isConnected = useCallback((state: NetInfoState): boolean => {
     // Check if we have internet reachability
     if (state.isInternetReachable !== null) {
       return state.isInternetReachable;
@@ -53,20 +56,27 @@ export function NetworkProvider({ children }: { children: React.ReactNode }) {
 
     // Fallback to connection status
     return state.isConnected === true;
-  };
+  }, []);
 
   /**
    * Handle network state change
    */
-  const handleNetworkChange = (state: NetInfoState) => {
+  const handleNetworkChange = useCallback((state: NetInfoState) => {
     const connected = isConnected(state);
+    const currentState = { connected, type: state.type };
+
+    // Check if state actually changed to avoid duplicate logs
+    const hasStateChanged =
+      !prevStateRef.current ||
+      prevStateRef.current.connected !== currentState.connected ||
+      prevStateRef.current.type !== currentState.type;
 
     setIsOnline(connected);
     setConnectionType(state.type);
     setIsChecking(false);
 
-    // Log network status changes in development
-    if (__DEV__) {
+    // Only log if state actually changed
+    if (__DEV__ && hasStateChanged) {
       console.log(`[Network] Status changed: ${connected ? "Online" : "Offline"} (${state.type})`);
 
       if (!connected) {
@@ -75,12 +85,15 @@ export function NetworkProvider({ children }: { children: React.ReactNode }) {
         console.info("[Network] ✅ Device is online - processing queued operations");
       }
     }
-  };
+
+    // Update previous state
+    prevStateRef.current = currentState;
+  }, [isConnected]);
 
   /**
    * Manually refresh network state
    */
-  const refresh = async (): Promise<void> => {
+  const refresh = useCallback(async (): Promise<void> => {
     try {
       setIsChecking(true);
       const state = await NetInfo.fetch();
@@ -89,7 +102,7 @@ export function NetworkProvider({ children }: { children: React.ReactNode }) {
       console.error("[Network] Error refreshing network state:", error);
       setIsChecking(false);
     }
-  };
+  }, [handleNetworkChange]);
 
   /**
    * Subscribe to network status changes on mount
@@ -105,16 +118,18 @@ export function NetworkProvider({ children }: { children: React.ReactNode }) {
     return () => {
       unsubscribe();
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [handleNetworkChange]);
 
-  const value: NetworkState = {
-    isOnline,
-    isOffline: !isOnline,
-    connectionType,
-    isChecking,
-    refresh,
-  };
+  const value: NetworkState = useMemo(
+    () => ({
+      isOnline,
+      isOffline: !isOnline,
+      connectionType,
+      isChecking,
+      refresh,
+    }),
+    [isOnline, connectionType, isChecking, refresh]
+  );
 
   return <NetworkContext.Provider value={value}>{children}</NetworkContext.Provider>;
 }

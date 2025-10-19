@@ -22,6 +22,10 @@ export * from './form-provider';
 
 export * from './rhf-text-field';
 
+export * from './rhf-icon-picker';
+
+export * from './rhf-iconsax-picker';
+
 export * from './rhf-date-picker';
 
 export * from './rhf-radio-group';

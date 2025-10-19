@@ -8,8 +8,11 @@ const workspaceRoot = path.resolve(projectRoot, "../..");
 // Get default Expo config
 const config = getDefaultConfig(projectRoot);
 
-// Monorepo setup
-config.watchFolders = [workspaceRoot];
+// Monorepo setup - Merge with default watchFolders instead of replacing
+config.watchFolders = config.watchFolders || [];
+if (!config.watchFolders.includes(workspaceRoot)) {
+  config.watchFolders.push(workspaceRoot);
+}
 config.resolver.nodeModulesPaths = [
   path.resolve(projectRoot, "node_modules"),
   path.resolve(workspaceRoot, "node_modules"),
@@ -20,5 +23,11 @@ config.resolver.disableHierarchicalLookup = false;
 
 // Explicitly set project root for proper resolution
 config.projectRoot = projectRoot;
+
+// Enable require.context for expo-router
+config.transformer = {
+  ...config.transformer,
+  unstable_allowRequireContext: true,
+};
 
 module.exports = config;

@@ -24,6 +24,7 @@ import { PropertiesModule } from '../properties/properties.module';
 import { TaxModule } from '../tax/tax.module';
 import { AccountsModule } from '../accounts/accounts.module';
 import { UsersModule } from '../users/users.module';
+import { FixBookingHostIdTypeMigration } from '../../database/migrations/fix-booking-hostid-type.migration';
 
 @Module({
   imports: [
@@ -48,6 +49,7 @@ import { UsersModule } from '../users/users.module';
     BookingSagaService,
     BookingEventsService,
     BookingAutoCancelService,
+    FixBookingHostIdTypeMigration,
   ],
   controllers: [BookingsAppController, BookingsAdminController],
   exports: [

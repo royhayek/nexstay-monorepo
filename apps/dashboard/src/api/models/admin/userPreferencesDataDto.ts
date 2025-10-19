@@ -9,6 +9,7 @@
  */
 import type { UserPreferencesDataDtoOtpNotificationMethod } from './userPreferencesDataDtoOtpNotificationMethod';
 import type { OtpMethodAvailabilityDto } from './otpMethodAvailabilityDto';
+import type { EmailNotificationsDto } from './emailNotificationsDto';
 
 export interface UserPreferencesDataDto {
   /** Preferred OTP notification method */
@@ -19,4 +20,6 @@ export interface UserPreferencesDataDto {
   language: string;
   /** User timezone */
   timezone: string;
+  /** Email notification preferences */
+  emailNotifications?: EmailNotificationsDto;
 }

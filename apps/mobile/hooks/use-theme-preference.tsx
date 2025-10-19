@@ -20,7 +20,7 @@ interface ThemePreferenceProviderProps {
 }
 
 export function ThemePreferenceProvider({ children }: ThemePreferenceProviderProps) {
-  const [themePreference, setThemePreferenceState] = useState<ThemePreference>('system');
+  const [themePreference, setThemePreferenceState] = useState<ThemePreference>('light');
   const systemTheme = useColorScheme() ?? 'light';
 
   // Load saved preference on mount

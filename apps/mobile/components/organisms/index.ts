@@ -1,8 +1,11 @@
 export { AuthModalHandler } from "./auth-modal-handler";
+export { DateRangeSelectorInline } from "./date-range-selector-inline";
 export { HapticTab } from "./haptic-tab";
 export { HomeHeader } from "./home-header";
 export { MenuSection } from "./menu-section";
 export type { MenuSectionProps } from "./menu-section";
+export { NotificationCard } from "./notification-card";
+export type { NotificationData } from "./notification-card";
 export { PropertiesCarousel } from "./properties-carousel";
 export { PropertiesList } from "./properties-list";
 export { QuickActions } from "./quick-actions";

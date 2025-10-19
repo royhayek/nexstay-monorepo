@@ -7,10 +7,6 @@
 **Raw OpenAPI:** [/api/docs-json](/api/docs-json) · [/api/docs-yaml](/api/docs-yaml)
  * OpenAPI spec version: 1.0
  */
-import type { CreatePropertyDtoPropertyType } from './createPropertyDtoPropertyType';
-import type { CreatePropertyDtoRoomType } from './createPropertyDtoRoomType';
-import type { CreatePropertyDtoBedType } from './createPropertyDtoBedType';
-import type { CreatePropertyDtoCancellationPolicy } from './createPropertyDtoCancellationPolicy';
 import type { CreatePriceInfoDto } from './createPriceInfoDto';
 import type { CreateAddressDto } from './createAddressDto';
 import type { CreateCoordinatesDto } from './createCoordinatesDto';
@@ -80,12 +76,12 @@ export interface CreatePropertyDto {
    * @maxLength 1000
    */
   houseRules?: string;
-  /** Property type */
-  propertyType?: CreatePropertyDtoPropertyType;
-  /** Room type */
-  roomType?: CreatePropertyDtoRoomType;
-  /** Bed type */
-  bedType?: CreatePropertyDtoBedType;
+  /** Property type (validated against catalog) */
+  propertyType: string;
+  /** Room type (validated against catalog) */
+  roomType: string;
+  /** Bed type (validated against catalog) */
+  bedType: string;
   /**
    * Minimum nights
    * @minimum 1
@@ -96,8 +92,8 @@ export interface CreatePropertyDto {
    * @minimum 1
    */
   maximumNights: number;
-  /** Cancellation policy */
-  cancellationPolicy?: CreatePropertyDtoCancellationPolicy;
+  /** Cancellation policy (validated against catalog) */
+  cancellationPolicy: string;
   /**
    * Number of guests accommodated
    * @minimum 1

@@ -18,7 +18,7 @@ import FormControlLabel from '@mui/material/FormControlLabel';
 import { paths } from 'src/routes/paths';
 import { useRouter } from 'src/routes/hooks';
 
-import { useEnumDisplayOptions } from 'src/hooks/use-enum-display-options';
+import { useEnumOptions } from 'src/hooks/use-enum-options';
 
 import { fData } from 'src/utils/format-number';
 
@@ -66,7 +66,7 @@ type Props = {
 };
 
 export function UserNewEditForm({ currentUser }: Props) {
-  const userRoleOptions = useEnumDisplayOptions('UserRole');
+  const userRoleOptions = useEnumOptions('UserRole');
 
   const router = useRouter();
 

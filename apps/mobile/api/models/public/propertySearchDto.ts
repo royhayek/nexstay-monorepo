@@ -8,13 +8,10 @@
  * OpenAPI spec version: 1.0
  */
 import type { PropertySearchDtoFlexibleDateRange } from './propertySearchDtoFlexibleDateRange';
-import type { PropertySearchDtoPropertyTypesItem } from './propertySearchDtoPropertyTypesItem';
-import type { PropertySearchDtoRoomTypesItem } from './propertySearchDtoRoomTypesItem';
 import type { PropertySearchDtoCategoriesItem } from './propertySearchDtoCategoriesItem';
 import type { PropertySearchDtoViewType } from './propertySearchDtoViewType';
 import type { PropertySearchDtoParkingType } from './propertySearchDtoParkingType';
 import type { PropertySearchDtoCheckInMethod } from './propertySearchDtoCheckInMethod';
-import type { PropertySearchDtoCancellationPolicy } from './propertySearchDtoCancellationPolicy';
 import type { PropertySearchDtoSortBy } from './propertySearchDtoSortBy';
 import type { PropertySearchDtoSortOrder } from './propertySearchDtoSortOrder';
 
@@ -67,10 +64,10 @@ export interface PropertySearchDto {
   checkOut?: string;
   /** Flexible date range for quick date selections */
   flexibleDateRange?: PropertySearchDtoFlexibleDateRange;
-  /** Filter by property types */
-  propertyTypes?: PropertySearchDtoPropertyTypesItem[];
-  /** Filter by room types */
-  roomTypes?: PropertySearchDtoRoomTypesItem[];
+  /** Filter by property types (validated against catalog) */
+  propertyTypes?: string[];
+  /** Filter by room types (validated against catalog) */
+  roomTypes?: string[];
   /** Filter by property categories (Beachfront, Cabins, etc.) */
   categories?: PropertySearchDtoCategoriesItem[];
   /** Filter by view type */
@@ -140,8 +137,8 @@ export interface PropertySearchDto {
   instantBookable?: boolean;
   /** Show only superhost properties */
   isSuperhost?: boolean;
-  /** Preferred cancellation policy */
-  cancellationPolicy?: PropertySearchDtoCancellationPolicy;
+  /** Preferred cancellation policy (validated against catalog) */
+  cancellationPolicy?: string;
   /** Sort properties by */
   sortBy?: PropertySearchDtoSortBy;
   /** Sort direction */

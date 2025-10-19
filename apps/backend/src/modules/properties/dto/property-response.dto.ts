@@ -5,10 +5,6 @@ import { PaginatedDto } from '../../../common/dto/paginated.dto';
 import { Type } from 'class-transformer';
 import { UserSummaryDto } from '../../users/dto/user-response.dto';
 import {
-  PropertyType,
-  RoomType,
-  BedType,
-  CancellationPolicy,
   PropertyStatus,
 } from '../../../common/enums/property.enums';
 
@@ -285,14 +281,14 @@ export class PropertyResponseDto {
   @ApiPropertyOptional({ description: 'House rules' })
   houseRules?: string;
 
-  @ApiProperty({ description: 'Property type', enum: PropertyType })
-  propertyType: PropertyType;
+  @ApiProperty({ description: 'Property type' })
+  propertyType: string;
 
-  @ApiProperty({ description: 'Room type', enum: RoomType })
-  roomType: RoomType;
+  @ApiProperty({ description: 'Room type' })
+  roomType: string;
 
-  @ApiProperty({ description: 'Bed type', enum: BedType })
-  bedType: BedType;
+  @ApiProperty({ description: 'Bed type' })
+  bedType: string;
 
   @ApiProperty({ description: 'Minimum nights' })
   minimumNights: number;
@@ -300,8 +296,8 @@ export class PropertyResponseDto {
   @ApiProperty({ description: 'Maximum nights' })
   maximumNights: number;
 
-  @ApiProperty({ description: 'Cancellation policy', enum: CancellationPolicy })
-  cancellationPolicy: CancellationPolicy;
+  @ApiProperty({ description: 'Cancellation policy' })
+  cancellationPolicy: string;
 
   @ApiProperty({ description: 'Accommodates' })
   accommodates: number;

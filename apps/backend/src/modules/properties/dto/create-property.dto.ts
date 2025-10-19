@@ -14,14 +14,8 @@ import {
   IsNameField,
   IsTextAreaField,
   IsUrlField,
-  IsEnumField,
 } from '../../../common/validators/standardized-validators';
-import {
-  PropertyType,
-  RoomType,
-  BedType,
-  CancellationPolicy,
-} from '../../../common/enums/property.enums';
+import { IsCatalogField } from '../../../common/validators/catalog.validators';
 import {
   IsGuestCountField,
   IsPriceField,
@@ -536,14 +530,14 @@ export class CreatePropertyDto {
   @IsTextAreaField({ required: false, description: 'House rules' })
   houseRules?: string;
 
-  @IsEnumField(PropertyType, { description: 'Property type' })
-  propertyType: PropertyType;
+  @IsCatalogField('PropertyType', { description: 'Property type', example: 'APARTMENT' })
+  propertyType: string;
 
-  @IsEnumField(RoomType, { description: 'Room type' })
-  roomType: RoomType;
+  @IsCatalogField('RoomType', { description: 'Room type', example: 'ENTIRE_HOME' })
+  roomType: string;
 
-  @IsEnumField(BedType, { description: 'Bed type' })
-  bedType: BedType;
+  @IsCatalogField('BedType', { description: 'Bed type', example: 'QUEEN' })
+  bedType: string;
 
   @ApiProperty({ description: 'Minimum nights', example: 1, minimum: 1 })
   @IsNumber()
@@ -555,8 +549,8 @@ export class CreatePropertyDto {
   @Min(1)
   maximumNights: number;
 
-  @IsEnumField(CancellationPolicy, { description: 'Cancellation policy' })
-  cancellationPolicy: CancellationPolicy;
+  @IsCatalogField('CancellationPolicy', { description: 'Cancellation policy', example: 'FLEXIBLE' })
+  cancellationPolicy: string;
 
   @IsGuestCountField({ description: 'Number of guests accommodated' })
   accommodates: number;

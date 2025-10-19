@@ -23,8 +23,8 @@ jest.mock('src/api/queries/admin/users-management/users-management', () => ({
   usersAdminControllerSearchHosts: jest.fn(() => Promise.resolve({ data: { users: [] } })),
 }));
 
-jest.mock('src/hooks/use-enum-display-options', () => ({
-  useEnumDisplayOptions: jest.fn(() => [
+jest.mock('src/hooks/use-enum-options', () => ({
+  useEnumOptions: jest.fn(() => [
     { value: 'all', label: 'All' },
     { value: 'test', label: 'Test' },
   ]),

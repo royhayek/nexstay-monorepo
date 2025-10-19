@@ -4,14 +4,8 @@ import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import {
   IsNameField,
   IsTextAreaField,
-  IsEnumField,
 } from '../../../common/validators/standardized-validators';
-import {
-  PropertyType,
-  RoomType,
-  BedType,
-  CancellationPolicy,
-} from '../../../common/enums/property.enums';
+import { IsCatalogField } from '../../../common/validators/catalog.validators';
 import {
   IsGuestCountField,
   IsPriceField,
@@ -32,11 +26,11 @@ import {
  * Property type, room type, name, and description
  */
 export class OnboardingStep1Dto {
-  @IsEnumField(PropertyType, { description: 'Property type', example: PropertyType.APARTMENT })
-  propertyType: PropertyType;
+  @IsCatalogField('PropertyType', { description: 'Property type', example: 'APARTMENT' })
+  propertyType: string;
 
-  @IsEnumField(RoomType, { description: 'Room type', example: RoomType.ENTIRE_HOME })
-  roomType: RoomType;
+  @IsCatalogField('RoomType', { description: 'Room type', example: 'ENTIRE_HOME' })
+  roomType: string;
 
   @IsNameField({
     required: true,
@@ -100,8 +94,8 @@ export class OnboardingStep3Dto {
   @IsGuestCountField({ description: 'Number of bathrooms' })
   bathrooms: number;
 
-  @IsEnumField(BedType, { description: 'Bed type', example: BedType.QUEEN })
-  bedType: BedType;
+  @IsCatalogField('BedType', { description: 'Bed type', example: 'QUEEN' })
+  bedType: string;
 
   @IsTextAreaField({ required: false, description: 'Space description' })
   space?: string;
@@ -169,11 +163,11 @@ export class OnboardingStep7Dto {
   @Min(1)
   maximumNights: number;
 
-  @IsEnumField(CancellationPolicy, {
+  @IsCatalogField('CancellationPolicy', {
     description: 'Cancellation policy',
-    example: CancellationPolicy.FLEXIBLE,
+    example: 'FLEXIBLE',
   })
-  cancellationPolicy: CancellationPolicy;
+  cancellationPolicy: string;
 
   @IsTextAreaField({ required: false, description: 'House rules' })
   houseRules?: string;

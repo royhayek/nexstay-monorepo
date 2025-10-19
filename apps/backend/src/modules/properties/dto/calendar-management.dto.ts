@@ -1,7 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import { IsNotEmpty, IsString, MaxLength, IsDate, IsOptional, IsArray } from 'class-validator';
-import { IsDateField } from '../../../common/validators/standardized-validators';
 import { BaseResponseDto } from '../../../common/dto/base-response.dto';
 
 /**
@@ -13,10 +12,9 @@ export class BlockDatesDto {
     example: '2024-07-01',
     type: String,
   })
-  @IsDateField({ example: '2024-07-01' })
-  @IsNotEmpty({ message: 'Start date is required' })
+  @IsNotEmpty({ message: 'validation.REQUIRED_FIELD' })
   @Type(() => Date)
-  @IsDate({ message: 'Start date must be a valid date' })
+  @IsDate({ message: 'validation.INVALID_DATE' })
   startDate!: Date;
 
   @ApiProperty({
@@ -24,10 +22,9 @@ export class BlockDatesDto {
     example: '2024-07-15',
     type: String,
   })
-  @IsDateField({ example: '2024-07-15' })
-  @IsNotEmpty({ message: 'End date is required' })
+  @IsNotEmpty({ message: 'validation.REQUIRED_FIELD' })
   @Type(() => Date)
-  @IsDate({ message: 'End date must be a valid date' })
+  @IsDate({ message: 'validation.INVALID_DATE' })
   endDate!: Date;
 
   @ApiProperty({

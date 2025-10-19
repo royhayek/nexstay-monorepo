@@ -34,12 +34,7 @@ import { TransformInterceptor } from '../src/common/interceptors/transform.inter
 import { useContainer } from 'class-validator';
 import { CreateBookingDto } from '../src/modules/bookings/dto/create-booking.dto';
 import { UpdateBookingDto } from '../src/modules/bookings/dto/update-booking.dto';
-import {
-  PropertyType,
-  RoomType,
-  BedType,
-  CancellationPolicy,
-} from '../src/common/enums/property.enums';
+// Note: Catalog types (PropertyType, RoomType, BedType, CancellationPolicy) are now strings, not enums
 import { BookingStatus, PaymentStatus } from '../src/common/enums/booking.enums';
 import { setupTestDatabase, teardownTestDatabase } from './test-db-setup';
 import { BookingListResponse } from '../src/modules/bookings/interfaces/booking-query.interfaces';
@@ -235,12 +230,12 @@ describe('BookingsController (e2e)', () => {
       summary: 'A great place for testing bookings',
       description: 'Perfect for testing booking functionality',
       owner_id: hostUserId,
-      property_type: PropertyType.APARTMENT,
-      room_type: RoomType.ENTIRE_HOME,
-      bed_type: BedType.REAL_BED,
-      minimum_nights: 1,
-      maximum_nights: 30,
-      cancellation_policy: CancellationPolicy.FLEXIBLE,
+      propertyType: 'APARTMENT',
+      roomType: 'ENTIRE_HOME',
+      bedType: 'QUEEN',
+      minimumNights: 1,
+      maximumNights: 30,
+      cancellationPolicy: 'FLEXIBLE',
       accommodates: 2,
       bedrooms: 1,
       beds: 1,

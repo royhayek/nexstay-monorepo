@@ -103,23 +103,12 @@ export const paths = {
       root: `${ROOTS.DASHBOARD}/settings`,
       configuration: `${ROOTS.DASHBOARD}/settings/configuration`,
     },
-    amenityCategories: {
-      root: `${ROOTS.DASHBOARD}/amenity-categories`,
-      list: `${ROOTS.DASHBOARD}/amenity-categories/list`,
-      new: `${ROOTS.DASHBOARD}/amenity-categories/new`,
-      edit: (id: string) => `${ROOTS.DASHBOARD}/amenity-categories/${id}/edit`,
-    },
-    enumDisplays: {
-      root: `${ROOTS.DASHBOARD}/enum-displays`,
-      list: `${ROOTS.DASHBOARD}/enum-displays/list`,
-      detail: `${ROOTS.DASHBOARD}/enum-displays/detail`,
-      new: `${ROOTS.DASHBOARD}/enum-displays/new`,
-      edit: (id: string) => `${ROOTS.DASHBOARD}/enum-displays/${id}/edit`,
-      enumType: (enumName: string) => `${ROOTS.DASHBOARD}/enum-displays/enum-type/${enumName}`,
-    },
     chat: `${ROOTS.DASHBOARD}/chat`,
     catalogs: {
       root: `${ROOTS.DASHBOARD}/catalogs`,
+      list: `${ROOTS.DASHBOARD}/catalogs/list`,
+      new: `${ROOTS.DASHBOARD}/catalogs/new`,
+      edit: (id: string) => `${ROOTS.DASHBOARD}/catalogs/${id}/edit`,
     },
     splitPayments: {
       root: `${ROOTS.DASHBOARD}/split-payments`,

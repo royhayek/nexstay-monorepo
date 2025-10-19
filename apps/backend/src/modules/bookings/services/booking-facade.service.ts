@@ -278,9 +278,13 @@ export class BookingFacadeService {
 
       const upcomingBookings = await this.bookingModel
         .find(query)
-        .populate('property', 'title address')
-        .populate('guest', 'firstName lastName')
-        .populate('host', 'firstName lastName')
+        .populate('property',
+          '_id name description propertyType roomType accommodates bedrooms beds bathrooms ' +
+          'cancellationPolicy minimumNights maximumNights address images amenities houseRules ' +
+          'reviewScores numberOfReviews rating'
+        )
+        .populate('guest', '_id firstName lastName email avatarUrl')
+        .populate('host', '_id firstName lastName email avatarUrl')
         .sort({ checkIn: 1 })
         .limit(10)
         .exec();
@@ -300,9 +304,13 @@ export class BookingFacadeService {
     try {
       const booking = await this.bookingModel
         .findOne({ confirmationCode })
-        .populate('property', 'title address')
-        .populate('guest', 'firstName lastName email phone')
-        .populate('host', 'firstName lastName email phone')
+        .populate('property',
+          '_id name description propertyType roomType accommodates bedrooms beds bathrooms ' +
+          'cancellationPolicy minimumNights maximumNights address images amenities houseRules ' +
+          'reviewScores numberOfReviews rating'
+        )
+        .populate('guest', '_id firstName lastName email phone avatarUrl')
+        .populate('host', '_id firstName lastName email phone avatarUrl')
         .exec();
 
       if (!booking) {

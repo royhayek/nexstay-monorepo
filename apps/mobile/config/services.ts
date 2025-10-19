@@ -2,7 +2,7 @@
 export const SERVICES_CONFIG = {
   // API Configuration
   API: {
-    BASE_URL: process.env.EXPO_PUBLIC_API_URL || "https://api.homestay.com/api/v1",
+    BASE_URL: process.env.EXPO_PUBLIC_API_URL || "https://api.nexstay.com/api/v1",
     TIMEOUT: parseInt(process.env.EXPO_PUBLIC_API_TIMEOUT || "30000", 10),
     VERSION: process.env.EXPO_PUBLIC_API_VERSION || "v1",
   },

@@ -13,16 +13,19 @@ import {
   validatePagination,
 } from '../constants/pagination.constants';
 import { LoggingUtil } from '../../../common/utils/logging.util';
+import { CatalogService } from '../../catalog/catalog.service';
+import { CatalogItemDocument } from '../../../database/schemas/catalog-item.schema';
 
 /**
  * Property Search Service
- * Handles advanced search, filtering, and sorting operations
+ * Handles advanced search, filtering, and sorting operations with dynamic catalog integration
  */
 @Injectable()
 export class PropertySearchService {
   constructor(
     @InjectModel(Property.name)
     private readonly propertyModel: Model<PropertyDocument>,
+    private readonly catalogService: CatalogService,
   ) {}
 
   /**
@@ -305,9 +308,7 @@ export class PropertySearchService {
 
     // If flexible date range is provided, convert it to actual dates
     if (searchDto.flexibleDateRange && !checkIn && !checkOut) {
-      const flexibleDates = FlexibleDatesUtil.convertFlexibleDateRange(
-        searchDto.flexibleDateRange,
-      );
+      const flexibleDates = FlexibleDatesUtil.convertFlexibleDateRange(searchDto.flexibleDateRange);
       checkIn = flexibleDates.checkIn.toISOString();
       checkOut = flexibleDates.checkOut.toISOString();
     }
@@ -322,6 +323,75 @@ export class PropertySearchService {
     }
 
     return query;
+  }
+
+  /**
+   * Get available search filter options from catalog
+   * Demonstrates usage of catalogService.findAllForFrontend()
+   *
+   * This method fetches dynamic catalog data for property-related filter options,
+   * which can be used by the frontend to populate search filters.
+   *
+   * @returns Object containing available filter options grouped by catalog type
+   * @example
+   * const filterOptions = await searchService.getSearchFilterOptions();
+   * // Returns:
+   * // {
+   * //   PropertyType: [{ key: 'APARTMENT', label: { en: 'Apartment', ... }, ... }],
+   * //   RoomType: [{ key: 'ENTIRE_PLACE', label: { en: 'Entire place', ... }, ... }],
+   * //   BedType: [{ key: 'QUEEN', label: { en: 'Queen', ... }, ... }],
+   * //   CancellationPolicy: [{ key: 'FLEXIBLE', label: { en: 'Flexible', ... }, ... }]
+   * // }
+   */
+  async getSearchFilterOptions(): Promise<Record<string, Partial<CatalogItemDocument>[]>> {
+    try {
+      // Fetch property-related catalog types using the catalog service
+      const catalogTypes = ['PropertyType', 'RoomType', 'BedType', 'CancellationPolicy'];
+      const filterOptions = await this.catalogService.findAllForFrontend(catalogTypes);
+
+      LoggingUtil.consoleLog(
+        `Fetched ${Object.keys(filterOptions).length} catalog types for search filters`,
+        'PropertySearchService',
+      );
+
+      return filterOptions;
+    } catch (error) {
+      LoggingUtil.errorWithException(
+        'Failed to fetch search filter options from catalog',
+        error,
+        'PropertySearchService',
+      );
+      // Return empty object on error to prevent breaking the search functionality
+      return {};
+    }
+  }
+
+  /**
+   * Search properties with filters and include available filter options
+   * This is a convenience method that combines search results with filter metadata
+   */
+  async searchWithFilterOptions(searchDto: PropertySearchDto): Promise<{
+    results: PaginatedDto<PropertyDocument>;
+    filterOptions: Record<string, Partial<CatalogItemDocument>[]>;
+  }> {
+    try {
+      const [results, filterOptions] = await Promise.all([
+        this.search(searchDto),
+        this.getSearchFilterOptions(),
+      ]);
+
+      return {
+        results,
+        filterOptions,
+      };
+    } catch (error) {
+      LoggingUtil.errorWithException(
+        'Search with filter options failed',
+        error,
+        'PropertySearchService',
+      );
+      throw new Error('INTERNAL_SERVER_ERROR');
+    }
   }
 
   /**

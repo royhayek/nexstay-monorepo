@@ -40,6 +40,7 @@ import type {
   PropertyArrayResponseDto,
   PropertyListResponseDto,
   PropertySearchDto,
+  PropertySearchWithFiltersResponseDto,
   SinglePropertyResponseDto,
   TooManyRequestsResponseDto
 } from '../../../models/public';
@@ -117,6 +118,235 @@ export const usePropertiesPublicControllerSearch = <TError = BadRequestResponseD
       return useMutation(mutationOptions, queryClient);
     }
     /**
+ * Search properties and retrieve available filter options from catalog in a single request. This endpoint demonstrates the usage of catalogService.findAllForFrontend() to dynamically fetch PropertyType, RoomType, BedType, and CancellationPolicy options from the database.
+ * @summary Search properties with filter options included
+ */
+export const propertiesPublicControllerSearchWithFilters = (
+    propertySearchDto: PropertySearchDto,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+      
+      
+      return customInstance<PropertySearchWithFiltersResponseDto>(
+      {url: `/v1/public/properties/search/with-filters`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: propertySearchDto, signal
+    },
+      options);
+    }
+  
+
+
+export const getPropertiesPublicControllerSearchWithFiltersMutationOptions = <TError = BadRequestResponseDto | TooManyRequestsResponseDto | InternalServerErrorResponseDto,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof propertiesPublicControllerSearchWithFilters>>, TError,{data: PropertySearchDto}, TContext>, request?: SecondParameter<typeof customInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof propertiesPublicControllerSearchWithFilters>>, TError,{data: PropertySearchDto}, TContext> => {
+
+const mutationKey = ['propertiesPublicControllerSearchWithFilters'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof propertiesPublicControllerSearchWithFilters>>, {data: PropertySearchDto}> = (props) => {
+          const {data} = props ?? {};
+
+          return  propertiesPublicControllerSearchWithFilters(data,requestOptions)
+        }
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type PropertiesPublicControllerSearchWithFiltersMutationResult = NonNullable<Awaited<ReturnType<typeof propertiesPublicControllerSearchWithFilters>>>
+    export type PropertiesPublicControllerSearchWithFiltersMutationBody = PropertySearchDto
+    export type PropertiesPublicControllerSearchWithFiltersMutationError = BadRequestResponseDto | TooManyRequestsResponseDto | InternalServerErrorResponseDto
+
+    /**
+ * @summary Search properties with filter options included
+ */
+export const usePropertiesPublicControllerSearchWithFilters = <TError = BadRequestResponseDto | TooManyRequestsResponseDto | InternalServerErrorResponseDto,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof propertiesPublicControllerSearchWithFilters>>, TError,{data: PropertySearchDto}, TContext>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof propertiesPublicControllerSearchWithFilters>>,
+        TError,
+        {data: PropertySearchDto},
+        TContext
+      > => {
+
+      const mutationOptions = getPropertiesPublicControllerSearchWithFiltersMutationOptions(options);
+
+      return useMutation(mutationOptions, queryClient);
+    }
+    /**
+ * Retrieve available filter options for property search from the catalog system. Returns PropertyType, RoomType, BedType, and CancellationPolicy options dynamically from the database.
+ * @summary Get available search filter options
+ */
+export const propertiesPublicControllerGetSearchFilterOptions = (
+    
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+      
+      
+      return customInstance<void>(
+      {url: `/v1/public/properties/search/filter-options`, method: 'GET', signal
+    },
+      options);
+    }
+  
+
+
+
+export const getPropertiesPublicControllerGetSearchFilterOptionsInfiniteQueryKey = () => {
+    return [
+    'infinate', `/v1/public/properties/search/filter-options`
+    ] as const;
+    }
+
+export const getPropertiesPublicControllerGetSearchFilterOptionsQueryKey = () => {
+    return [
+    `/v1/public/properties/search/filter-options`
+    ] as const;
+    }
+
+    
+export const getPropertiesPublicControllerGetSearchFilterOptionsInfiniteQueryOptions = <TData = InfiniteData<Awaited<ReturnType<typeof propertiesPublicControllerGetSearchFilterOptions>>>, TError = BadRequestResponseDto | TooManyRequestsResponseDto | InternalServerErrorResponseDto>( options?: { query?:Partial<UseInfiniteQueryOptions<Awaited<ReturnType<typeof propertiesPublicControllerGetSearchFilterOptions>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getPropertiesPublicControllerGetSearchFilterOptionsInfiniteQueryKey();
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof propertiesPublicControllerGetSearchFilterOptions>>> = ({ signal }) => propertiesPublicControllerGetSearchFilterOptions(requestOptions, signal);
+
+      
+
+      
+
+   return  { queryKey, queryFn, ...queryOptions} as UseInfiniteQueryOptions<Awaited<ReturnType<typeof propertiesPublicControllerGetSearchFilterOptions>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type PropertiesPublicControllerGetSearchFilterOptionsInfiniteQueryResult = NonNullable<Awaited<ReturnType<typeof propertiesPublicControllerGetSearchFilterOptions>>>
+export type PropertiesPublicControllerGetSearchFilterOptionsInfiniteQueryError = BadRequestResponseDto | TooManyRequestsResponseDto | InternalServerErrorResponseDto
+
+
+export function usePropertiesPublicControllerGetSearchFilterOptionsInfinite<TData = InfiniteData<Awaited<ReturnType<typeof propertiesPublicControllerGetSearchFilterOptions>>>, TError = BadRequestResponseDto | TooManyRequestsResponseDto | InternalServerErrorResponseDto>(
+  options: { query:Partial<UseInfiniteQueryOptions<Awaited<ReturnType<typeof propertiesPublicControllerGetSearchFilterOptions>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof propertiesPublicControllerGetSearchFilterOptions>>,
+          TError,
+          Awaited<ReturnType<typeof propertiesPublicControllerGetSearchFilterOptions>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  DefinedUseInfiniteQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function usePropertiesPublicControllerGetSearchFilterOptionsInfinite<TData = InfiniteData<Awaited<ReturnType<typeof propertiesPublicControllerGetSearchFilterOptions>>>, TError = BadRequestResponseDto | TooManyRequestsResponseDto | InternalServerErrorResponseDto>(
+  options?: { query?:Partial<UseInfiniteQueryOptions<Awaited<ReturnType<typeof propertiesPublicControllerGetSearchFilterOptions>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof propertiesPublicControllerGetSearchFilterOptions>>,
+          TError,
+          Awaited<ReturnType<typeof propertiesPublicControllerGetSearchFilterOptions>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseInfiniteQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function usePropertiesPublicControllerGetSearchFilterOptionsInfinite<TData = InfiniteData<Awaited<ReturnType<typeof propertiesPublicControllerGetSearchFilterOptions>>>, TError = BadRequestResponseDto | TooManyRequestsResponseDto | InternalServerErrorResponseDto>(
+  options?: { query?:Partial<UseInfiniteQueryOptions<Awaited<ReturnType<typeof propertiesPublicControllerGetSearchFilterOptions>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseInfiniteQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Get available search filter options
+ */
+
+export function usePropertiesPublicControllerGetSearchFilterOptionsInfinite<TData = InfiniteData<Awaited<ReturnType<typeof propertiesPublicControllerGetSearchFilterOptions>>>, TError = BadRequestResponseDto | TooManyRequestsResponseDto | InternalServerErrorResponseDto>(
+  options?: { query?:Partial<UseInfiniteQueryOptions<Awaited<ReturnType<typeof propertiesPublicControllerGetSearchFilterOptions>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient 
+ ):  UseInfiniteQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getPropertiesPublicControllerGetSearchFilterOptionsInfiniteQueryOptions(options)
+
+  const query = useInfiniteQuery(queryOptions, queryClient) as  UseInfiniteQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  query.queryKey = queryOptions.queryKey ;
+
+  return query;
+}
+
+
+
+export const getPropertiesPublicControllerGetSearchFilterOptionsQueryOptions = <TData = Awaited<ReturnType<typeof propertiesPublicControllerGetSearchFilterOptions>>, TError = BadRequestResponseDto | TooManyRequestsResponseDto | InternalServerErrorResponseDto>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof propertiesPublicControllerGetSearchFilterOptions>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getPropertiesPublicControllerGetSearchFilterOptionsQueryKey();
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof propertiesPublicControllerGetSearchFilterOptions>>> = ({ signal }) => propertiesPublicControllerGetSearchFilterOptions(requestOptions, signal);
+
+      
+
+      
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof propertiesPublicControllerGetSearchFilterOptions>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type PropertiesPublicControllerGetSearchFilterOptionsQueryResult = NonNullable<Awaited<ReturnType<typeof propertiesPublicControllerGetSearchFilterOptions>>>
+export type PropertiesPublicControllerGetSearchFilterOptionsQueryError = BadRequestResponseDto | TooManyRequestsResponseDto | InternalServerErrorResponseDto
+
+
+export function usePropertiesPublicControllerGetSearchFilterOptions<TData = Awaited<ReturnType<typeof propertiesPublicControllerGetSearchFilterOptions>>, TError = BadRequestResponseDto | TooManyRequestsResponseDto | InternalServerErrorResponseDto>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof propertiesPublicControllerGetSearchFilterOptions>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof propertiesPublicControllerGetSearchFilterOptions>>,
+          TError,
+          Awaited<ReturnType<typeof propertiesPublicControllerGetSearchFilterOptions>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function usePropertiesPublicControllerGetSearchFilterOptions<TData = Awaited<ReturnType<typeof propertiesPublicControllerGetSearchFilterOptions>>, TError = BadRequestResponseDto | TooManyRequestsResponseDto | InternalServerErrorResponseDto>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof propertiesPublicControllerGetSearchFilterOptions>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof propertiesPublicControllerGetSearchFilterOptions>>,
+          TError,
+          Awaited<ReturnType<typeof propertiesPublicControllerGetSearchFilterOptions>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function usePropertiesPublicControllerGetSearchFilterOptions<TData = Awaited<ReturnType<typeof propertiesPublicControllerGetSearchFilterOptions>>, TError = BadRequestResponseDto | TooManyRequestsResponseDto | InternalServerErrorResponseDto>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof propertiesPublicControllerGetSearchFilterOptions>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Get available search filter options
+ */
+
+export function usePropertiesPublicControllerGetSearchFilterOptions<TData = Awaited<ReturnType<typeof propertiesPublicControllerGetSearchFilterOptions>>, TError = BadRequestResponseDto | TooManyRequestsResponseDto | InternalServerErrorResponseDto>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof propertiesPublicControllerGetSearchFilterOptions>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient 
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getPropertiesPublicControllerGetSearchFilterOptionsQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  query.queryKey = queryOptions.queryKey ;
+
+  return query;
+}
+
+
+
+/**
  * Retrieve a paginated list of all publicly available properties with optional filters
  * @summary Get all public properties with pagination
  */

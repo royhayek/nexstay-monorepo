@@ -8,10 +8,7 @@
  * OpenAPI spec version: 1.0
  */
 import type { CreateSavedSearchDtoFlexibleDateRange } from './createSavedSearchDtoFlexibleDateRange';
-import type { CreateSavedSearchDtoPropertyTypesItem } from './createSavedSearchDtoPropertyTypesItem';
-import type { CreateSavedSearchDtoRoomTypesItem } from './createSavedSearchDtoRoomTypesItem';
 import type { CreateSavedSearchDtoCategoriesItem } from './createSavedSearchDtoCategoriesItem';
-import type { CreateSavedSearchDtoCancellationPolicy } from './createSavedSearchDtoCancellationPolicy';
 
 export interface CreateSavedSearchDto {
   /**
@@ -58,10 +55,10 @@ export interface CreateSavedSearchDto {
   checkOut?: string;
   /** Flexible date range for quick date selections */
   flexibleDateRange?: CreateSavedSearchDtoFlexibleDateRange;
-  /** Filter by property types */
-  propertyTypes?: CreateSavedSearchDtoPropertyTypesItem[];
-  /** Filter by room types */
-  roomTypes?: CreateSavedSearchDtoRoomTypesItem[];
+  /** Filter by property types (validated against catalog) */
+  propertyTypes?: string[];
+  /** Filter by room types (validated against catalog) */
+  roomTypes?: string[];
   /** Filter by property categories */
   categories?: CreateSavedSearchDtoCategoriesItem[];
   /**
@@ -125,8 +122,8 @@ export interface CreateSavedSearchDto {
   instantBookable?: boolean;
   /** Show only superhost properties */
   isSuperhost?: boolean;
-  /** Preferred cancellation policy */
-  cancellationPolicy?: CreateSavedSearchDtoCancellationPolicy;
+  /** Preferred cancellation policy (validated against catalog) */
+  cancellationPolicy?: string;
   /**
    * Sort properties by
    * @minLength 0

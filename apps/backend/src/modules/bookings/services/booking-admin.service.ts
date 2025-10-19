@@ -47,9 +47,13 @@ export class BookingAdminService {
       const [bookings, total] = await Promise.all([
         this.bookingModel
           .find(query)
-          .populate('property', 'title address')
-          .populate('guest', 'firstName lastName email')
-          .populate('host', 'firstName lastName email')
+          .populate('property',
+            '_id name description propertyType roomType accommodates bedrooms beds bathrooms ' +
+            'cancellationPolicy minimumNights maximumNights address images amenities houseRules ' +
+            'reviewScores numberOfReviews rating'
+          )
+          .populate('guest', '_id firstName lastName email avatarUrl')
+          .populate('host', '_id firstName lastName email avatarUrl')
           .sort({ createdAt: -1 })
           .skip(normalizedPagination.skip)
           .limit(normalizedPagination.limit)

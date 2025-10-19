@@ -41,6 +41,7 @@ import type {
   AdminUpdateUserDataDtoResponseDto,
   AdminUpdateUserDto,
   AdminUsersListResponseDto,
+  ApproveHostDto,
   BadRequestResponseDto,
   CreateUserDto,
   FileUploadResponseDto,
@@ -48,6 +49,7 @@ import type {
   GuestDropdownResponseDto,
   HostDropdownResponseDto,
   InternalServerErrorResponseDto,
+  RejectHostDto,
   TooManyRequestsResponseDto,
   UnauthorizedResponseDto,
   UpdatePreferencesDto,
@@ -1760,3 +1762,136 @@ export function useUsersAdminControllerSearchHosts<TData = Awaited<ReturnType<ty
 
 
 
+/**
+ * Approve a pending host application and grant the user host privileges
+ * @summary Approve host application (Admin only)
+ */
+export const usersAdminControllerApproveHostApplication = (
+    applicationId: string,
+    approveHostDto: ApproveHostDto,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+      
+      
+      return customInstance<UserResponseDto>(
+      {url: `/v1/admin/users/${applicationId}/approve-host`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: approveHostDto, signal
+    },
+      options);
+    }
+  
+
+
+export const getUsersAdminControllerApproveHostApplicationMutationOptions = <TError = BadRequestResponseDto | UnauthorizedResponseDto | ForbiddenResponseDto | TooManyRequestsResponseDto | InternalServerErrorResponseDto,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof usersAdminControllerApproveHostApplication>>, TError,{applicationId: string;data: ApproveHostDto}, TContext>, request?: SecondParameter<typeof customInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof usersAdminControllerApproveHostApplication>>, TError,{applicationId: string;data: ApproveHostDto}, TContext> => {
+
+const mutationKey = ['usersAdminControllerApproveHostApplication'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof usersAdminControllerApproveHostApplication>>, {applicationId: string;data: ApproveHostDto}> = (props) => {
+          const {applicationId,data} = props ?? {};
+
+          return  usersAdminControllerApproveHostApplication(applicationId,data,requestOptions)
+        }
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UsersAdminControllerApproveHostApplicationMutationResult = NonNullable<Awaited<ReturnType<typeof usersAdminControllerApproveHostApplication>>>
+    export type UsersAdminControllerApproveHostApplicationMutationBody = ApproveHostDto
+    export type UsersAdminControllerApproveHostApplicationMutationError = BadRequestResponseDto | UnauthorizedResponseDto | ForbiddenResponseDto | TooManyRequestsResponseDto | InternalServerErrorResponseDto
+
+    /**
+ * @summary Approve host application (Admin only)
+ */
+export const useUsersAdminControllerApproveHostApplication = <TError = BadRequestResponseDto | UnauthorizedResponseDto | ForbiddenResponseDto | TooManyRequestsResponseDto | InternalServerErrorResponseDto,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof usersAdminControllerApproveHostApplication>>, TError,{applicationId: string;data: ApproveHostDto}, TContext>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof usersAdminControllerApproveHostApplication>>,
+        TError,
+        {applicationId: string;data: ApproveHostDto},
+        TContext
+      > => {
+
+      const mutationOptions = getUsersAdminControllerApproveHostApplicationMutationOptions(options);
+
+      return useMutation(mutationOptions, queryClient);
+    }
+    /**
+ * Reject a pending host application with a reason
+ * @summary Reject host application (Admin only)
+ */
+export const usersAdminControllerRejectHostApplication = (
+    applicationId: string,
+    rejectHostDto: RejectHostDto,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+      
+      
+      return customInstance<UserResponseDto>(
+      {url: `/v1/admin/users/${applicationId}/reject-host`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: rejectHostDto, signal
+    },
+      options);
+    }
+  
+
+
+export const getUsersAdminControllerRejectHostApplicationMutationOptions = <TError = BadRequestResponseDto | UnauthorizedResponseDto | ForbiddenResponseDto | TooManyRequestsResponseDto | InternalServerErrorResponseDto,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof usersAdminControllerRejectHostApplication>>, TError,{applicationId: string;data: RejectHostDto}, TContext>, request?: SecondParameter<typeof customInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof usersAdminControllerRejectHostApplication>>, TError,{applicationId: string;data: RejectHostDto}, TContext> => {
+
+const mutationKey = ['usersAdminControllerRejectHostApplication'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof usersAdminControllerRejectHostApplication>>, {applicationId: string;data: RejectHostDto}> = (props) => {
+          const {applicationId,data} = props ?? {};
+
+          return  usersAdminControllerRejectHostApplication(applicationId,data,requestOptions)
+        }
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UsersAdminControllerRejectHostApplicationMutationResult = NonNullable<Awaited<ReturnType<typeof usersAdminControllerRejectHostApplication>>>
+    export type UsersAdminControllerRejectHostApplicationMutationBody = RejectHostDto
+    export type UsersAdminControllerRejectHostApplicationMutationError = BadRequestResponseDto | UnauthorizedResponseDto | ForbiddenResponseDto | TooManyRequestsResponseDto | InternalServerErrorResponseDto
+
+    /**
+ * @summary Reject host application (Admin only)
+ */
+export const useUsersAdminControllerRejectHostApplication = <TError = BadRequestResponseDto | UnauthorizedResponseDto | ForbiddenResponseDto | TooManyRequestsResponseDto | InternalServerErrorResponseDto,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof usersAdminControllerRejectHostApplication>>, TError,{applicationId: string;data: RejectHostDto}, TContext>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof usersAdminControllerRejectHostApplication>>,
+        TError,
+        {applicationId: string;data: RejectHostDto},
+        TContext
+      > => {
+
+      const mutationOptions = getUsersAdminControllerRejectHostApplicationMutationOptions(options);
+
+      return useMutation(mutationOptions, queryClient);
+    }
+    

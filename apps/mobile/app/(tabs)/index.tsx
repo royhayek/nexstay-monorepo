@@ -42,18 +42,15 @@ export default function HomeScreen() {
   };
 
   const handleNotificationPress = () => {
-    // Handle notification press
-    console.log("Notification pressed");
+    router.push("/notifications");
   };
 
   const handleSearchPress = () => {
-    // Handle search press
-    console.log("Search pressed");
+    router.push("/search");
   };
 
   const handleFilterPress = () => {
-    // Handle filter press
-    console.log("Filter pressed");
+    router.push("/search");
   };
 
   return (

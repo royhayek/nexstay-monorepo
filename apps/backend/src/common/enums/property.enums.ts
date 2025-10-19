@@ -1,75 +1,13 @@
-export enum PropertyType {
-  APARTMENT = 'Apartment',
-  HOUSE = 'House',
-  TOWNHOUSE = 'Townhouse',
-  CONDOMINIUM = 'Condominium',
-  VILLA = 'Villa',
-  LOFT = 'Loft',
-  CABIN = 'Cabin',
-  COTTAGE = 'Cottage',
-  BUNGALOW = 'Bungalow',
-  CASTLE = 'Castle',
-  TREEHOUSE = 'Treehouse',
-  BOAT = 'Boat',
-  CAMPER_RV = 'Camper/RV',
-  TENT = 'Tent',
-  HOTEL = 'Hotel',
-  HOSTEL = 'Hostel',
-  BED_BREAKFAST = 'Bed & Breakfast',
-  BOUTIQUE_HOTEL = 'Boutique hotel',
-  GUESTHOUSE = 'Guesthouse',
-  GUEST_SUITE = 'Guest suite',
-  SERVICED_APARTMENT = 'Serviced apartment',
-  STUDIO = 'Studio',
-  PENTHOUSE = 'Penthouse',
-  DUPLEX = 'Duplex',
-  FARMHOUSE = 'Farmhouse',
-  CHALET = 'Chalet',
-  TINY_HOUSE = 'Tiny House',
-  HOUSEBOAT = 'Houseboat',
-  RESORT = 'Resort',
-  INN = 'Inn',
-  LODGE = 'Lodge',
-  VACATION_HOME = 'Vacation Home',
-  BEACH_HOUSE = 'Beach House',
-  YURT = 'Yurt',
-  SAFARI_TENT = 'Safari Tent',
-  BARN = 'Barn',
-  OTHER = 'Other',
-}
-
-export enum RoomType {
-  ENTIRE_HOME = 'Entire home/apt',
-  PRIVATE_ROOM = 'Private room',
-  SHARED_ROOM = 'Shared room',
-  HOTEL_ROOM = 'Hotel room',
-  SHARED_SPACE = 'Shared space',
-  ENTIRE_PLACE = 'Entire place',
-}
-
-export enum BedType {
-  SINGLE = 'Single bed',
-  TWIN = 'Twin bed',
-  FULL_DOUBLE = 'Full/Double bed',
-  QUEEN = 'Queen bed',
-  KING = 'King bed',
-  SUPER_KING = 'Super King bed',
-  SOFA_BED = 'Sofa bed',
-  FUTON = 'Futon',
-  MURPHY_BED = 'Murphy bed',
-  BUNK_BED = 'Bunk bed',
-  HAMMOCK = 'Hammock',
-  FLOOR_MATTRESS = 'Floor mattress',
-}
-
-export enum CancellationPolicy {
-  FLEXIBLE = 'flexible',
-  MODERATE = 'moderate',
-  STRICT = 'strict',
-  STRICT_14_WITH_GRACE_PERIOD = 'strict_14_with_grace_period',
-  SUPER_STRICT_30 = 'super_strict_30',
-  SUPER_STRICT_60 = 'super_strict_60',
-}
+/**
+ * NOTE: PropertyType, RoomType, BedType, and CancellationPolicy have been migrated
+ * to the database-driven catalog system. These values are now managed through the
+ * catalog service and stored in the catalog_items collection.
+ *
+ * To get these values, use the CatalogService:
+ * - catalogService.findAllForFrontend(['PropertyType', 'RoomType', 'BedType', 'CancellationPolicy'])
+ *
+ * Validation is done using @IsCatalogField() decorator instead of @IsEnumField()
+ */
 
 export enum ReviewType {
   GUEST_TO_HOST = 'guest_to_host',

@@ -14,11 +14,11 @@ export const APP_CONFIG = {
   ANALYTICS_ENABLED: process.env.EXPO_PUBLIC_ENABLE_ANALYTICS === "true",
 
   // Deep Linking
-  APP_SCHEME: process.env.EXPO_PUBLIC_APP_SCHEME || "homestay",
+  APP_SCHEME: process.env.EXPO_PUBLIC_APP_SCHEME || "nexstay",
 
   // App Store/Play Store URLs
   IOS_APP_ID: "123456789", // Replace with actual App Store ID
-  ANDROID_PACKAGE_NAME: "com.homestay.app", // Replace with actual package name
+  ANDROID_PACKAGE_NAME: "com.nexstay.app", // Replace with actual package name
 } as const;
 
 // Development environment check

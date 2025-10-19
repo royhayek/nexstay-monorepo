@@ -531,7 +531,7 @@ export class PropertyManagementService {
       });
 
       // Build date filter
-      const dateFilter: Record<string, unknown> = { property: propertyId };
+      const dateFilter: Record<string, unknown> = { propertyId: new Types.ObjectId(propertyId) };
       if (startDate || endDate) {
         const checkInFilter: Record<string, Date> = {};
         if (startDate) checkInFilter.$gte = DateUtils.create(startDate);

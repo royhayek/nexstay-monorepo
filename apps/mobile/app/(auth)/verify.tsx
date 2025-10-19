@@ -175,6 +175,7 @@ export default function VerifyScreen() {
             );
           }
           router.dismissAll();
+          router.replace("/(tabs)");
         }
       } else if (params.flow === "signin" || params.flow === "device-verification") {
         // For signin flow with SMS verification or device verification after password
@@ -189,6 +190,7 @@ export default function VerifyScreen() {
 
         // Navigate back to tabs - login already handled in signinVerifyDevice
         router.dismissAll();
+        router.replace("/(tabs)");
       }
     } catch (error) {
       setIsLoading(false);

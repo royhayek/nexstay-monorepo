@@ -3,6 +3,8 @@ import { RHFRating } from './rhf-rating';
 import { RHFEditor } from './rhf-editor';
 import { RHFSlider } from './rhf-slider';
 import { RHFTextField } from './rhf-text-field';
+import { RHFIconPicker } from './rhf-icon-picker';
+import { RHFIconsaxPicker } from './rhf-iconsax-picker';
 import { RHFRadioGroup } from './rhf-radio-group';
 import { RHFPhoneInput } from './rhf-phone-input';
 import { RHFNumberInput } from './rhf-number-input';
@@ -28,6 +30,8 @@ export const Field = {
   Phone: RHFPhoneInput,
   Checkbox: RHFCheckbox,
   UploadBox: RHFUploadBox,
+  IconPicker: RHFIconPicker,
+  IconsaxPicker: RHFIconsaxPicker,
   RadioGroup: RHFRadioGroup,
   DatePicker: RHFDatePicker,
   NumberInput: RHFNumberInput,

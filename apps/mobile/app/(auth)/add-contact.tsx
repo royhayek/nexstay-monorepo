@@ -34,6 +34,7 @@ export default function AddContactScreen() {
   const handleClose = () => {
     // Skip this step and go to main app
     router.dismissAll();
+    router.replace("/(tabs)");
   };
 
   const handleSkip = () => {

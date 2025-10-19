@@ -4,17 +4,11 @@ import { ValidateNested, IsOptional, IsArray } from 'class-validator';
 import {
   IsNameField,
   IsTextAreaField,
-  IsEnumField,
   IsStringArrayField,
   IsNumberField,
   IsBooleanField,
 } from '../../../common/validators/standardized-validators';
-import {
-  PropertyType,
-  RoomType,
-  BedType,
-  CancellationPolicy,
-} from '../../../common/enums/property.enums';
+import { IsCatalogField } from '../../../common/validators/catalog.validators';
 import { IsGuestCountField } from '../validators/property.validators';
 import {
   CreatePropertyImageDto,
@@ -60,14 +54,14 @@ export class UpdatePropertyDto {
   @IsTextAreaField({ required: false, description: 'House rules' })
   houseRules?: string;
 
-  @IsEnumField(PropertyType, { required: false, description: 'Property type' })
-  propertyType?: PropertyType;
+  @IsCatalogField('PropertyType', { required: false, description: 'Property type', example: 'APARTMENT' })
+  propertyType?: string;
 
-  @IsEnumField(RoomType, { required: false, description: 'Room type' })
-  roomType?: RoomType;
+  @IsCatalogField('RoomType', { required: false, description: 'Room type', example: 'ENTIRE_HOME' })
+  roomType?: string;
 
-  @IsEnumField(BedType, { required: false, description: 'Bed type' })
-  bedType?: BedType;
+  @IsCatalogField('BedType', { required: false, description: 'Bed type', example: 'QUEEN' })
+  bedType?: string;
 
   @IsNumberField({
     required: false,
@@ -85,8 +79,8 @@ export class UpdatePropertyDto {
   })
   maximumNights?: number;
 
-  @IsEnumField(CancellationPolicy, { required: false, description: 'Cancellation policy' })
-  cancellationPolicy?: CancellationPolicy;
+  @IsCatalogField('CancellationPolicy', { required: false, description: 'Cancellation policy', example: 'FLEXIBLE' })
+  cancellationPolicy?: string;
 
   @IsGuestCountField({ required: false, description: 'Number of guests accommodated' })
   accommodates?: number;

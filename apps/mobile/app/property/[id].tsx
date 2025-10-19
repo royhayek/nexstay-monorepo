@@ -4,8 +4,9 @@ import { Button } from "@/components/atoms/button";
 import { IconButton } from "@/components/atoms/icon-button";
 import { Text } from "@/components/atoms/text";
 import { FacilityItem, LocationDisplay, RatingDisplay, SectionHeader } from "@/components/molecules";
+import { useBooking } from "@/contexts";
 import { useSharedTransition } from "@/hooks/use-shared-transition";
-import { router, useLocalSearchParams } from "expo-router";
+import { router, useLocalSearchParams, useFocusEffect } from "expo-router";
 import { Heart, Wifi } from "iconsax-react-native";
 import {
   ArrowLeftIcon,
@@ -15,7 +16,7 @@ import {
   SwimmingPoolIcon,
   WindIcon,
 } from "phosphor-react-native";
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { ActivityIndicator, Dimensions, Image, TouchableOpacity, View } from "react-native";
 import Animated, { useAnimatedStyle, useSharedValue, withTiming } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -28,6 +29,7 @@ export default function PropertyDetailsScreen() {
   const insets = useSafeAreaInsets();
   const { theme } = useUnistyles();
   const { transitionData, setTransitionData } = useSharedTransition();
+  const { updateProperty } = useBooking();
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [showFullDescription, setShowFullDescription] = useState(false);
 
@@ -67,6 +69,16 @@ export default function PropertyDetailsScreen() {
     }, 100);
   }, [imageX, imageY, imageWidth, imageHeight, imageBorderRadius, contentOpacity, transitionData]);
 
+  // Restore opacity when screen comes back into focus (e.g., returning from booking)
+  useFocusEffect(
+    useCallback(() => {
+      // Restore opacity and image position when screen is focused
+      contentOpacity.value = withTiming(1, { duration: 300 });
+      backgroundOpacity.value = withTiming(1, { duration: 300 });
+      imageX.value = withTiming(0, { duration: 300 });
+    }, [contentOpacity, backgroundOpacity, imageX])
+  );
+
   const handleBack = () => {
     contentOpacity.value = withTiming(0, { duration: 150 });
 
@@ -89,6 +101,17 @@ export default function PropertyDetailsScreen() {
       setTimeout(() => {
         router.back();
       }, 150);
+    }
+  };
+
+  const handleBookNow = () => {
+    if (property) {
+      // Update booking context with property details
+      updateProperty(property);
+
+      // Navigate directly to booking initiation screen
+      // The fullScreenModal presentation will slide up naturally
+      router.push(`/booking/initiate/${property._id}`);
     }
   };
 
@@ -316,7 +339,7 @@ export default function PropertyDetailsScreen() {
               </Text>
             </View>
           </View>
-          <Button variant="filled" size="medium">
+          <Button variant="filled" size="medium" onPress={handleBookNow}>
             Book Now
           </Button>
         </View>

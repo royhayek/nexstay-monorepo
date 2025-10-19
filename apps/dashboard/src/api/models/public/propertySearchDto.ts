@@ -7,9 +7,11 @@
 **Raw OpenAPI:** [/public/docs-json](/public/docs-json) · [/public/docs-yaml](/public/docs-yaml)
  * OpenAPI spec version: 1.0
  */
-import type { PropertySearchDtoPropertyTypesItem } from './propertySearchDtoPropertyTypesItem';
-import type { PropertySearchDtoRoomTypesItem } from './propertySearchDtoRoomTypesItem';
-import type { PropertySearchDtoCancellationPolicy } from './propertySearchDtoCancellationPolicy';
+import type { PropertySearchDtoFlexibleDateRange } from './propertySearchDtoFlexibleDateRange';
+import type { PropertySearchDtoCategoriesItem } from './propertySearchDtoCategoriesItem';
+import type { PropertySearchDtoViewType } from './propertySearchDtoViewType';
+import type { PropertySearchDtoParkingType } from './propertySearchDtoParkingType';
+import type { PropertySearchDtoCheckInMethod } from './propertySearchDtoCheckInMethod';
 import type { PropertySearchDtoSortBy } from './propertySearchDtoSortBy';
 import type { PropertySearchDtoSortOrder } from './propertySearchDtoSortOrder';
 
@@ -60,10 +62,20 @@ export interface PropertySearchDto {
   checkIn?: string;
   /** Check-out date (ISO 8601 format) */
   checkOut?: string;
-  /** Filter by property types */
-  propertyTypes?: PropertySearchDtoPropertyTypesItem[];
-  /** Filter by room types */
-  roomTypes?: PropertySearchDtoRoomTypesItem[];
+  /** Flexible date range for quick date selections */
+  flexibleDateRange?: PropertySearchDtoFlexibleDateRange;
+  /** Filter by property types (validated against catalog) */
+  propertyTypes?: string[];
+  /** Filter by room types (validated against catalog) */
+  roomTypes?: string[];
+  /** Filter by property categories (Beachfront, Cabins, etc.) */
+  categories?: PropertySearchDtoCategoriesItem[];
+  /** Filter by view type */
+  viewType?: PropertySearchDtoViewType;
+  /** Filter by parking type */
+  parkingType?: PropertySearchDtoParkingType;
+  /** Filter by check-in method */
+  checkInMethod?: PropertySearchDtoCheckInMethod;
   /**
    * Minimum price per night
    * @minimum 0
@@ -125,8 +137,8 @@ export interface PropertySearchDto {
   instantBookable?: boolean;
   /** Show only superhost properties */
   isSuperhost?: boolean;
-  /** Preferred cancellation policy */
-  cancellationPolicy?: PropertySearchDtoCancellationPolicy;
+  /** Preferred cancellation policy (validated against catalog) */
+  cancellationPolicy?: string;
   /** Sort properties by */
   sortBy?: PropertySearchDtoSortBy;
   /** Sort direction */

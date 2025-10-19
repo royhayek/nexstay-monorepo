@@ -1,7 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model, Types } from 'mongoose';
-import { buildPaginatedResult } from '../../../common/utils/database.utils';
+import { Model } from 'mongoose';
 import { PropertyCoreService } from './property-core.service';
 import { PropertySearchService } from './property-search.service';
 import { PropertyManagementService } from './property-management.service';
@@ -85,6 +84,14 @@ export class PropertiesFacadeService {
 
   async search(searchDto: PropertySearchDto) {
     return this.searchService.search(searchDto);
+  }
+
+  async searchWithFilterOptions(searchDto: PropertySearchDto) {
+    return this.searchService.searchWithFilterOptions(searchDto);
+  }
+
+  async getSearchFilterOptions() {
+    return this.searchService.getSearchFilterOptions();
   }
 
   async searchByLocation(latitude: number, longitude: number, radiusInKm?: number, limit?: number) {
@@ -228,24 +235,31 @@ export class PropertiesFacadeService {
     const page = Number(filters.page) || PAGINATION_CONSTANTS.DEFAULT_PAGE;
     const limit = Number(filters.limit) || PAGINATION_CONSTANTS.ADMIN_DEFAULT_LIMIT;
 
-    // Transform the complex filter object to match getAllForAdmin parameters
-    const result = await this.adminService.getAllForAdmin(page, limit, {
-      hostId: filters.hostId,
-      status: filters.status as PropertyStatus,
-      featured: BooleanStringUtils.parseBoolean(filters.featured),
-      verified: BooleanStringUtils.parseBoolean(filters.verified),
-    });
+    // Build PropertySearchDto with all filters
+    // Convert comma-separated strings to arrays for propertyTypes and roomTypes
+    const searchDto: PropertySearchDto = {
+      page,
+      limit,
+      search: filters.search,
+      propertyTypes: filters.type ? filters.type.split(',').map((t) => t.trim()) : undefined,
+      roomTypes: filters.roomType ? filters.roomType.split(',').map((t) => t.trim()) : undefined,
+      minPrice: filters.minPrice,
+      maxPrice: filters.maxPrice,
+      instantBookable: BooleanStringUtils.parseBoolean(filters.instantBookable),
+      isSuperhost: BooleanStringUtils.parseBoolean(filters.isSuperhost),
+    };
 
-    // Transform to pagination structure using database utils
-    const paginationResult = buildPaginatedResult(result.items, result.total, page, limit);
+    // Use search service which already handles all these filters properly
+    const result = await this.searchService.search(searchDto);
+
     return {
-      items: paginationResult.data,
-      total: paginationResult.total,
-      page: paginationResult.page,
-      limit: paginationResult.limit,
-      totalPages: paginationResult.totalPages,
-      hasNextPage: paginationResult.hasNextPage,
-      hasPrevPage: paginationResult.hasPrevPage,
+      items: result.items,
+      total: result.total,
+      page: result.page,
+      limit: result.limit,
+      totalPages: result.totalPages,
+      hasNextPage: result.hasNextPage,
+      hasPrevPage: result.hasPrevPage,
     };
   }
 

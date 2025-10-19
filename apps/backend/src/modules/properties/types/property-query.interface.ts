@@ -1,9 +1,6 @@
 import { Types } from 'mongoose';
 
 import {
-  PropertyType,
-  RoomType,
-  CancellationPolicy,
   PropertyCategory,
   ViewType,
   ParkingType,
@@ -21,8 +18,8 @@ export interface MongoQuery {
   $text?: { $search: string };
   name?: RegExp;
   _id?: { $nin: Types.ObjectId[] };
-  propertyType?: PropertyType | { $in: PropertyType[] };
-  roomType?: { $in: RoomType[] };
+  propertyType?: string | { $in: string[] };
+  roomType?: { $in: string[] };
   categories?: { $in: PropertyCategory[] };
   viewType?: ViewType;
   parkingType?: ParkingType;
@@ -40,7 +37,7 @@ export interface MongoQuery {
   amenities?: { $in: string[] };
   instantBooking?: boolean;
   isSuperhost?: boolean;
-  cancellationPolicy?: CancellationPolicy;
+  cancellationPolicy?: string;
   isActive?: boolean;
   isListed?: boolean;
   host?: Types.ObjectId;
@@ -75,8 +72,8 @@ export interface PropertySearchFilters {
     longitude: number;
     radius: number;
   };
-  propertyType?: PropertyType[];
-  roomType?: RoomType[];
+  propertyType?: string[];
+  roomType?: string[];
   categories?: PropertyCategory[];
   viewType?: ViewType;
   parkingType?: ParkingType;
@@ -91,7 +88,7 @@ export interface PropertySearchFilters {
   amenities?: string[];
   instantBook?: boolean;
   superhost?: boolean;
-  cancellationPolicy?: CancellationPolicy;
+  cancellationPolicy?: string;
   checkIn?: Date;
   checkOut?: Date;
 }

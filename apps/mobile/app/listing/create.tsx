@@ -1,7 +1,7 @@
 import { router } from "expo-router";
 import React, { useState } from "react";
 import { ScrollView, View, TouchableOpacity, Alert } from "react-native";
-import { StyleSheet, useUnistyles } from "react-native-unistyles";
+import { StyleSheet } from "react-native-unistyles";
 import * as ImagePicker from "expo-image-picker";
 import { useQueryClient } from "@tanstack/react-query";
 
@@ -18,13 +18,12 @@ import {
   ImagePickerCard,
   SelectionCard,
 } from "@/components/molecules";
-import { mvs } from "@/utils/scaling";
-import { Home2, DollarCircle, Location, DocumentText, Gallery } from "iconsax-react-native";
 import {
   usePropertiesAppControllerCreate,
   usePropertiesAppControllerUploadSinglePropertyImage,
   getPropertiesAppControllerGetMyPropertiesQueryKey,
 } from "@/api/queries/protected/properties/properties";
+import { useCatalogOptions } from "@/contexts/app-context";
 
 interface PropertyFormData {
   // Step 1: Property Type
@@ -117,26 +116,7 @@ const STEP_LABELS = [
   "Review & Publish",
 ];
 
-const CANCELLATION_POLICIES = [
-  {
-    value: "flexible",
-    label: "Flexible",
-    description: "Full refund 24 hours before check-in",
-  },
-  {
-    value: "moderate",
-    label: "Moderate",
-    description: "Full refund 5 days before check-in",
-  },
-  {
-    value: "strict",
-    label: "Strict",
-    description: "50% refund up to 7 days before check-in",
-  },
-];
-
 export default function CreateListingScreen() {
-  const { theme } = useUnistyles();
   const queryClient = useQueryClient();
   const [currentStep, setCurrentStep] = useState(1);
   const [formData, setFormData] = useState<PropertyFormData>(INITIAL_FORM_DATA);
@@ -147,6 +127,10 @@ export default function CreateListingScreen() {
   // API Hooks
   const { mutateAsync: createProperty, isPending: isSubmitting } = usePropertiesAppControllerCreate();
   const { mutateAsync: uploadImage } = usePropertiesAppControllerUploadSinglePropertyImage();
+
+  // Fetch catalog options from app context
+  const cancellationPolicyCatalog = useCatalogOptions("CancellationPolicy");
+  const amenitiesCatalog = useCatalogOptions("Amenity");
 
   const updateFormData = <K extends keyof PropertyFormData>(field: K, value: PropertyFormData[K]) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -291,41 +275,14 @@ export default function CreateListingScreen() {
     }
 
     try {
-      // Map enum values to backend expected format
-      const propertyTypeMap: Record<string, string> = {
-        apartment: "Apartment",
-        house: "House",
-        studio: "Studio",
-        villa: "Villa",
-        cabin: "Cabin",
-        cottage: "Cottage",
-      };
-
-      const roomTypeMap: Record<string, string> = {
-        entire_place: "Entire place",
-        entire_home: "Entire home/apt",
-        private_room: "Private room",
-        shared_room: "Shared room",
-        hotel_room: "Hotel room",
-      };
-
-      const bedTypeMap: Record<string, string> = {
-        single: "Single bed",
-        twin: "Twin bed",
-        full_double: "Full/Double bed",
-        queen: "Queen bed",
-        king: "King bed",
-        super_king: "Super King bed",
-        sofa_bed: "Sofa bed",
-      };
-
       // Prepare property data for API
+      // Note: Catalog keys are already in the format expected by backend
       const propertyData = {
         name: formData.name,
         description: formData.description,
-        propertyType: propertyTypeMap[formData.propertyType] || formData.propertyType,
-        roomType: roomTypeMap[formData.roomType] || formData.roomType,
-        bedType: bedTypeMap[formData.bedType] || formData.bedType,
+        propertyType: formData.propertyType,
+        roomType: formData.roomType,
+        bedType: formData.bedType,
         accommodates: formData.accommodates,
         bedrooms: formData.bedrooms,
         beds: formData.beds,
@@ -571,10 +528,19 @@ export default function CreateListingScreen() {
               description="Select all amenities available at your property"
               required
             >
-              <AmenitiesGrid
-                selectedAmenities={formData.amenities}
-                onChange={(amenities) => updateFormData("amenities", amenities)}
-              />
+              {amenitiesCatalog.length > 0 ? (
+                <AmenitiesGrid
+                  amenities={amenitiesCatalog}
+                  selectedAmenities={formData.amenities}
+                  onChange={(amenities) => updateFormData("amenities", amenities)}
+                />
+              ) : (
+                <View style={styles.loadingAmenities}>
+                  <Text variant="bodyMediumRegular" color="neutral600">
+                    Loading amenities...
+                  </Text>
+                </View>
+              )}
             </FormSection>
           </ScrollView>
         );
@@ -625,7 +591,7 @@ export default function CreateListingScreen() {
               description="Choose how flexible you want to be with cancellations"
               required
             >
-              {CANCELLATION_POLICIES.map((policy) => (
+              {cancellationPolicyCatalog.map((policy) => (
                 <SelectionCard
                   key={policy.value}
                   title={policy.label}
@@ -662,7 +628,7 @@ export default function CreateListingScreen() {
           <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
             <FormSection title="Review your listing" description="Make sure everything looks good before publishing">
               <View style={styles.reviewCard}>
-                <Text variant="bodyLargeSemiBold" color="neutral900" style={styles.reviewTitle}>
+                <Text variant="bodyLargeSemiBold" color="neutral950" style={styles.reviewTitle}>
                   {formData.name}
                 </Text>
                 <Text variant="bodySmallRegular" color="neutral700" style={styles.reviewSubtitle}>
@@ -823,5 +789,10 @@ const styles = StyleSheet.create((theme) => ({
   },
   nextButton: {
     flex: 2,
+  },
+  loadingAmenities: {
+    padding: theme.spacing.xl,
+    alignItems: "center",
+    justifyContent: "center",
   },
 }));

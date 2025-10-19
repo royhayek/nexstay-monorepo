@@ -2,7 +2,7 @@
 
 ## Overview
 
-This document outlines the business logic implementation for our Airbnb-style homestay platform based on comprehensive research of how Airbnb actually operates in 2024. This serves as the definitive reference for payment flows, escrow timing, payout schedules, and refund processing.
+This document outlines the business logic implementation for our Airbnb-style nexstay platform based on comprehensive research of how Airbnb actually operates in 2024. This serves as the definitive reference for payment flows, escrow timing, payout schedules, and refund processing.
 
 ---
 
@@ -463,7 +463,7 @@ Following the complete implementation of the accounts module, we conducted a com
 **Status**: ✅ **ACCOUNTS MODULE COMPLETE** - Core business logic fully implemented
 
 - ✅ Split-payments module removed entirely
-- ✅ All references updated to use accounts module  
+- ✅ All references updated to use accounts module
 - ✅ Configuration flags cleaned up
 - ✅ Build and deployment verified
 
@@ -478,8 +478,9 @@ Following the complete implementation of the accounts module, we conducted a com
 **🔍 Assessment Result**: **CANNOT REMOVE** - Contains critical external provider integration logic
 
 **Unique Functionality NOT in Accounts Module**:
+
 - **Payment Provider Management**: APS payment provider integration with real bank transfers
-- **Payout Method Management**: Bank account/card storage and validation  
+- **Payout Method Management**: Bank account/card storage and validation
 - **External API Integration**: Actual money movement to host bank accounts
 - **Provider Health Monitoring**: Payment provider status and failover logic
 - **Batch Processing**: Admin batch payout operations
@@ -492,6 +493,7 @@ Following the complete implementation of the accounts module, we conducted a com
 **🔍 Assessment Result**: **KEEP AND ENHANCE** - Critical for external payment processing
 
 **Unique Functionality NOT in Accounts Module**:
+
 - **Payment Provider Integration**: APS provider for actual payment processing
 - **Payment Intent Management**: External payment gateway communication
 - **Card/Bank Processing**: Real money collection from guests
@@ -506,12 +508,13 @@ Following the complete implementation of the accounts module, we conducted a com
 #### ✅ **Phase 2A: Payouts Module Refactoring** - **COMPLETED**
 
 - ✅ **Integrate** payouts external provider logic with accounts module
-- ✅ **Use accounts module** as single source of truth for balance tracking  
+- ✅ **Use accounts module** as single source of truth for balance tracking
 - ✅ **Keep** payment provider integration (APS, future providers)
 - ✅ **Maintain** payout method management and external transfers
 - ✅ **Update** APIs to read balances from accounts module
 
 **Implementation Details:**
+
 - Created `PayoutsAccountsIntegrationService` as bridge between modules
 - Updated `getEligibleEarnings()` to read from HOST_EARNINGS account instead of calculating from bookings
 - Maintained all external provider functionality while using accounts for balance tracking
@@ -520,12 +523,13 @@ Following the complete implementation of the accounts module, we conducted a com
 #### ✅ **Phase 2B: Payments Module Enhancement** - **COMPLETED**
 
 - ✅ **Enhance** PaymentAccountsIntegrationService to be primary bridge
-- ✅ **Remove** internal payment state tracking (use accounts module)  
+- ✅ **Remove** internal payment state tracking (use accounts module)
 - ✅ **Keep** external provider integration and payment processing
 - ✅ **Maintain** payment method and customer management
 - ✅ **Use accounts module** for escrow and balance management
 
 **Implementation Details:**
+
 - Enhanced `PaymentAccountsIntegrationService` as PRIMARY BRIDGE for all financial operations
 - Added `processCompletePaymentFlow()` method for end-to-end payment processing
 - Removed internal split payment processing from `PaymentsService.createTransactionRecord()`

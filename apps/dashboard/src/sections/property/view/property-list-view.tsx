@@ -18,12 +18,11 @@ import { paths } from 'src/routes/paths';
 import { useRouter } from 'src/routes/hooks';
 import { RouterLink } from 'src/routes/components';
 
-import { useEnumDisplayOptions } from 'src/hooks/use-enum-display-options';
-
 import { fCurrency } from 'src/utils/format-number';
 import { fDate, fTime } from 'src/utils/format-time';
 
 import { DashboardContent } from 'src/layouts/dashboard';
+import { useCatalogOptions } from 'src/contexts/app';
 import { usersAdminControllerSearchHosts } from 'src/api/queries/admin/users-management/users-management';
 import {
   getRoomTypeColor,
@@ -243,10 +242,9 @@ export function PropertyListView() {
   const table = useTable();
   const confirmDialog = useBoolean();
 
-  // Filter out any existing 'all' options from enum display options
-  const propertyTypeOptions = useEnumDisplayOptions('PropertyType');
-
-  const roomTypeOptions = useEnumDisplayOptions('RoomType');
+  // Get dynamic catalog options for filters
+  const propertyTypeOptions = useCatalogOptions('PropertyType');
+  const roomTypeOptions = useCatalogOptions('RoomType');
 
   // State to store fetched host options
   const [hostOptions, setHostOptions] = useState<

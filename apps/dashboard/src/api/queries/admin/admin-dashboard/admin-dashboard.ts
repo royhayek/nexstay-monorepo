@@ -32,12 +32,12 @@ import type {
 } from '@tanstack/react-query';
 
 import type {
+  AdminBookingOverviewDataResponseDto,
   AdminDashboardControllerGetDashboardParams,
   AdminDashboardControllerGetSystemHealthParams,
   BadRequestResponseDto,
   BookingAutoCancelResultDto,
   BookingAutoCancelStatsDto,
-  BookingOverviewResponseDto,
   CleanupMonitoringDto,
   DeviceCleanupResultDto,
   DeviceCleanupStatsDto,
@@ -230,7 +230,7 @@ export const adminControllerGetBookingOverview = (
 ) => {
       
       
-      return customInstance<BookingOverviewResponseDto>(
+      return customInstance<AdminBookingOverviewDataResponseDto>(
       {url: `/v1/admin/bookings/overview`, method: 'GET', signal
     },
       options);

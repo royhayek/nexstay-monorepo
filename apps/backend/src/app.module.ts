@@ -28,8 +28,7 @@ import { ReviewsModule } from './modules/reviews/reviews.module';
 import { NotificationsModule } from './modules/notifications/notifications.module';
 import { PaymentsModule } from './modules/payments/payments.module';
 import { InvoicesModule } from './modules/invoices/invoices.module';
-import { EnumDisplaysModule } from './modules/enum-displays/enum-displays.module';
-import { AmenityCategoriesModule } from './modules/amenity-categories/amenity-categories.module';
+import { CatalogModule } from './modules/catalog/catalog.module';
 import { AnalyticsModule } from './modules/analytics/analytics.module';
 import { AdminModule } from './modules/admin/admin.module';
 import { MessagingModule } from './modules/messaging/messaging.module';
@@ -40,7 +39,6 @@ import { AccountsModule } from './modules/accounts/accounts.module';
 import { MultiCurrencyModule } from './modules/multi-currency/multi-currency.module';
 import { SecurityDepositsModule } from './modules/security-deposits/security-deposits.module';
 import { BookingInstallmentsModule } from './modules/booking-installments/booking-installments.module';
-import { CatalogsModule } from './modules/catalogs/catalogs.module';
 import { SupportModule } from './modules/support/support.module';
 import { ComplianceModule } from './modules/compliance/compliance.module';
 import { ApprovalWorkflowModule } from './modules/approval-workflow/approval-workflow.module';
@@ -109,8 +107,7 @@ import { LanguageDetectionMiddleware } from './common/middleware/language-detect
     NotificationsModule,
     PaymentsModule,
     InvoicesModule,
-    EnumDisplaysModule,
-    AmenityCategoriesModule,
+    CatalogModule,
     AnalyticsModule,
     AdminModule,
     MessagingModule,
@@ -121,7 +118,6 @@ import { LanguageDetectionMiddleware } from './common/middleware/language-detect
     MultiCurrencyModule,
     SecurityDepositsModule,
     BookingInstallmentsModule,
-    CatalogsModule,
     SupportModule,
     ComplianceModule,
     ApprovalWorkflowModule,

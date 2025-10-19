@@ -1,13 +1,4 @@
-import { jwtDecode } from "jwt-decode";
 import { authStorage } from "./storage";
-
-// JWT payload interface
-interface JwtPayload {
-  exp: number;
-  iat: number;
-  sub: string;
-  [key: string]: any;
-}
 
 // Token management utilities
 export const tokenManager = {
@@ -40,37 +31,13 @@ export const tokenManager = {
   },
 
   /**
-   * Check if a token is expired
-   * @param token - JWT token to check
-   * @returns true if token is expired or invalid, false if still valid
-   */
-  isTokenExpired: (token: string): boolean => {
-    try {
-      const decoded = jwtDecode<JwtPayload>(token);
-      if (!decoded.exp) {
-        return true; // No expiration means invalid token
-      }
-      // Add 5 second buffer to account for clock skew
-      const expirationTime = decoded.exp * 1000;
-      const currentTime = Date.now();
-      return currentTime >= expirationTime - 5000;
-    } catch (error) {
-      // If token is malformed or can't be decoded, consider it expired
-      return true;
-    }
-  },
-
-  /**
-   * Check if user is authenticated (has valid, non-expired access token)
+   * Check if user is authenticated (has tokens stored)
+   * Note: Backend validates token validity - this just checks existence
    */
   isAuthenticated: async (): Promise<boolean> => {
-    const token = await authStorage.getAccessToken();
-    if (!token) {
-      return false;
-    }
-
-    // Validate token is not expired
-    return !tokenManager.isTokenExpired(token);
+    const accessToken = await authStorage.getAccessToken();
+    const refreshToken = await authStorage.getRefreshToken();
+    return !!(accessToken || refreshToken);
   },
 
   /**

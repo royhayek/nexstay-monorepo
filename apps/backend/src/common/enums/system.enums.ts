@@ -4,7 +4,6 @@
  */
 
 // Import enums from other files
-import { PropertyType, RoomType, BedType, CancellationPolicy } from './property.enums';
 import { UserStatus } from './user-status.enums';
 import { UserRole, OtpNotificationMethod } from '../../database/schemas/user.schema';
 import {
@@ -52,11 +51,8 @@ export const SYSTEM_ENUMS = {
   UserStatus,
   OtpNotificationMethod,
 
-  // Property related
-  PropertyType,
-  RoomType,
-  BedType,
-  CancellationPolicy,
+  // Property related - NOTE: PropertyType, RoomType, BedType, CancellationPolicy
+  // are now managed via the catalog system (database-driven) instead of static enums
 
   // Booking related
   BookingStatus,

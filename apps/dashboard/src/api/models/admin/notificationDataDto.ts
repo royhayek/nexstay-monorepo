@@ -48,6 +48,46 @@ export interface NotificationDataDto {
    * @maxLength 50
    */
   host_name?: string;
+  /** Property image URL */
+  property_image?: string;
+  /**
+   * Property location
+   * @minLength 1
+   * @maxLength 50
+   */
+  property_location?: string;
+  /**
+   * Property type
+   * @minLength 1
+   * @maxLength 50
+   */
+  property_type?: string;
+  /**
+   * Nightly rate
+   * @minimum 0
+   * @maximum 999999.99
+   */
+  nightly_rate?: number;
+  /** Property published date */
+  published_date?: string;
+  /** Property URL */
+  property_url?: string;
+  /** Host dashboard URL */
+  dashboard_url?: string;
+  /** Host guide URL */
+  host_guide_url?: string;
+  /** Pricing tips URL */
+  pricing_tips_url?: string;
+  /** Photos guide URL */
+  photos_guide_url?: string;
+  /** Safety guide URL */
+  safety_guide_url?: string;
+  /**
+   * Support email address
+   * @minLength 1
+   * @maxLength 50
+   */
+  support_email?: string;
   /** Check-in date */
   check_in_date?: string;
   /** Check-out date */
@@ -76,6 +116,170 @@ export interface NotificationDataDto {
    * @maximum 5
    */
   rating?: number;
+  /**
+   * Payment receipt number
+   * @minLength 1
+   * @maxLength 50
+   */
+  receipt_number?: string;
+  /** Payment date */
+  payment_date?: string;
+  /**
+   * Payment method
+   * @minLength 1
+   * @maxLength 50
+   */
+  payment_method?: string;
+  /**
+   * Transaction ID
+   * @minLength 1
+   * @maxLength 50
+   */
+  transaction_id?: string;
+  /**
+   * Price per night
+   * @minimum 0
+   * @maximum 999999.99
+   */
+  price_per_night?: number;
+  /**
+   * Number of nights
+   * @minimum 1
+   * @maximum 999999.99
+   */
+  nights?: number;
+  /**
+   * Subtotal amount
+   * @minimum 0
+   * @maximum 999999.99
+   */
+  subtotal?: number;
+  /**
+   * Service fee
+   * @minimum 0
+   * @maximum 999999.99
+   */
+  service_fee?: number;
+  /**
+   * Cleaning fee
+   * @minimum 0
+   * @maximum 999999.99
+   */
+  cleaning_fee?: number;
+  /**
+   * Taxes
+   * @minimum 0
+   * @maximum 999999.99
+   */
+  taxes?: number;
+  /** Payout ID */
+  payout_id?: string;
+  /** Payout processing date */
+  payout_date?: string;
+  /** Expected arrival date for payout */
+  expected_arrival?: string;
+  /**
+   * Transfer time description
+   * @minLength 1
+   * @maxLength 50
+   */
+  transfer_time?: string;
+  /**
+   * Payment method type
+   * @minLength 1
+   * @maxLength 50
+   */
+  payment_method_type?: string;
+  /**
+   * Payment method details
+   * @minLength 1
+   * @maxLength 50
+   */
+  payment_method_details?: string;
+  /**
+   * Gross earnings
+   * @minimum 0
+   * @maximum 999999.99
+   */
+  gross_earnings?: number;
+  /**
+   * Adjustments
+   * @minimum 0
+   * @maximum 999999.99
+   */
+  adjustments?: number;
+  /** Next payout date */
+  next_payout_date?: string;
+  /**
+   * Pending earnings
+   * @minimum 0
+   * @maximum 999999.99
+   */
+  pending_earnings?: number;
+  /** Conversation ID */
+  conversation_id?: string;
+  /**
+   * Sender name
+   * @minLength 1
+   * @maxLength 50
+   */
+  sender_name?: string;
+  /**
+   * Message preview
+   * @minLength 0
+   * @maxLength 1000
+   */
+  message_preview?: string;
+  /**
+   * Unread message count
+   * @minimum 0
+   * @maximum 999999.99
+   */
+  unread_count?: number;
+  /**
+   * Password reset token
+   * @minLength 1
+   * @maxLength 50
+   */
+  reset_token?: string;
+  /**
+   * Token expiry time description
+   * @minLength 1
+   * @maxLength 50
+   */
+  expiry_time?: string;
+  /**
+   * Request IP address
+   * @minLength 1
+   * @maxLength 50
+   */
+  ip_address?: string;
+  /**
+   * Request location
+   * @minLength 1
+   * @maxLength 50
+   */
+  location?: string;
+  /**
+   * Request device information
+   * @minLength 1
+   * @maxLength 50
+   */
+  device?: string;
+  /**
+   * User email address
+   * @minLength 1
+   * @maxLength 50
+   */
+  user_email?: string;
+  /**
+   * User name
+   * @minLength 1
+   * @maxLength 50
+   */
+  user_name?: string;
+  /** Review deadline */
+  review_deadline?: string;
   /** Additional custom data */
   custom_data?: NotificationDataDtoCustomData;
 }

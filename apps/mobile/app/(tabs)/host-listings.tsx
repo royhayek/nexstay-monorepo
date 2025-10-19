@@ -3,12 +3,18 @@ import React from "react";
 import { View, ScrollView, ActivityIndicator, TouchableOpacity, Image, Alert } from "react-native";
 import { StyleSheet, useUnistyles } from "react-native-unistyles";
 import { AddSquare, SearchNormal1, Category, Add, Edit2, Trash } from "iconsax-react-native";
+import { useQueryClient } from "@tanstack/react-query";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { Button, Text } from "@/components/atoms";
 import { TabScreenTemplate } from "@/components/templates";
 import { EmptyState } from "@/components/molecules";
 import { ms, mvs } from "@/utils/scaling";
-import { usePropertiesAppControllerGetMyProperties } from "@/api/queries/protected/properties/properties";
+import {
+  usePropertiesAppControllerGetMyProperties,
+  usePropertiesAppControllerRemove,
+  getPropertiesAppControllerGetMyPropertiesQueryKey,
+} from "@/api/queries/protected/properties/properties";
 
 /**
  * Host Listings Screen
@@ -17,6 +23,8 @@ import { usePropertiesAppControllerGetMyProperties } from "@/api/queries/protect
  */
 export default function HostListingsScreen() {
   const { theme } = useUnistyles();
+  const queryClient = useQueryClient();
+  const insets = useSafeAreaInsets();
 
   const handleCreateListing = () => {
     router.push("/listing/create");
@@ -25,32 +33,56 @@ export default function HostListingsScreen() {
   // Fetch user's listings from API
   const { data, isLoading, error, refetch } = usePropertiesAppControllerGetMyProperties();
 
+  // Delete mutation
+  const { mutateAsync: removeProperty, isPending: isDeleting } = usePropertiesAppControllerRemove({
+    mutation: {
+      onSuccess: () => {
+        // Invalidate and refetch the listings
+        queryClient.invalidateQueries({
+          queryKey: getPropertiesAppControllerGetMyPropertiesQueryKey(),
+        });
+      },
+    },
+  });
+
   const listings = data?.data?.properties || [];
 
   const handleEditListing = (listing: any, event: any) => {
     event.stopPropagation();
-    // TODO: Navigate to edit listing screen
-    Alert.alert("Coming Soon", "Edit listing feature will be available soon");
+    // Navigate to edit screen with property ID
+    router.push(`/listing/edit/${listing._id}` as any);
   };
 
   const handleRemoveListing = (listing: any, event: any) => {
     event.stopPropagation();
-    Alert.alert("Remove Listing", `Are you sure you want to remove "${listing.name}"?`, [
-      { text: "Cancel", style: "cancel" },
-      {
-        text: "Remove",
-        style: "destructive",
-        onPress: () => {
-          // TODO: Implement remove listing
-          Alert.alert("Coming Soon", "Remove listing feature will be available soon");
+
+    Alert.alert(
+      "Delete Listing",
+      `Are you sure you want to delete "${listing.name}"? This action cannot be undone.`,
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Delete",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              await removeProperty({ id: listing._id });
+              Alert.alert("Success", "Listing deleted successfully");
+            } catch (error: any) {
+              Alert.alert(
+                "Error",
+                error?.response?.data?.message || "Failed to delete listing. Please try again."
+              );
+            }
+          },
         },
-      },
-    ]);
+      ]
+    );
   };
 
   const handleListingPress = (listing: any) => {
-    // TODO: Navigate to listing details or edit screen
-    console.log("Listing pressed:", listing._id);
+    // Navigate to calendar management for now
+    router.push(`/listing/calendar/${listing._id}` as any);
   };
 
   const getStatusColor = (status: string) => {
@@ -108,22 +140,20 @@ export default function HostListingsScreen() {
   }
 
   return (
-    <TabScreenTemplate
-      title="Your listings"
-      headerRight={
-        <View style={styles.headerActions}>
-          <TouchableOpacity style={styles.headerButton}>
-            <SearchNormal1 size={ms(20)} color={theme.colors.neutral900} variant="Outline" />
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.headerButton}>
-            <Category size={ms(20)} color={theme.colors.neutral900} variant="Outline" />
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.headerButton} onPress={handleCreateListing}>
-            <Add size={ms(20)} color={theme.colors.neutral900} variant="Outline" />
-          </TouchableOpacity>
-        </View>
-      }
-    >
+    <View style={{ flex: 1 }}>
+      <TabScreenTemplate
+        title="Your listings"
+        headerRight={
+          <View style={styles.headerActions}>
+            <TouchableOpacity style={styles.headerButton}>
+              <SearchNormal1 size={ms(20)} color={theme.colors.neutral900} variant="Outline" />
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.headerButton}>
+              <Category size={ms(20)} color={theme.colors.neutral900} variant="Outline" />
+            </TouchableOpacity>
+          </View>
+        }
+      >
       <ScrollView
         style={styles.container}
         contentContainerStyle={[styles.content, { paddingBottom: mvs(120) }]}
@@ -209,6 +239,23 @@ export default function HostListingsScreen() {
         )}
       </ScrollView>
     </TabScreenTemplate>
+
+      {/* Floating Action Button - Always show when there are listings */}
+      {listings.length > 0 && (
+        <TouchableOpacity
+          style={[
+            styles.fab,
+            {
+              bottom: insets.bottom + mvs(80), // Position above tab bar
+            },
+          ]}
+          onPress={handleCreateListing}
+          activeOpacity={0.9}
+        >
+          <Add size={ms(28)} color={theme.colors.background} variant="Linear" />
+        </TouchableOpacity>
+      )}
+    </View>
   );
 }
 
@@ -329,5 +376,20 @@ const styles = StyleSheet.create((theme) => ({
   },
   listingLocation: {
     marginTop: theme.spacing.xxs,
+  },
+  fab: {
+    position: "absolute",
+    right: theme.spacing.lg,
+    width: ms(60),
+    height: ms(60),
+    borderRadius: ms(30),
+    backgroundColor: theme.colors.primary,
+    justifyContent: "center",
+    alignItems: "center",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
   },
 }));

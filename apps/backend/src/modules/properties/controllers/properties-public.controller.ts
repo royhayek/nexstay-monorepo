@@ -23,6 +23,7 @@ import {
 } from '../dto/property-response.dto';
 import { PaginatedDto } from '../../../common/dto/paginated.dto';
 import { PropertiesFacadeService } from '../services/properties-facade.service';
+import { PropertySearchWithFiltersResponseDto } from '../dto/property-search-with-filters-response.dto';
 
 /**
  * Public Controller for Properties
@@ -71,6 +72,70 @@ export class PropertiesPublicController extends BaseController {
       'Properties Search Completed',
       'Properties search completed successfully',
       'Failed to search properties',
+    );
+  }
+
+  @Post('search/with-filters')
+  @HttpCode(HttpStatus.OK)
+  @PublicEndpoint(
+    'Search properties with filter options included',
+    'Search properties and retrieve available filter options from catalog in a single request. ' +
+      'This endpoint demonstrates the usage of catalogService.findAllForFrontend() to dynamically fetch ' +
+      'PropertyType, RoomType, BedType, and CancellationPolicy options from the database.',
+    PropertySearchWithFiltersResponseDto,
+  )
+  async searchWithFilters(
+    @Body() searchDto: PropertySearchDto,
+  ): Promise<PropertySearchWithFiltersResponseDto> {
+    return this.executeWithErrorHandlingAndMessage(
+      async () => {
+        // Validate pagination parameters
+        if (searchDto.page) {
+          searchDto.page = Math.max(1, searchDto.page);
+        }
+        if (searchDto.limit) {
+          searchDto.limit = Math.min(Math.max(1, searchDto.limit), 100);
+        }
+
+        const { results, filterOptions } = await this.propertiesFacade.searchWithFilterOptions(
+          searchDto,
+        );
+
+        return {
+          results: {
+            items: results.items.map((property) => plainToInstance(PropertyResponseDto, property)),
+            total: results.total,
+            page: results.page,
+            limit: results.limit,
+            totalPages: results.totalPages,
+            hasNextPage: results.hasNextPage,
+            hasPrevPage: results.hasPrevPage,
+          },
+          filterOptions,
+        };
+      },
+      'Search properties with filter options',
+      'Search Completed with Filters',
+      'Properties search completed with available filter options',
+      'Failed to search properties with filter options',
+    );
+  }
+
+  @Get('search/filter-options')
+  @PublicEndpoint(
+    'Get available search filter options',
+    'Retrieve available filter options for property search from the catalog system. ' +
+      'Returns PropertyType, RoomType, BedType, and CancellationPolicy options dynamically from the database.',
+  )
+  async getSearchFilterOptions() {
+    return this.executeWithErrorHandlingAndMessage(
+      async () => {
+        return await this.propertiesFacade.getSearchFilterOptions();
+      },
+      'Get search filter options',
+      'Filter Options Retrieved',
+      'Search filter options retrieved successfully from catalog',
+      'Failed to retrieve search filter options',
     );
   }
 

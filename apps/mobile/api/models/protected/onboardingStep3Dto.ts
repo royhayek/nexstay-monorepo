@@ -7,7 +7,6 @@
 **Raw OpenAPI:** [/api/docs-json](/api/docs-json) · [/api/docs-yaml](/api/docs-yaml)
  * OpenAPI spec version: 1.0
  */
-import type { OnboardingStep3DtoBedType } from './onboardingStep3DtoBedType';
 
 export interface OnboardingStep3Dto {
   /**
@@ -30,8 +29,8 @@ export interface OnboardingStep3Dto {
    * @minimum 1
    */
   bathrooms?: number;
-  /** Bed type */
-  bedType?: OnboardingStep3DtoBedType;
+  /** Bed type (validated against catalog) */
+  bedType: string;
   /**
    * Space description
    * @minLength 0

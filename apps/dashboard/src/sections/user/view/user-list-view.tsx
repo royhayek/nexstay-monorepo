@@ -15,7 +15,7 @@ import Avatar from '@mui/material/Avatar';
 import { paths } from 'src/routes/paths';
 import { RouterLink } from 'src/routes/components';
 
-import { useMultipleEnumDisplayOptions } from 'src/hooks/use-enum-display-options';
+import { useMultipleEnumOptions } from 'src/hooks/use-enum-options';
 
 import { fShortenNumber } from 'src/utils/format-number';
 
@@ -209,7 +209,7 @@ interface UserTableFilter extends Record<string, unknown> {
 }
 
 export function UserListView() {
-  const enumOptions = useMultipleEnumDisplayOptions(['UserStatus', 'UserRole']);
+  const enumOptions = useMultipleEnumOptions(['UserStatus', 'UserRole']);
   const userStatusOptions = enumOptions.UserStatus;
   const userRoleOptions = enumOptions.UserRole;
 

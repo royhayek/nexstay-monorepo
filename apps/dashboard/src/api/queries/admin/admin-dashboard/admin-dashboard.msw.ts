@@ -21,9 +21,9 @@ import type {
 } from 'msw';
 
 import type {
+  AdminBookingOverviewDataResponseDto,
   BookingAutoCancelResultDto,
   BookingAutoCancelStatsDto,
-  BookingOverviewResponseDto,
   CleanupMonitoringDto,
   DeviceCleanupResultDto,
   DeviceCleanupStatsDto,
@@ -31,7 +31,7 @@ import type {
 } from '../../../models/admin';
 
 
-export const getAdminControllerGetBookingOverviewResponseMock = (overrideResponse: Partial< BookingOverviewResponseDto > = {}): BookingOverviewResponseDto => ({status: faker.helpers.arrayElement(['success','error'] as const), title: faker.string.alpha({length: {min: 10, max: 20}}), message: faker.string.alpha({length: {min: 10, max: 20}}), data: {...{totalBookings: faker.number.float({min: undefined, max: undefined, fractionDigits: 2}), activeBookings: faker.number.float({min: undefined, max: undefined, fractionDigits: 2}), completedBookings: faker.number.float({min: undefined, max: undefined, fractionDigits: 2}), cancelledBookings: faker.number.float({min: undefined, max: undefined, fractionDigits: 2}), totalRevenue: faker.number.float({min: undefined, max: undefined, fractionDigits: 2}), recentBookings: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => (faker.string.alpha({length: {min: 10, max: 20}})))},}, metadata: faker.helpers.arrayElement([{}, undefined]), ...overrideResponse})
+export const getAdminControllerGetBookingOverviewResponseMock = (overrideResponse: Partial< AdminBookingOverviewDataResponseDto > = {}): AdminBookingOverviewDataResponseDto => ({status: faker.helpers.arrayElement(['success','error'] as const), title: faker.string.alpha({length: {min: 10, max: 20}}), message: faker.string.alpha({length: {min: 10, max: 20}}), data: {...{totalBookings: faker.number.float({min: undefined, max: undefined, fractionDigits: 2}), activeBookings: faker.number.float({min: undefined, max: undefined, fractionDigits: 2}), completedBookings: faker.number.float({min: undefined, max: undefined, fractionDigits: 2}), cancelledBookings: faker.number.float({min: undefined, max: undefined, fractionDigits: 2}), totalRevenue: faker.number.float({min: undefined, max: undefined, fractionDigits: 2}), recentBookings: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => (faker.string.alpha({length: {min: 10, max: 20}})))},}, metadata: faker.helpers.arrayElement([{}, undefined]), ...overrideResponse})
 
 export const getAdminControllerGetSystemHealthResponseMock = (overrideResponse: Partial< SystemHealthDataResponseDto > = {}): SystemHealthDataResponseDto => ({status: faker.helpers.arrayElement(['success','error'] as const), title: faker.string.alpha({length: {min: 10, max: 20}}), message: faker.string.alpha({length: {min: 10, max: 20}}), data: {...{status: faker.helpers.arrayElement(['healthy','warning','error','unknown'] as const), timestamp: `${faker.date.past().toISOString().split('.')[0]}Z`, services: {...{database: faker.helpers.arrayElement(['connected','disconnected','active','inactive','unknown'] as const), redis: faker.helpers.arrayElement(['connected','disconnected','active','inactive','unknown'] as const), fileStorage: faker.helpers.arrayElement(['connected','disconnected','active','inactive','unknown'] as const), notifications: faker.helpers.arrayElement(['connected','disconnected','active','inactive','unknown'] as const), payments: faker.helpers.arrayElement(['connected','disconnected','active','inactive','unknown'] as const)},}, uptime: {...{seconds: faker.number.float({min: undefined, max: undefined, fractionDigits: 2}), formatted: faker.string.alpha({length: {min: 10, max: 20}})},}, memory: {...{used: faker.number.float({min: undefined, max: undefined, fractionDigits: 2}), total: faker.number.float({min: undefined, max: undefined, fractionDigits: 2}), external: faker.number.float({min: undefined, max: undefined, fractionDigits: 2}), rss: faker.number.float({min: undefined, max: undefined, fractionDigits: 2}), usagePercentage: faker.number.float({min: undefined, max: undefined, fractionDigits: 2})},}, error: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined])},}, metadata: faker.helpers.arrayElement([{}, undefined]), ...overrideResponse})
 
@@ -56,7 +56,7 @@ export const getAdminDashboardControllerGetDashboardMockHandler = (overrideRespo
   }, options)
 }
 
-export const getAdminControllerGetBookingOverviewMockHandler = (overrideResponse?: BookingOverviewResponseDto | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<BookingOverviewResponseDto> | BookingOverviewResponseDto), options?: RequestHandlerOptions) => {
+export const getAdminControllerGetBookingOverviewMockHandler = (overrideResponse?: AdminBookingOverviewDataResponseDto | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<AdminBookingOverviewDataResponseDto> | AdminBookingOverviewDataResponseDto), options?: RequestHandlerOptions) => {
   return http.get('*/v1/admin/bookings/overview', async (info) => {await delay(1000);
   
     return new HttpResponse(JSON.stringify(overrideResponse !== undefined

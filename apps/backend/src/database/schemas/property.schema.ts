@@ -1,10 +1,6 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Types } from 'mongoose';
 import {
-  PropertyType,
-  RoomType,
-  BedType,
-  CancellationPolicy,
   PropertyStatus,
   PropertyCategory,
   ViewType,
@@ -333,15 +329,15 @@ export class Property {
   @Prop()
   notes?: string;
 
-  // Property Type & Classification
-  @Prop({ required: true, type: String, enum: PropertyType })
-  propertyType: PropertyType;
+  // Property Type & Classification (validated against catalog items)
+  @Prop({ required: true, type: String })
+  propertyType: string;
 
-  @Prop({ required: true, type: String, enum: RoomType })
-  roomType: RoomType;
+  @Prop({ required: true, type: String })
+  roomType: string;
 
-  @Prop({ required: true, type: String, enum: BedType })
-  bedType: BedType;
+  @Prop({ required: true, type: String })
+  bedType: string;
 
   @Prop({ type: [String], enum: PropertyCategory, default: [] })
   categories: PropertyCategory[];
@@ -362,8 +358,8 @@ export class Property {
   @Prop({ required: true, min: 1, default: 30 })
   maximumNights: number;
 
-  @Prop({ required: true, type: String, enum: CancellationPolicy })
-  cancellationPolicy: CancellationPolicy;
+  @Prop({ required: true, type: String })
+  cancellationPolicy: string;
 
   // Capacity
   @Prop({ required: true, min: 1 })
@@ -584,6 +580,8 @@ PropertySchema.index({ slug: 1 }, { unique: true, sparse: true });
 PropertySchema.index({ viewType: 1 });
 PropertySchema.index({ parkingType: 1 });
 PropertySchema.index({ checkInMethod: 1 });
+// Text index for full-text search on name and description
+PropertySchema.index({ name: 'text', description: 'text', title: 'text' });
 
 // Virtual for full address
 PropertySchema.virtual('fullAddress').get(function () {

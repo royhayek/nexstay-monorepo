@@ -1,9 +1,6 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Types } from 'mongoose';
 import {
-  PropertyType,
-  RoomType,
-  CancellationPolicy,
   PropertyCategory,
   FlexibleDateRange,
 } from '../../common/enums/property.enums';
@@ -50,11 +47,11 @@ export class SavedSearch {
   @Prop({ type: String, enum: FlexibleDateRange })
   flexibleDateRange?: FlexibleDateRange;
 
-  @Prop({ type: [String], enum: PropertyType, default: [] })
-  propertyTypes?: PropertyType[];
+  @Prop({ type: [String], default: [] })
+  propertyTypes?: string[];
 
-  @Prop({ type: [String], enum: RoomType, default: [] })
-  roomTypes?: RoomType[];
+  @Prop({ type: [String], default: [] })
+  roomTypes?: string[];
 
   @Prop({ type: [String], enum: PropertyCategory, default: [] })
   categories?: PropertyCategory[];
@@ -98,8 +95,8 @@ export class SavedSearch {
   @Prop()
   isSuperhost?: boolean;
 
-  @Prop({ type: String, enum: CancellationPolicy })
-  cancellationPolicy?: CancellationPolicy;
+  @Prop({ type: String })
+  cancellationPolicy?: string;
 
   @Prop()
   sortBy?: string;

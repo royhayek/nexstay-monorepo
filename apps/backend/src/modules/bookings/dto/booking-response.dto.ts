@@ -1,7 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { BookingStatus, PaymentStatus } from '../../../common/enums/booking.enums';
 import { PayoutStatus } from '../../../common/enums/payout.enums';
-import { PropertyType, RoomType, CancellationPolicy } from '../../../common/enums/property.enums';
 import { BaseResponseDto } from '../../../common/dto/base-response.dto';
 import { PaginatedDto } from '../../../common/dto/paginated.dto';
 import { Type } from 'class-transformer';
@@ -72,11 +71,11 @@ export class PropertyInfoResponseDto {
   @ApiPropertyOptional({ description: 'Property description' })
   description?: string;
 
-  @ApiProperty({ description: 'Property type', enum: PropertyType })
-  propertyType: PropertyType;
+  @ApiProperty({ description: 'Property type' })
+  propertyType: string;
 
-  @ApiProperty({ description: 'Room type', enum: RoomType })
-  roomType: RoomType;
+  @ApiProperty({ description: 'Room type' })
+  roomType: string;
 
   @ApiProperty({ description: 'Maximum number of guests' })
   accommodates: number;
@@ -90,8 +89,8 @@ export class PropertyInfoResponseDto {
   @ApiProperty({ description: 'Number of bathrooms' })
   bathrooms: number;
 
-  @ApiProperty({ description: 'Cancellation policy', enum: CancellationPolicy })
-  cancellationPolicy: CancellationPolicy;
+  @ApiProperty({ description: 'Cancellation policy' })
+  cancellationPolicy: string;
 
   @ApiPropertyOptional({ description: 'Minimum nights stay' })
   minimumNights?: number;

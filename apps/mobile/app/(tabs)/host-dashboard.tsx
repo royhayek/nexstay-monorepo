@@ -12,7 +12,7 @@ import { useBookingsAppControllerGetHostBookings } from "@/api/queries/protected
 import { usePropertiesAppControllerGetMyProperties } from "@/api/queries/protected/properties/properties";
 import { useAccountsAppControllerGetMyAccounts } from "@/api/queries/protected/accounts/accounts";
 
-import { Calendar, Login, Logout as LogoutIcon, Home2, DollarCircle, Eye, Add } from "iconsax-react-native";
+import { Calendar, Login, Logout as LogoutIcon, Home2, DollarCircle, Eye, Add, Messages3 } from "iconsax-react-native";
 
 /**
  * Host Dashboard Screen
@@ -104,8 +104,8 @@ export default function HostDashboardScreen() {
       {
         id: "bookings",
         icon: <Calendar size={ms(20)} color={theme.colors.neutral700} variant="Outline" />,
-        label: "View Bookings",
-        onPress: () => router.push("/(tabs)/booking-history"),
+        label: "Manage Bookings",
+        onPress: () => router.push("/booking/manage" as any),
       },
       {
         id: "listings",
@@ -114,10 +114,16 @@ export default function HostDashboardScreen() {
         onPress: () => router.push("/(tabs)/host-listings"),
       },
       {
+        id: "messages",
+        icon: <Messages3 size={ms(20)} color={theme.colors.neutral700} variant="Outline" />,
+        label: "View Messages",
+        onPress: () => router.push("/(tabs)/host-messages"),
+      },
+      {
         id: "earnings",
         icon: <DollarCircle size={ms(20)} color={theme.colors.neutral700} variant="Outline" />,
         label: "View Earnings",
-        onPress: () => console.log("View Analytics - Coming Soon"),
+        onPress: () => router.push("/earnings" as any),
       },
     ],
     [theme.colors.neutral700]
@@ -149,7 +155,7 @@ export default function HostDashboardScreen() {
                   value={todaysActivity.checkIns.length}
                   label="Check-ins"
                   iconBackgroundColor={`${theme.colors.success}15`}
-                  onPress={() => router.push("/(tabs)/booking-history")}
+                  onPress={() => router.push("/booking/manage" as any)}
                   style={styles.activityCardLeft}
                 />
 
@@ -158,7 +164,7 @@ export default function HostDashboardScreen() {
                   value={todaysActivity.checkOuts.length}
                   label="Check-outs"
                   iconBackgroundColor={`${theme.colors.warning}15`}
-                  onPress={() => router.push("/(tabs)/booking-history")}
+                  onPress={() => router.push("/booking/manage" as any)}
                   style={styles.activityCardRight}
                 />
               </View>
@@ -193,7 +199,7 @@ export default function HostDashboardScreen() {
 
                 <TouchableOpacity
                   style={styles.earningsButton}
-                  onPress={() => console.log("View Earnings - Coming Soon")}
+                  onPress={() => router.push("/earnings" as any)}
                 >
                   <Text variant="bodySmallSemiBold" color="primary">
                     View Details

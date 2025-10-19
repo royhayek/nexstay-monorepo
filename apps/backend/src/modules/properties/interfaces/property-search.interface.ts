@@ -1,5 +1,3 @@
-import { PropertyType, RoomType, CancellationPolicy } from '../../../common/enums/property.enums';
-
 /**
  * Base search parameters interface
  */
@@ -28,11 +26,11 @@ export interface DateSearchParams {
 }
 
 /**
- * Property filtering parameters
+ * Property filtering parameters (now using catalog string values)
  */
 export interface PropertyFilterParams {
-  propertyTypes?: PropertyType[];
-  roomTypes?: RoomType[];
+  propertyTypes?: string[];
+  roomTypes?: string[];
   minPrice?: number;
   maxPrice?: number;
   currency?: string;
@@ -58,13 +56,13 @@ export interface AmenityFilterParams {
 }
 
 /**
- * Host and rating filtering parameters
+ * Host and rating filtering parameters (now using catalog string values)
  */
 export interface HostFilterParams {
   instantBookable?: boolean;
   isSuperhost?: boolean;
   minRating?: number;
-  cancellationPolicy?: CancellationPolicy;
+  cancellationPolicy?: string;
 }
 
 /**

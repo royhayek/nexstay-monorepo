@@ -7,10 +7,6 @@
 **Raw OpenAPI:** [/public/docs-json](/public/docs-json) · [/public/docs-yaml](/public/docs-yaml)
  * OpenAPI spec version: 1.0
  */
-import type { PropertyResponseDtoPropertyType } from './propertyResponseDtoPropertyType';
-import type { PropertyResponseDtoRoomType } from './propertyResponseDtoRoomType';
-import type { PropertyResponseDtoBedType } from './propertyResponseDtoBedType';
-import type { PropertyResponseDtoCancellationPolicy } from './propertyResponseDtoCancellationPolicy';
 import type { PriceInfoResponseDto } from './priceInfoResponseDto';
 import type { AddressResponseDto } from './addressResponseDto';
 import type { CoordinatesResponseDto } from './coordinatesResponseDto';
@@ -47,17 +43,17 @@ export interface PropertyResponseDto {
   /** House rules */
   houseRules?: string;
   /** Property type */
-  propertyType: PropertyResponseDtoPropertyType;
+  propertyType: string;
   /** Room type */
-  roomType: PropertyResponseDtoRoomType;
+  roomType: string;
   /** Bed type */
-  bedType: PropertyResponseDtoBedType;
+  bedType: string;
   /** Minimum nights */
   minimumNights: number;
   /** Maximum nights */
   maximumNights: number;
   /** Cancellation policy */
-  cancellationPolicy: PropertyResponseDtoCancellationPolicy;
+  cancellationPolicy: string;
   /** Accommodates */
   accommodates: number;
   /** Bedrooms */

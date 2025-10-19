@@ -12,10 +12,19 @@
     "test": "turbo run test",
     "mobile": "turbo run dev --filter=@nexstay/mobile",
     "dashboard": "turbo run dev --filter=@nexstay/dashboard",
-    "backend": "turbo run dev --filter=@nexstay/backend"
+    "backend": "turbo run dev --filter=@nexstay/backend",
+    "android": "expo run:android",
+    "ios": "expo run:ios"
   },
   "devDependencies": {
     "turbo": "^2.5.8"
   },
-  "packageManager": "npm@10.0.0"
+  "packageManager": "npm@10.0.0",
+  "dependencies": {
+    "@react-native-community/datetimepicker": "^8.4.5",
+    "expo": "~54.0.13",
+    "react": "19.1.0",
+    "react-native": "0.81.4"
+  },
+  "version": "1.0.0"
 }

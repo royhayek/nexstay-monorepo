@@ -9,6 +9,7 @@
     "dev": "nest start --watch",
     "seed": "ts-node src/database/seeds/index.ts",
     "migrate": "ts-node src/database/migrations/index.ts",
+    "migrate:booking-hostid": "ts-node scripts/migrate-booking-hostid.ts",
     "build": "nest build && node copy-assets.js",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "nest start",

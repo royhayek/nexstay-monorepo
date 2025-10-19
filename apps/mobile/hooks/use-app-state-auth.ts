@@ -55,28 +55,28 @@ export const useAppStateAuth = (options: UseAppStateAuthOptions = {}) => {
           lastCheckTime.current = now;
 
           try {
-            // Get current access token
+            // Simple check: do tokens exist?
+            // Backend will validate token validity when API calls are made
             const accessToken = await tokenManager.getAccessToken();
+            const refreshToken = await tokenManager.getRefreshToken();
 
-            if (accessToken) {
-              // Check if token is expired
-              const isExpired = tokenManager.isTokenExpired(accessToken);
+            if (!accessToken && !refreshToken) {
+              // No tokens found - user was logged out
+              console.info("[Auth] No tokens found on app resume");
 
-              if (isExpired) {
-                console.info("[Auth] Token expired on app resume, clearing auth state");
+              // Clear any stale user data
+              await userManager.clearUserData();
 
-                // Clear tokens and user data
-                await tokenManager.clearTokens();
-                await userManager.clearUserData();
-
-                // Notify caller that token expired
-                onTokenExpired?.();
-              } else {
-                console.log("[Auth] Token still valid on app resume");
+              // Notify caller that user needs to login
+              onTokenExpired?.();
+            } else {
+              // Tokens exist - backend will validate on next API call
+              if (__DEV__) {
+                console.log("[Auth] Tokens found on app resume");
               }
             }
           } catch (error) {
-            console.error("[Auth] Error validating token on app resume:", error);
+            console.error("[Auth] Error checking tokens on app resume:", error);
           }
         }
       }

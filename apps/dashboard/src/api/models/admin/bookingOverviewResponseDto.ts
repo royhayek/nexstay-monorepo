@@ -8,7 +8,7 @@
  * OpenAPI spec version: 1.0
  */
 import type { BookingOverviewResponseDtoStatus } from './bookingOverviewResponseDtoStatus';
-import type { BookingOverviewDataDto } from './bookingOverviewDataDto';
+import type { BookingOverviewDto } from './bookingOverviewDto';
 import type { BookingOverviewResponseDtoMetadata } from './bookingOverviewResponseDtoMetadata';
 
 export interface BookingOverviewResponseDto {
@@ -18,8 +18,8 @@ export interface BookingOverviewResponseDto {
   title: string;
   /** Detailed response message */
   message: string;
-  /** Response data payload */
-  data: BookingOverviewDataDto;
+  /** Booking overview analytics data */
+  data: BookingOverviewDto;
   /** Additional metadata (timestamps, request info, etc.) */
   metadata?: BookingOverviewResponseDtoMetadata;
 }

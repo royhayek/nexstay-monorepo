@@ -2,6 +2,7 @@ import React, { createContext, useContext, useEffect, useState, useCallback } fr
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { UserDataDtoRolesItem } from "@/api/models/public";
 import { useAuth } from "@/hooks/use-auth";
+import { analytics } from "@/utils/analytics";
 
 /**
  * Active role represents which mode the user is currently in
@@ -172,17 +173,39 @@ export function RoleProvider({ children }: { children: React.ReactNode }) {
     async (role: ActiveRole): Promise<void> => {
       // Validate role switch
       if (role === "host" && !canBeHost) {
-        throw new Error("User does not have host role");
+        const error = new Error("User does not have host role");
+
+        // Track failed role switch attempt
+        analytics.track("role_switch_failed", {
+          attempted_role: role,
+          current_role: activeRole,
+          reason: "missing_host_role",
+          user_id: user?.id,
+        });
+
+        throw error;
       }
 
       if (role === "guest" && !canBeGuest) {
-        throw new Error("User does not have guest role");
+        const error = new Error("User does not have guest role");
+
+        // Track failed role switch attempt
+        analytics.track("role_switch_failed", {
+          attempted_role: role,
+          current_role: activeRole,
+          reason: "missing_guest_role",
+          user_id: user?.id,
+        });
+
+        throw error;
       }
 
       // Don't switch if already in target role
       if (activeRole === role) {
         return;
       }
+
+      const previousRole = activeRole;
 
       try {
         // Update active role
@@ -191,13 +214,30 @@ export function RoleProvider({ children }: { children: React.ReactNode }) {
         // Persist to storage
         await saveRoleToStorage(role);
 
+        // Track successful role switch
+        analytics.track("role_switched", {
+          from_role: previousRole,
+          to_role: role,
+          is_dual_role: isDualRole,
+          user_id: user?.id,
+          user_roles: userRoles.join(","),
+        });
+
         console.info(`[RoleContext] Switched to ${role} role`);
       } catch (error) {
+        // Track failed role switch
+        analytics.track("role_switch_failed", {
+          attempted_role: role,
+          current_role: previousRole,
+          reason: error instanceof Error ? error.message : "unknown_error",
+          user_id: user?.id,
+        });
+
         console.error("[RoleContext] Failed to switch role:", error);
         throw error;
       }
     },
-    [activeRole, canBeHost, canBeGuest, saveRoleToStorage]
+    [activeRole, canBeHost, canBeGuest, saveRoleToStorage, isDualRole, user, userRoles]
   );
 
   const value: RoleContextType = {

@@ -10,9 +10,9 @@
 
 export interface BlockDatesDto {
   /** Start date of the blocked period */
-  startDate?: string;
+  startDate: string;
   /** End date of the blocked period */
-  endDate?: string;
+  endDate: string;
   /**
    * Reason for blocking these dates
    * @maxLength 500

@@ -3,7 +3,7 @@ import React from "react";
 import { ScrollView, TouchableOpacity, View } from "react-native";
 import { StyleSheet, useUnistyles } from "react-native-unistyles";
 
-import { Input, Text } from "@/components/atoms";
+import { Text } from "@/components/atoms";
 import { MenuItem, ProfileInfoCard, RoleSwitcher } from "@/components/molecules";
 import { MenuSection } from "@/components/organisms";
 import { TabScreenTemplate } from "@/components/templates";
@@ -24,7 +24,6 @@ import {
   Messages2,
   Notification,
   ProfileCircle,
-  SearchNormal1,
   ShieldTick,
   Home2,
   Add,
@@ -107,15 +106,6 @@ export default function ProfileScreen() {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={[styles.content, { paddingBottom: mvs(120) }]}
       >
-        {/* Search Bar */}
-        <View style={styles.searchContainer}>
-          <Input
-            variant="search"
-            placeholder="Search"
-            leftIcon={<SearchNormal1 size={20} color={theme.colors.neutral600} variant="Outline" />}
-          />
-        </View>
-
         {isAuthenticated ? (
           <>
             {/* Profile Info Card */}
@@ -282,6 +272,7 @@ export default function ProfileScreen() {
 const styles = StyleSheet.create((theme) => ({
   container: {
     flex: 1,
+    paddingTop: theme.spacing.lg,
     backgroundColor: theme.colors.background,
   },
   content: {

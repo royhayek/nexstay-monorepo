@@ -1,4 +1,19 @@
 {
+  "files": [],
+  "references": [
+    {
+      "path": "./apps/mobile"
+    },
+    {
+      "path": "./apps/dashboard"
+    },
+    {
+      "path": "./apps/backend"
+    },
+    {
+      "path": "./packages/shared-types"
+    }
+  ],
   "compilerOptions": {},
   "extends": "expo/tsconfig.base"
 }

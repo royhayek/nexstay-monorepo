@@ -18,6 +18,7 @@ import { StorageModule } from '../storage/storage.module';
 import { AccountsModule } from '../accounts/accounts.module';
 import { FeesModule } from '../fees/fees.module';
 import { NotificationsModule } from '../notifications/notifications.module';
+import { CatalogModule } from '../catalog/catalog.module';
 
 @Module({
   imports: [
@@ -27,6 +28,7 @@ import { NotificationsModule } from '../notifications/notifications.module';
     AccountsModule,
     FeesModule,
     NotificationsModule,
+    CatalogModule,
   ],
   providers: [
     PropertyCoreService,

@@ -12,12 +12,10 @@ import {
   IsBooleanField,
 } from '../../../common/validators/standardized-validators';
 import {
-  PropertyType,
-  RoomType,
-  CancellationPolicy,
   PropertyCategory,
   FlexibleDateRange,
 } from '../../../common/enums/property.enums';
+import { IsCatalogField } from '../../../common/validators/catalog.validators';
 import {
   IsPriceField,
   IsGuestCountField,
@@ -80,15 +78,21 @@ export class CreateSavedSearchDto {
   })
   flexibleDateRange?: FlexibleDateRange;
 
-  @IsOptional()
-  @IsArray()
-  @IsEnumField(PropertyType, { isArray: true, description: 'Filter by property types' })
-  propertyTypes?: PropertyType[];
+  @IsCatalogField('PropertyType', {
+    required: false,
+    isArray: true,
+    description: 'Filter by property types',
+    example: ['APARTMENT', 'HOUSE'],
+  })
+  propertyTypes?: string[];
 
-  @IsOptional()
-  @IsArray()
-  @IsEnumField(RoomType, { isArray: true, description: 'Filter by room types' })
-  roomTypes?: RoomType[];
+  @IsCatalogField('RoomType', {
+    required: false,
+    isArray: true,
+    description: 'Filter by room types',
+    example: ['ENTIRE_HOME', 'PRIVATE_ROOM'],
+  })
+  roomTypes?: string[];
 
   @IsOptional()
   @IsArray()
@@ -134,8 +138,12 @@ export class CreateSavedSearchDto {
   @IsBooleanField({ description: 'Show only superhost properties' })
   isSuperhost?: boolean;
 
-  @IsEnumField(CancellationPolicy, { description: 'Preferred cancellation policy' })
-  cancellationPolicy?: CancellationPolicy;
+  @IsCatalogField('CancellationPolicy', {
+    required: false,
+    description: 'Preferred cancellation policy',
+    example: 'FLEXIBLE',
+  })
+  cancellationPolicy?: string;
 
   @IsSearchField({ description: 'Sort properties by' })
   sortBy?: string;
@@ -192,15 +200,21 @@ export class UpdateSavedSearchDto {
   @IsEnumField(FlexibleDateRange, { description: 'Flexible date range for quick date selections' })
   flexibleDateRange?: FlexibleDateRange;
 
-  @IsOptional()
-  @IsArray()
-  @IsEnumField(PropertyType, { isArray: true, description: 'Filter by property types' })
-  propertyTypes?: PropertyType[];
+  @IsCatalogField('PropertyType', {
+    required: false,
+    isArray: true,
+    description: 'Filter by property types',
+    example: ['APARTMENT', 'HOUSE'],
+  })
+  propertyTypes?: string[];
 
-  @IsOptional()
-  @IsArray()
-  @IsEnumField(RoomType, { isArray: true, description: 'Filter by room types' })
-  roomTypes?: RoomType[];
+  @IsCatalogField('RoomType', {
+    required: false,
+    isArray: true,
+    description: 'Filter by room types',
+    example: ['ENTIRE_HOME', 'PRIVATE_ROOM'],
+  })
+  roomTypes?: string[];
 
   @IsOptional()
   @IsArray()
@@ -246,8 +260,12 @@ export class UpdateSavedSearchDto {
   @IsBooleanField({ description: 'Show only superhost properties' })
   isSuperhost?: boolean;
 
-  @IsEnumField(CancellationPolicy, { description: 'Preferred cancellation policy' })
-  cancellationPolicy?: CancellationPolicy;
+  @IsCatalogField('CancellationPolicy', {
+    required: false,
+    description: 'Preferred cancellation policy',
+    example: 'FLEXIBLE',
+  })
+  cancellationPolicy?: string;
 
   @IsSearchField({ description: 'Sort properties by' })
   sortBy?: string;

@@ -7,7 +7,6 @@
 **Raw OpenAPI:** [/api/docs-json](/api/docs-json) · [/api/docs-yaml](/api/docs-yaml)
  * OpenAPI spec version: 1.0
  */
-import type { OnboardingStep7DtoCancellationPolicy } from './onboardingStep7DtoCancellationPolicy';
 import type { CreateAvailabilityInfoDto } from './createAvailabilityInfoDto';
 
 export interface OnboardingStep7Dto {
@@ -21,8 +20,8 @@ export interface OnboardingStep7Dto {
    * @minimum 1
    */
   maximumNights: number;
-  /** Cancellation policy */
-  cancellationPolicy?: OnboardingStep7DtoCancellationPolicy;
+  /** Cancellation policy (validated against catalog) */
+  cancellationPolicy: string;
   /**
    * House rules
    * @minLength 0

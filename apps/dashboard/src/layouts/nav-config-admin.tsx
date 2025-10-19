@@ -159,15 +159,9 @@ export const navDataAdmin: NavSectionProps['data'] = [
     subheader: 'System',
     items: [
       {
-        title: 'Amenity Categories',
-        path: paths.dashboard.amenityCategories.list,
+        title: 'Catalogs',
+        path: paths.dashboard.catalogs.list,
         icon: ICONS.folder,
-        allowedRoles: ['admin', 'system_admin'],
-      },
-      {
-        title: 'Enum Displays',
-        path: paths.dashboard.enumDisplays.list,
-        icon: ICONS.menuItem,
         allowedRoles: ['admin', 'system_admin'],
       },
       {

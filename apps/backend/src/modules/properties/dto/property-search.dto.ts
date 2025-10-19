@@ -4,18 +4,16 @@ import { IsOptional, IsNumber, IsISO8601, Min, Max, IsArray } from 'class-valida
 import { BaseResponseDto } from '../../../common/dto/base-response.dto';
 import { PaginatedDto } from '../../../common/dto/paginated.dto';
 import {
-  IsEnumField,
   IsSearchField,
   IsPageField,
   IsLimitField,
   IsCurrencyCodeField,
   IsStringArrayField,
   IsBooleanField,
+  IsEnumField,
 } from '../../../common/validators/standardized-validators';
+import { IsCatalogField } from '../../../common/validators/catalog.validators';
 import {
-  PropertyType,
-  RoomType,
-  CancellationPolicy,
   PropertyCategory,
   FlexibleDateRange,
   ViewType,
@@ -111,23 +109,21 @@ export class PropertySearchDto implements PropertySearchParams {
   flexibleDateRange?: FlexibleDateRange;
 
   // ========== Property Types ==========
-  @IsOptional()
-  @IsArray({ message: 'validation.MUST_BE_ARRAY' })
-  @IsEnumField(PropertyType, {
+  @IsCatalogField('PropertyType', {
+    required: false,
     isArray: true,
     description: 'Filter by property types',
-    example: [PropertyType.APARTMENT, PropertyType.HOUSE],
+    example: ['APARTMENT', 'HOUSE'],
   })
-  propertyTypes?: PropertyType[];
+  propertyTypes?: string[];
 
-  @IsOptional()
-  @IsArray({ message: 'validation.MUST_BE_ARRAY' })
-  @IsEnumField(RoomType, {
+  @IsCatalogField('RoomType', {
+    required: false,
     isArray: true,
     description: 'Filter by room types',
-    example: [RoomType.ENTIRE_HOME, RoomType.PRIVATE_ROOM],
+    example: ['ENTIRE_HOME', 'PRIVATE_ROOM'],
   })
-  roomTypes?: RoomType[];
+  roomTypes?: string[];
 
   @IsOptional()
   @IsArray({ message: 'validation.MUST_BE_ARRAY' })
@@ -214,10 +210,12 @@ export class PropertySearchDto implements PropertySearchParams {
   })
   isSuperhost?: boolean;
 
-  @IsEnumField(CancellationPolicy, {
+  @IsCatalogField('CancellationPolicy', {
+    required: false,
     description: 'Preferred cancellation policy',
+    example: 'FLEXIBLE',
   })
-  cancellationPolicy?: CancellationPolicy;
+  cancellationPolicy?: string;
 
   // ========== Sorting ==========
   @IsEnumField({ ...PROPERTY_SORT_OPTIONS } as const, {

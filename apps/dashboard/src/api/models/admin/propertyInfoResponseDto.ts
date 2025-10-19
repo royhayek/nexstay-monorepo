@@ -7,9 +7,6 @@
 **Raw OpenAPI:** [/admin/docs-json](/admin/docs-json) · [/admin/docs-yaml](/admin/docs-yaml)
  * OpenAPI spec version: 1.0
  */
-import type { PropertyInfoResponseDtoPropertyType } from './propertyInfoResponseDtoPropertyType';
-import type { PropertyInfoResponseDtoRoomType } from './propertyInfoResponseDtoRoomType';
-import type { PropertyInfoResponseDtoCancellationPolicy } from './propertyInfoResponseDtoCancellationPolicy';
 import type { PropertyAddressResponseDto } from './propertyAddressResponseDto';
 import type { PropertyImageInfoDto } from './propertyImageInfoDto';
 
@@ -21,9 +18,9 @@ export interface PropertyInfoResponseDto {
   /** Property description */
   description?: string;
   /** Property type */
-  propertyType: PropertyInfoResponseDtoPropertyType;
+  propertyType: string;
   /** Room type */
-  roomType: PropertyInfoResponseDtoRoomType;
+  roomType: string;
   /** Maximum number of guests */
   accommodates: number;
   /** Number of bedrooms */
@@ -33,7 +30,7 @@ export interface PropertyInfoResponseDto {
   /** Number of bathrooms */
   bathrooms: number;
   /** Cancellation policy */
-  cancellationPolicy: PropertyInfoResponseDtoCancellationPolicy;
+  cancellationPolicy: string;
   /** Minimum nights stay */
   minimumNights?: number;
   /** Maximum nights stay */

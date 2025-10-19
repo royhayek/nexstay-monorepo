@@ -21,13 +21,7 @@ import { S3Service } from '../src/modules/storage/services/s3.service';
 import { seedDynamicConfig } from '../src/database/seeds/dynamic-config.seeder';
 import { setupTestDatabase, teardownTestDatabase } from './test-db-setup';
 
-// Enums
-import {
-  PropertyType,
-  RoomType,
-  BedType,
-  CancellationPolicy,
-} from '../src/common/enums/property.enums';
+// Note: Catalog types are now strings, not enums
 import { DateUtils } from '../src/common/utils/date.utils';
 
 describe('PropertiesController (e2e)', () => {
@@ -55,12 +49,12 @@ describe('PropertiesController (e2e)', () => {
     access: 'Exclusive access to guesthouse, pool, and garden.',
     interaction: 'Host available via chat for recommendations.',
     house_rules: 'No parties. No smoking indoors. Respect quiet hours.',
-    propertyType: PropertyType.GUESTHOUSE,
-    roomType: RoomType.ENTIRE_HOME,
-    bedType: BedType.REAL_BED,
+    propertyType: 'GUESTHOUSE',
+    roomType: 'ENTIRE_HOME',
+    bedType: 'QUEEN',
     minimumNights: 2,
     maximumNights: 28,
-    cancellation_policy: CancellationPolicy.MODERATE,
+    cancellationPolicy: 'MODERATE',
     accommodates: 4,
     bedrooms: 1,
     beds: 2,
