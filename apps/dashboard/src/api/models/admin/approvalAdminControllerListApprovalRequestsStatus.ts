@@ -13,7 +13,7 @@ export type ApprovalAdminControllerListApprovalRequestsStatus = typeof ApprovalA
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const ApprovalAdminControllerListApprovalRequestsStatus = {
-  '[object_Object]': [object Object],
+  '[object_Object]': 'INVALID_ENUM',
   false: false,
   Filter_by_status: 'Filter by status',
   pending: 'pending',

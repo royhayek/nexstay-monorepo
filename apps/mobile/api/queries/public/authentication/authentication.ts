@@ -42,6 +42,7 @@ import type {
   InternalServerErrorResponseDto,
   ListSessionsResponseDto,
   LogoutResponseDto,
+  OAuthSignInDto,
   RefreshDto,
   RefreshTokenResponseDto,
   RequestResetDto,
@@ -917,6 +918,71 @@ export const useAuthPublicControllerSigninVerifyDevice = <TError = ErrorType<Bad
       > => {
 
       const mutationOptions = getAuthPublicControllerSigninVerifyDeviceMutationOptions(options);
+
+      return useMutation(mutationOptions, queryClient);
+    }
+    /**
+ * Sign in or create account using OAuth provider (Google, Facebook, Apple)
+ * @summary OAuth Sign-In
+ */
+export const authPublicControllerOauthSignIn = (
+    oAuthSignInDto: BodyType<OAuthSignInDto>,
+ options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+) => {
+      
+      
+      return customInstance<SigninCompleteResponseDto>(
+      {url: `/v1/public/auth/oauth/signin`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: oAuthSignInDto, signal
+    },
+      options);
+    }
+  
+
+
+export const getAuthPublicControllerOauthSignInMutationOptions = <TError = ErrorType<BadRequestResponseDto | TooManyRequestsResponseDto | InternalServerErrorResponseDto>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof authPublicControllerOauthSignIn>>, TError,{data: BodyType<OAuthSignInDto>}, TContext>, request?: SecondParameter<typeof customInstance>}
+): UseMutationOptions<Awaited<ReturnType<typeof authPublicControllerOauthSignIn>>, TError,{data: BodyType<OAuthSignInDto>}, TContext> => {
+
+const mutationKey = ['authPublicControllerOauthSignIn'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof authPublicControllerOauthSignIn>>, {data: BodyType<OAuthSignInDto>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  authPublicControllerOauthSignIn(data,requestOptions)
+        }
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type AuthPublicControllerOauthSignInMutationResult = NonNullable<Awaited<ReturnType<typeof authPublicControllerOauthSignIn>>>
+    export type AuthPublicControllerOauthSignInMutationBody = BodyType<OAuthSignInDto>
+    export type AuthPublicControllerOauthSignInMutationError = ErrorType<BadRequestResponseDto | TooManyRequestsResponseDto | InternalServerErrorResponseDto>
+
+    /**
+ * @summary OAuth Sign-In
+ */
+export const useAuthPublicControllerOauthSignIn = <TError = ErrorType<BadRequestResponseDto | TooManyRequestsResponseDto | InternalServerErrorResponseDto>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof authPublicControllerOauthSignIn>>, TError,{data: BodyType<OAuthSignInDto>}, TContext>, request?: SecondParameter<typeof customInstance>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof authPublicControllerOauthSignIn>>,
+        TError,
+        {data: BodyType<OAuthSignInDto>},
+        TContext
+      > => {
+
+      const mutationOptions = getAuthPublicControllerOauthSignInMutationOptions(options);
 
       return useMutation(mutationOptions, queryClient);
     }

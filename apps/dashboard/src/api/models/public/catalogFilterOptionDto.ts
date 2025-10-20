@@ -8,6 +8,7 @@
  * OpenAPI spec version: 1.0
  */
 import type { CatalogFilterOptionDtoLabel } from './catalogFilterOptionDtoLabel';
+import type { CatalogFilterOptionDtoDescription } from './catalogFilterOptionDtoDescription';
 
 export interface CatalogFilterOptionDto {
   /** Catalog item ID */
@@ -20,6 +21,8 @@ export interface CatalogFilterOptionDto {
   slug: string;
   /** Internationalized labels */
   label: CatalogFilterOptionDtoLabel;
+  /** Internationalized descriptions */
+  description: CatalogFilterOptionDtoDescription;
   /** Icon name */
   icon?: string;
   /** Group category */

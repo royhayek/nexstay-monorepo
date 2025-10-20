@@ -6,9 +6,11 @@ import { Booking, BookingDocument, BookingPricing } from '../../../database/sche
 import { Property, PropertyDocument } from '../../../database/schemas/property.schema';
 import { User, UserDocument } from '../../../database/schemas/user.schema';
 import { BlockedDate, BlockedDateDocument } from '../../../database/schemas/blocked-date.schema';
+import { PaymentIntent, PaymentIntentDocument } from '../../../database/schemas/payment-intent.schema';
 import { CreateBookingDto } from '../dto/create-booking.dto';
 import { BookingStatus, PaymentStatus } from '../../../common/enums/booking.enums';
 import { PayoutStatus } from '../../../common/enums/payout.enums';
+import { PaymentIntentStatus } from '../../../common/enums/payment.enums';
 import { BOOKING_BUSINESS_CONSTANTS, BOOKING_STATUS_FLOW } from '../constants/booking.constants';
 import { BookingValidationUtils } from '../utils/booking-validation.utils';
 import { FeeCalculationService } from '../../fees/services/fee-calculation.service';
@@ -38,6 +40,8 @@ export class BookingCoreService {
     private readonly userModel: Model<UserDocument>,
     @InjectModel(BlockedDate.name)
     private readonly blockedDateModel: Model<BlockedDateDocument>,
+    @InjectModel(PaymentIntent.name)
+    private readonly paymentIntentModel: Model<PaymentIntentDocument>,
     private readonly feeCalculationService: FeeCalculationService,
     private readonly bookingConfigService: BookingConfigService,
   ) {}
@@ -65,8 +69,8 @@ export class BookingCoreService {
         throw new BookingValidationException('Guest not found', 'guestId');
       }
 
-      // Validate dates
-      BookingValidationUtils.validateBookingDates(dto.checkIn, dto.checkOut);
+      // Validate dates (allow same-day bookings)
+      BookingValidationUtils.validateBookingDates(dto.checkIn, dto.checkOut, true);
 
       // Load booking configuration
       const bookingConfig = await this.bookingConfigService.getConfig();
@@ -89,6 +93,22 @@ export class BookingCoreService {
       // Generate confirmation code
       const confirmationCode = this.generateConfirmationCode();
 
+      // Check payment status if payment intent is provided
+      let bookingStatus = BookingStatus.PENDING;
+      let paymentStatus = PaymentStatus.PENDING;
+
+      if (dto.paymentIntentId) {
+        const paymentIntent = await this.paymentIntentModel.findById(dto.paymentIntentId).exec();
+        if (paymentIntent && paymentIntent.status === PaymentIntentStatus.SUCCEEDED) {
+          bookingStatus = BookingStatus.CONFIRMED;
+          paymentStatus = PaymentStatus.PAID;
+          LoggingUtil.log(
+            `Payment confirmed for booking. PaymentIntent: ${dto.paymentIntentId}`,
+            'BookingCoreService',
+          );
+        }
+      }
+
       // Create booking
       const booking = new this.bookingModel({
         propertyId: new Types.ObjectId(dto.propertyId),
@@ -104,8 +124,8 @@ export class BookingCoreService {
           totalGuests: dto.guests.totalGuests,
         },
         pricing,
-        status: BookingStatus.PENDING,
-        paymentStatus: PaymentStatus.PENDING,
+        status: bookingStatus,
+        paymentStatus: paymentStatus,
         payoutStatus: PayoutStatus.PENDING,
         specialRequests: dto.specialRequests,
         estimatedArrivalTime: dto.estimatedArrivalTime,
@@ -117,6 +137,18 @@ export class BookingCoreService {
       });
 
       const savedBooking = await booking.save();
+
+      // Link payment intent to booking if provided
+      if (dto.paymentIntentId) {
+        await this.paymentIntentModel.findByIdAndUpdate(dto.paymentIntentId, {
+          bookingId: savedBooking._id,
+        });
+        LoggingUtil.log(
+          `Linked PaymentIntent ${dto.paymentIntentId} to Booking ${String(savedBooking._id)}`,
+          'BookingCoreService',
+        );
+      }
+
       LoggingUtil.log(
         `Booking created successfully: ${String(savedBooking._id)}`,
         'BookingCoreService',

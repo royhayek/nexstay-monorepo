@@ -67,6 +67,12 @@ export const navDataAdmin: NavSectionProps['data'] = [
         allowedRoles: ['admin', 'system_admin', 'moderator'],
       },
       {
+        title: 'Host Applications',
+        path: paths.dashboard.hostApplications.list,
+        icon: ICONS.user,
+        allowedRoles: ['admin', 'system_admin', 'moderator'],
+      },
+      {
         title: 'Properties',
         path: paths.dashboard.properties.list,
         icon: ICONS.product,

@@ -1,5 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { ValidateNested, IsObject } from 'class-validator';
+import { ValidateNested, IsObject, IsString, IsOptional } from 'class-validator';
 import { Type } from 'class-transformer';
 import { BaseResponseDto } from '../../../common/dto/base-response.dto';
 import {
@@ -58,21 +58,25 @@ export class CreatePaymentIntentDto {
   })
   bookingId?: string;
 
-  @IsUuidField({
-    description: 'Payment method ID',
-    example: '507f1f77bcf86cd799439012',
+  @ApiPropertyOptional({
+    description: 'Payment method ID from payment provider',
+    example: 'pm_1234567890abcdef',
   })
+  @IsOptional()
+  @IsString({ message: 'validation.MUST_BE_STRING' })
   paymentMethodId?: string;
 
   @IsUrlField({
-    description: 'Return URL after successful payment',
+    description: 'Return URL after successful payment (supports deep links for mobile apps)',
     example: 'https://example.com/payment/success',
+    allowCustomSchemes: true,
   })
   returnUrl?: string;
 
   @IsUrlField({
-    description: 'Cancel URL if payment is cancelled',
+    description: 'Cancel URL if payment is cancelled (supports deep links for mobile apps)',
     example: 'https://example.com/payment/cancel',
+    allowCustomSchemes: true,
   })
   cancelUrl?: string;
 
@@ -82,10 +86,12 @@ export class CreatePaymentIntentDto {
 }
 
 export class ConfirmPaymentIntentDto {
-  @IsUuidField({
-    description: 'Payment method ID',
-    example: '507f1f77bcf86cd799439012',
+  @ApiPropertyOptional({
+    description: 'Payment method ID from payment provider',
+    example: 'pm_1234567890abcdef',
   })
+  @IsOptional()
+  @IsString({ message: 'validation.MUST_BE_STRING' })
   paymentMethodId?: string;
 }
 

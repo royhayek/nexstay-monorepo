@@ -1,5 +1,5 @@
 import { router, useLocalSearchParams } from "expo-router";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { ScrollView, View, TouchableOpacity, Alert, ActivityIndicator } from "react-native";
 import { StyleSheet, useUnistyles } from "react-native-unistyles";
 import * as ImagePicker from "expo-image-picker";
@@ -76,6 +76,7 @@ export default function EditListingScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { theme } = useUnistyles();
   const queryClient = useQueryClient();
+  const scrollViewRef = useRef<ScrollView>(null);
   const [currentStep, setCurrentStep] = useState(1);
   const [formData, setFormData] = useState<PropertyFormData | null>(null);
   const [uploadingImage, setUploadingImage] = useState(false);
@@ -164,12 +165,16 @@ export default function EditListingScreen() {
 
     if (currentStep < totalSteps) {
       setCurrentStep(currentStep + 1);
+      // Scroll to top when moving to next step
+      scrollViewRef.current?.scrollTo({ y: 0, animated: false });
     }
   };
 
   const handleBack = () => {
     if (currentStep > 1) {
       setCurrentStep(currentStep - 1);
+      // Scroll to top when going back
+      scrollViewRef.current?.scrollTo({ y: 0, animated: false });
     }
   };
 
@@ -219,6 +224,35 @@ export default function EditListingScreen() {
         break;
     }
     return true;
+  };
+
+  // Check if current step is valid without showing alert
+  const isCurrentStepValid = (): boolean => {
+    if (!formData) return false;
+
+    switch (currentStep) {
+      case 1:
+        return !!(formData.propertyType && formData.roomType && formData.bedType);
+      case 2:
+        return !!(
+          formData.name &&
+          formData.name.length >= 10 &&
+          formData.description &&
+          formData.description.length >= 50
+        );
+      case 3:
+        return !!(formData.address.street && formData.address.city && formData.address.country);
+      case 4:
+        return formData.amenities.length > 0;
+      case 5:
+        return formData.basePrice > 0;
+      case 6:
+        return formData.images.length > 0;
+      case 7:
+        return true; // Review step is always valid
+      default:
+        return false;
+    }
   };
 
   const handlePickImage = async () => {
@@ -299,10 +333,6 @@ export default function EditListingScreen() {
           countryCode: formData.address.countryCode || "LB",
         },
         coordinates: formData.coordinates,
-        location: {
-          type: "Point" as const,
-          coordinates: [formData.coordinates.longitude, formData.coordinates.latitude],
-        },
         amenities: formData.amenities,
         features: {
           wifi: formData.amenities.includes("wifi"),
@@ -358,13 +388,13 @@ export default function EditListingScreen() {
     }
   };
 
-  const renderStep = () => {
+  const renderStepContent = () => {
     if (!formData) return null;
 
     switch (currentStep) {
       case 1:
         return (
-          <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+          <>
             <FormSection
               title="What type of property is this?"
               description="Choose the category that best describes your place"
@@ -387,12 +417,12 @@ export default function EditListingScreen() {
             <FormSection title="What type of beds are available?" description="Select the primary bed type" required>
               <BedTypeSelector value={formData.bedType} onChange={(value) => updateFormData("bedType", value)} />
             </FormSection>
-          </ScrollView>
+          </>
         );
 
       case 2:
         return (
-          <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+          <>
             <FormSection
               title="Name your property"
               description="Catch guests' attention with a listing title that highlights what makes your place special"
@@ -465,12 +495,12 @@ export default function EditListingScreen() {
                 max={10}
               />
             </FormSection>
-          </ScrollView>
+          </>
         );
 
       case 3:
         return (
-          <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+          <>
             <FormSection
               title="Where is your property located?"
               description="Guests will only get your exact address after booking"
@@ -517,12 +547,12 @@ export default function EditListingScreen() {
                 autoComplete="off"
               />
             </FormSection>
-          </ScrollView>
+          </>
         );
 
       case 4:
         return (
-          <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+          <>
             <FormSection
               title="What amenities do you offer?"
               description="Select all amenities available at your property"
@@ -542,12 +572,12 @@ export default function EditListingScreen() {
                 </View>
               )}
             </FormSection>
-          </ScrollView>
+          </>
         );
 
       case 5:
         return (
-          <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+          <>
             <FormSection title="Set your price" description="You can always change it later" required>
               <Input
                 key="base-price-input"
@@ -601,12 +631,12 @@ export default function EditListingScreen() {
                 />
               ))}
             </FormSection>
-          </ScrollView>
+          </>
         );
 
       case 6:
         return (
-          <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+          <>
             <FormSection
               title="Update photos of your property"
               description="Upload at least 5 high-quality photos. The first photo will be the cover photo."
@@ -620,12 +650,12 @@ export default function EditListingScreen() {
                 uploading={uploadingImage}
               />
             </FormSection>
-          </ScrollView>
+          </>
         );
 
       case 7:
         return (
-          <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+          <>
             <FormSection title="Review your changes" description="Make sure everything looks good before updating">
               <View style={styles.reviewCard}>
                 <Text variant="bodyLargeSemiBold" color="neutral800" style={styles.reviewTitle}>
@@ -679,7 +709,7 @@ export default function EditListingScreen() {
                 </TouchableOpacity>
               </View>
             </FormSection>
-          </ScrollView>
+          </>
         );
 
       default:
@@ -715,41 +745,65 @@ export default function EditListingScreen() {
     );
   }
 
+  const renderBottomActions = () => (
+    <>
+      {currentStep > 1 && (
+        <Button variant="outlined" color="neutral" size="large" onPress={handleBack} style={styles.backButton}>
+          Back
+        </Button>
+      )}
+
+      {currentStep < totalSteps ? (
+        <Button
+          variant="filled"
+          color="primary"
+          size="large"
+          onPress={handleNext}
+          disabled={!isCurrentStepValid()}
+          style={styles.nextButton}
+        >
+          Next
+        </Button>
+      ) : (
+        <Button
+          variant="filled"
+          color="primary"
+          size="large"
+          onPress={handleSubmit}
+          loading={isSubmitting}
+          disabled={isSubmitting}
+          style={styles.nextButton}
+        >
+          Update Listing
+        </Button>
+      )}
+    </>
+  );
+
   return (
-    <ScreenTemplate title="Edit Listing" showBackButton contentStyle={{ paddingHorizontal: 0, paddingTop: 0 }}>
+    <ScreenTemplate
+      title="Edit Listing"
+      showBackButton
+      scrollable={false}
+      contentStyle={{ paddingHorizontal: 0, paddingTop: 0 }}
+      bottomActions={renderBottomActions()}
+    >
       <View style={styles.container}>
-        {/* Step Indicator */}
-        <StepIndicator currentStep={currentStep} totalSteps={totalSteps} stepLabels={STEP_LABELS} />
-
-        {/* Form Content */}
-        <View style={styles.content}>{renderStep()}</View>
-
-        {/* Bottom Actions */}
-        <View style={styles.bottomActions}>
-          {currentStep > 1 && (
-            <Button variant="outlined" color="neutral" size="large" onPress={handleBack} style={styles.backButton}>
-              Back
-            </Button>
-          )}
-
-          {currentStep < totalSteps ? (
-            <Button variant="filled" color="primary" size="large" onPress={handleNext} style={styles.nextButton}>
-              Next
-            </Button>
-          ) : (
-            <Button
-              variant="filled"
-              color="primary"
-              size="large"
-              onPress={handleSubmit}
-              loading={isSubmitting}
-              disabled={isSubmitting}
-              style={styles.nextButton}
-            >
-              Update Listing
-            </Button>
-          )}
+        {/* Fixed Step Indicator */}
+        <View style={styles.stepperContainer}>
+          <StepIndicator currentStep={currentStep} totalSteps={totalSteps} stepLabels={STEP_LABELS} />
         </View>
+
+        {/* Scrollable Form Content */}
+        <ScrollView
+          ref={scrollViewRef}
+          style={styles.scrollView}
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+        >
+          {renderStepContent()}
+        </ScrollView>
       </View>
     </ScreenTemplate>
   );
@@ -760,10 +814,16 @@ const styles = StyleSheet.create((theme) => ({
     flex: 1,
     backgroundColor: theme.colors.background,
   },
-  content: {
+  stepperContainer: {
+    backgroundColor: theme.colors.background,
+  },
+  scrollView: {
     flex: 1,
+  },
+  scrollContent: {
     paddingHorizontal: theme.spacing.xl,
     paddingTop: theme.spacing.md,
+    paddingBottom: theme.spacing.xl,
   },
   loadingContainer: {
     flex: 1,
@@ -825,14 +885,6 @@ const styles = StyleSheet.create((theme) => ({
   },
   switchActive: {
     backgroundColor: theme.colors.primary,
-  },
-  bottomActions: {
-    flexDirection: "row",
-    padding: theme.spacing.lg,
-    backgroundColor: theme.colors.surface,
-    borderTopWidth: theme.borderWidth.thin,
-    borderTopColor: theme.colors.border,
-    gap: theme.spacing.sm,
   },
   backButton: {
     flex: 1,

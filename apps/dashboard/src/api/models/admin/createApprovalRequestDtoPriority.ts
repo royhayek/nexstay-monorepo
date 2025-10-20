@@ -9,14 +9,14 @@
  */
 
 /**
- * Valid values: [object Object], false, Priority level of this approval request, high
+ * Valid values: 'INVALID_ENUM', false, Priority level of this approval request, high
  */
 export type CreateApprovalRequestDtoPriority = typeof CreateApprovalRequestDtoPriority[keyof typeof CreateApprovalRequestDtoPriority];
 
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const CreateApprovalRequestDtoPriority = {
-  '[object_Object]': [object Object],
+  '[object_Object]': 'INVALID_ENUM',
   false: false,
   Priority_level_of_this_approval_request: 'Priority level of this approval request',
   high: 'high',

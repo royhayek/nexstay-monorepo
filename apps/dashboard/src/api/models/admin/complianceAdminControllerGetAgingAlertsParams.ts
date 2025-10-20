@@ -11,7 +11,7 @@ import type { ComplianceAdminControllerGetAgingAlertsAlertLevel } from './compli
 
 export type ComplianceAdminControllerGetAgingAlertsParams = {
 /**
- * Valid values: warning,urgent,critical, false, Filter by alert level, critical
+ * Filter by alert level
  */
 alertLevel?: ComplianceAdminControllerGetAgingAlertsAlertLevel;
 /**

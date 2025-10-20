@@ -1,11 +1,16 @@
+version: "3.8"
+
 services:
   localstack:
-    image: localstack/localstack:latest
+    image: localstack/localstack
+    container_name: localstack
     ports:
-      - "4566:4566"        # Edge port
+      - "4566:4566"
     environment:
       - SERVICES=s3
-      - AWS_DEFAULT_REGION=us-east-1
+      - DEBUG=1
     volumes:
-      - "./localstack:/var/lib/localstack"
-      - "/var/run/docker.sock:/var/run/docker.sock"
+      # Persist LocalStack state
+      - ~/localstack_data:/var/lib/localstack
+      # Optional: auto-create buckets
+      - ./init-scripts:/etc/localstack/init/ready.d

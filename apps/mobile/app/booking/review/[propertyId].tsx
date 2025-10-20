@@ -11,13 +11,10 @@ import { Alert, Image, ScrollView, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { StyleSheet } from "react-native-unistyles";
 import { ms } from "@/utils/scaling";
-import type { CreateBookingDto } from "@/api/models/protected/createBookingDto";
-import { useBookingsAppControllerCreate } from "@/api/queries/protected/bookings/bookings";
-
 export default function BookingReviewScreen() {
   const { propertyId } = useLocalSearchParams<{ propertyId: string }>();
   const insets = useSafeAreaInsets();
-  const { bookingDraft, clearBooking } = useBooking();
+  const { bookingDraft } = useBooking();
   const { user } = useAuth();
 
   const property = bookingDraft?.propertyDetails;
@@ -26,51 +23,14 @@ export default function BookingReviewScreen() {
   const nights = bookingDraft?.nights || 0;
   const guests = bookingDraft?.guests;
 
-  // Create booking mutation with real API
-  const createBookingMutation = useBookingsAppControllerCreate({
-    mutation: {
-      onSuccess: (response) => {
-        // Clear booking draft
-        clearBooking();
-        // Navigate to success screen
-        router.replace(`/booking/success/${response.data._id}`);
-      },
-      onError: (error: any) => {
-        Alert.alert(
-          "Booking Failed",
-          error?.response?.data?.message || error?.message || "Unable to create booking. Please try again.",
-          [{ text: "OK" }]
-        );
-      },
-    },
-  });
-
   const handleConfirmBooking = () => {
     if (!checkIn || !checkOut || !guests || !property) {
       Alert.alert("Missing Information", "Please complete all booking steps.");
       return;
     }
 
-    // Prepare booking data
-    const bookingData: CreateBookingDto = {
-      propertyId: property._id,
-      checkIn: checkIn.toISOString().split("T")[0], // Format: YYYY-MM-DD
-      checkOut: checkOut.toISOString().split("T")[0],
-      nights,
-      guests: {
-        adults: guests.adults,
-        children: guests.children,
-        infants: guests.infants,
-        totalGuests: guests.totalGuests,
-      },
-      ...(bookingDraft.guestInfo.phone && { guestPhone: bookingDraft.guestInfo.phone }),
-      ...(bookingDraft.guestInfo.email && { guestEmail: bookingDraft.guestInfo.email }),
-      ...(bookingDraft.arrivalTime && { estimatedArrivalTime: bookingDraft.arrivalTime }),
-      ...(bookingDraft.specialRequests && { specialRequests: bookingDraft.specialRequests }),
-    };
-
-    // Create booking with real API
-    createBookingMutation.mutate({ data: bookingData });
+    // Navigate to payment screen
+    router.push(`/booking/payment/${propertyId}`);
   };
 
   const handleBack = () => {
@@ -311,11 +271,9 @@ export default function BookingReviewScreen() {
           variant="filled"
           size="large"
           onPress={handleConfirmBooking}
-          loading={createBookingMutation.isPending}
-          disabled={createBookingMutation.isPending}
           fullWidth
         >
-          {createBookingMutation.isPending ? "Processing..." : "Confirm & Pay"}
+          Continue to Payment
         </Button>
       </View>
     </View>

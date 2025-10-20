@@ -10,6 +10,7 @@ import { TabScreenTemplate } from "@/components/templates";
 import { useRoleContext } from "@/contexts";
 import { useAuth } from "@/hooks/use-auth";
 import { useBottomSheet } from "@/hooks/use-bottom-sheet";
+import { useI18n } from "@/i18n";
 import { ms, mvs } from "@/utils/scaling";
 import { useUsersAppControllerApplyToBeHost } from "@/api/queries/protected/users/users";
 
@@ -34,6 +35,7 @@ export default function ProfileScreen() {
   const { isAuthenticated, logout, user, updateUser } = useAuth();
   const { showBottomSheet, hideBottomSheet } = useBottomSheet();
   const { canBeHost, isDualRole, switchRole } = useRoleContext();
+  const { currentLanguage, supportedLanguages } = useI18n();
 
   const { mutateAsync: becomeHost, isPending: isBecomingHost } = useUsersAppControllerApplyToBeHost();
 
@@ -137,6 +139,11 @@ export default function ProfileScreen() {
               />
               <MenuItem
                 icon={<ShieldTick size={ms(20)} color={theme.colors.neutral700} variant="Outline" />}
+                label="Identity Verification"
+                onPress={() => router.push("/identity-verification/status")}
+              />
+              <MenuItem
+                icon={<ShieldTick size={ms(20)} color={theme.colors.neutral700} variant="Outline" />}
                 label="Privacy Profile"
                 onPress={() => console.log("Privacy Profile")}
               />
@@ -162,8 +169,8 @@ export default function ProfileScreen() {
               <MenuItem
                 icon={<LanguageSquare size={ms(20)} color={theme.colors.neutral700} variant="Outline" />}
                 label="Language"
-                value="English"
-                onPress={() => console.log("Language")}
+                value={supportedLanguages.find((lang) => lang.code === currentLanguage)?.name || 'English'}
+                onPress={() => router.push("/language-settings")}
               />
               <MenuItem
                 icon={<Notification size={ms(20)} color={theme.colors.neutral700} variant="Outline" />}

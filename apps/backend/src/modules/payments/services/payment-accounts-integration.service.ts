@@ -276,36 +276,48 @@ export class PaymentAccountsIntegrationService {
 
       if (paymentTransaction.bookingId) {
         try {
-          // Use booking check-in date if available, otherwise default to 24 hours from now
-          const checkInDate = paymentIntent.metadata?.checkInDate
-            ? DateUtils.create(paymentIntent.metadata.checkInDate as string)
-            : DateUtils.create(DateUtils.nowTimestamp() + 24 * 60 * 60 * 1000);
+          // Fetch booking to get hostId and check-in date
+          const booking = await this.bookingModel.findById(paymentTransaction.bookingId).exec();
 
-          // Calculate platform fee rate from fee service (using dynamic config)
-          const feeBreakdown = await this.feeCalculationService.calculateFeeBreakdown(
-            paymentTransaction.amount.amount,
-          );
-          const platformFeeRate = feeBreakdown.hostCommission / paymentTransaction.amount.amount;
+          if (!booking) {
+            const errorMessage = `Booking ${paymentTransaction.bookingId} not found`;
+            errors.push(errorMessage);
+            LoggingUtil.error(errorMessage, undefined, 'PaymentAccountsIntegrationService');
+          } else {
+            // Use booking check-in date if available, otherwise default to 24 hours from now
+            const checkInDate = booking.checkInDate
+              ? DateUtils.create(booking.checkInDate)
+              : paymentIntent.metadata?.checkInDate
+                ? DateUtils.create(paymentIntent.metadata.checkInDate as string)
+                : DateUtils.create(DateUtils.nowTimestamp() + 24 * 60 * 60 * 1000);
 
-          LoggingUtil.log(
-            `Using dynamic platform fee rate: ${platformFeeRate} (${(platformFeeRate * 100).toFixed(2)}%) for booking payment`,
-            'PaymentAccountsIntegrationService',
-          );
-
-          const escrowTransaction =
-            await this.accountsFacade.createBookingEscrowFromExternalPayment(
-              paymentTransaction.customerId.toString(),
+            // Calculate platform fee rate from fee service (using dynamic config)
+            const feeBreakdown = await this.feeCalculationService.calculateFeeBreakdown(
               paymentTransaction.amount.amount,
-              paymentTransaction.bookingId.toString(),
-              checkInDate,
-              platformFeeRate,
+            );
+            const platformFeeRate = feeBreakdown.hostCommission / paymentTransaction.amount.amount;
+
+            LoggingUtil.log(
+              `Using dynamic platform fee rate: ${platformFeeRate} (${(platformFeeRate * 100).toFixed(2)}%) for booking payment`,
+              'PaymentAccountsIntegrationService',
             );
 
-          escrowTransactionId = String(escrowTransaction._id);
-          LoggingUtil.log(
-            `Escrow transaction created: ${escrowTransactionId} for payment ${String(paymentTransaction._id)}`,
-            'PaymentAccountsIntegrationService',
-          );
+            const escrowTransaction =
+              await this.accountsFacade.createBookingEscrowFromExternalPayment(
+                paymentTransaction.customerId.toString(),
+                booking.hostId.toString(),
+                paymentTransaction.amount.amount,
+                paymentTransaction.bookingId.toString(),
+                checkInDate,
+                platformFeeRate,
+              );
+
+            escrowTransactionId = String(escrowTransaction._id);
+            LoggingUtil.log(
+              `Escrow transaction created: ${escrowTransactionId} for payment ${String(paymentTransaction._id)}`,
+              'PaymentAccountsIntegrationService',
+            );
+          }
         } catch (escrowError) {
           const errorMessage = `Failed to create escrow transaction: ${escrowError instanceof Error ? escrowError.message : 'Unknown error'}`;
           errors.push(errorMessage);

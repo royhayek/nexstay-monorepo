@@ -16,7 +16,7 @@ export type ProcessApprovalDtoDecision = typeof ProcessApprovalDtoDecision[keyof
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const ProcessApprovalDtoDecision = {
-  'approved,rejected': approved,rejected,
+
   true: true,
   Approval_decision: 'Approval decision',
   approved: 'approved',

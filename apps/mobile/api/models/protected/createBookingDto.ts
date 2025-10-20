@@ -39,4 +39,6 @@ export interface CreateBookingDto {
   guestPhone?: string;
   /** Guest email for booking communication */
   guestEmail?: string;
+  /** Payment intent ID to link booking with payment */
+  paymentIntentId?: string;
 }

@@ -146,6 +146,7 @@ export class AccountsFacadeService {
    */
   async createBookingEscrowFromExternalPayment(
     guestId: string,
+    hostId: string,
     amount: number,
     bookingId: string,
     checkInDate: Date,
@@ -153,6 +154,7 @@ export class AccountsFacadeService {
   ): Promise<TransactionDocument> {
     return this.accountsEscrowService.createEscrowDepositFromExternalPayment(
       guestId,
+      hostId,
       amount,
       bookingId,
       checkInDate,
@@ -166,6 +168,7 @@ export class AccountsFacadeService {
    */
   async createBookingEscrow(
     guestWalletId: string,
+    hostId: string,
     amount: number,
     bookingId: string,
     checkInDate: Date,
@@ -173,6 +176,7 @@ export class AccountsFacadeService {
   ): Promise<TransactionDocument> {
     return this.accountsEscrowService.createEscrowHold(
       guestWalletId,
+      hostId,
       amount,
       bookingId,
       checkInDate,

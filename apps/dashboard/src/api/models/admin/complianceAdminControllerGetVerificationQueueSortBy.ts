@@ -13,7 +13,7 @@ export type ComplianceAdminControllerGetVerificationQueueSortBy = typeof Complia
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const ComplianceAdminControllerGetVerificationQueueSortBy = {
-  'oldest,newest,priority,risk': oldest,newest,priority,risk,
+
   false: false,
   Sort_order: 'Sort order',
   priority: 'priority',

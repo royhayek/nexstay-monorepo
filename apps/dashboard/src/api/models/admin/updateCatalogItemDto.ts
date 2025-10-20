@@ -18,7 +18,7 @@ export interface UpdateCatalogItemDto {
   label?: UpdateCatalogItemDtoLabel;
   /** Internationalized descriptions (optional, language codes are configurable) */
   description?: UpdateCatalogItemDtoDescription;
-  /** Icon name from Iconsax library with optional variant (format: iconName or iconName:variant) */
+  /** Icon componentName from Iconsax library with optional variant (format: ComponentName or ComponentName:variant) */
   icon?: string;
   /** Optional grouping category */
   group?: string;

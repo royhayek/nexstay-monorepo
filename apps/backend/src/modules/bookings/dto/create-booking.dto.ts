@@ -107,4 +107,10 @@ export class CreateBookingDto {
     example: 'guest@example.com',
   })
   guestEmail?: string;
+
+  @IsUuidField({
+    description: 'Payment intent ID to link booking with payment',
+    example: '507f1f77bcf86cd799439014',
+  })
+  paymentIntentId?: string;
 }

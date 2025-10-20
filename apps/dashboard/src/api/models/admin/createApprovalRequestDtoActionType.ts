@@ -9,14 +9,14 @@
  */
 
 /**
- * Valid values: [object Object], true, Type of action requiring approval, user_permanent_deletion
+ * Valid values: 'INVALID_ENUM', true, Type of action requiring approval, user_permanent_deletion
  */
 export type CreateApprovalRequestDtoActionType = typeof CreateApprovalRequestDtoActionType[keyof typeof CreateApprovalRequestDtoActionType];
 
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const CreateApprovalRequestDtoActionType = {
-  '[object_Object]': [object Object],
+  '[object_Object]': 'INVALID_ENUM',
   true: true,
   Type_of_action_requiring_approval: 'Type of action requiring approval',
   user_permanent_deletion: 'user_permanent_deletion',

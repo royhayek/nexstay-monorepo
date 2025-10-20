@@ -4,8 +4,11 @@ import {
   IsNameField,
   IsDateField,
   IsCountryCodeField,
-  IsIdentifierField,
 } from '../../../common/validators/standardized-validators';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { IsString, IsOptional, Length, IsNotEmpty, Matches } from 'class-validator';
+import { Transform } from 'class-transformer';
+import { applyDecorators } from '@nestjs/common';
 
 enum ResidencyStatus {
   CITIZEN = 'citizen',
@@ -13,11 +16,34 @@ enum ResidencyStatus {
   TEMPORARY_VISITOR = 'temporary_visitor',
 }
 
+// Custom validator for document identifiers (alphanumeric with common separators)
+function IsDocumentIdField(options?: { required?: boolean; example?: string; description?: string }) {
+  const { required = false, example = '123456789', description = 'Document identifier' } = options || {};
+
+  const decorators = [
+    required
+      ? ApiProperty({ description, example, minLength: 1, maxLength: 50 })
+      : ApiPropertyOptional({ description, example, minLength: 1, maxLength: 50 }),
+    IsString({ message: 'validation.MUST_BE_STRING' }),
+    Length(1, 50, { message: 'validation.INVALID_LENGTH' }),
+    Matches(/^[A-Za-z0-9\-\/\s]+$/, { message: 'validation.INVALID_DOCUMENT_ID' }),
+    Transform(({ value }: { value: string }) => (typeof value === 'string' ? value.trim() : value)),
+  ];
+
+  if (!required) {
+    decorators.push(IsOptional());
+  } else {
+    decorators.push(IsNotEmpty({ message: 'validation.REQUIRED_FIELD' }));
+  }
+
+  return applyDecorators(...decorators);
+}
+
 export class CreateIdentityVerificationDto {
   @IsEnumField(DocumentType, { required: true, example: DocumentType.NATIONAL_ID })
   documentType!: DocumentType;
 
-  @IsIdentifierField({ required: true, example: '123456789' })
+  @IsDocumentIdField({ required: true, example: '123456789', description: 'Document number' })
   documentNumber!: string;
 
   @IsCountryCodeField({ required: true, example: 'LB' })
@@ -51,10 +77,10 @@ export class CreateIdentityVerificationDto {
   gender?: string;
 
   // Lebanon-specific fields
-  @IsIdentifierField({ required: false, example: '1990/123456' })
+  @IsDocumentIdField({ required: false, example: '1990/123456', description: 'Qaid number (civil registry number)' })
   qaidNumber?: string;
 
-  @IsIdentifierField({ required: false, example: 'BEI001' })
+  @IsDocumentIdField({ required: false, example: 'BEI001', description: 'Municipality code' })
   municipalityCode?: string;
 
   @IsEnumField(ResidencyStatus, { required: false, example: ResidencyStatus.CITIZEN })

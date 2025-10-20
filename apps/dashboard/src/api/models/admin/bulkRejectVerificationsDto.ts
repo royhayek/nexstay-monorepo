@@ -12,7 +12,7 @@ import type { BulkRejectVerificationsDtoRejectionReason } from './bulkRejectVeri
 export interface BulkRejectVerificationsDto {
   /** Array of verification IDs to reject */
   verificationIds: string[];
-  /** Valid values: [object Object], true, Rejection reason (same for all), poor_image_quality */
+  /** Valid values: 'INVALID_ENUM', true, Rejection reason (same for all), poor_image_quality */
   rejectionReason?: BulkRejectVerificationsDtoRejectionReason;
   /**
    * Rejection comment (required for bulk rejection)

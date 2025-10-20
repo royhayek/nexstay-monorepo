@@ -58,6 +58,11 @@ export const paths = {
       edit: (id: string) => `${ROOTS.DASHBOARD}/user/${id}/edit`,
       demo: { edit: `${ROOTS.DASHBOARD}/user/${MOCK_ID}/edit` },
     },
+    hostApplications: {
+      root: `${ROOTS.DASHBOARD}/host-applications`,
+      list: `${ROOTS.DASHBOARD}/host-applications/list`,
+      details: (id: string) => `${ROOTS.DASHBOARD}/host-applications/${id}`,
+    },
     properties: {
       root: `${ROOTS.DASHBOARD}/properties`,
       list: `${ROOTS.DASHBOARD}/properties/list`,

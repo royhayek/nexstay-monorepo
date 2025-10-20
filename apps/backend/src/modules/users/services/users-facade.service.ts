@@ -57,6 +57,10 @@ export class UsersFacadeService {
     return this.coreService.findByPhone(phone);
   }
 
+  async findByOAuthProviderId(provider: 'google' | 'facebook' | 'apple', providerId: string) {
+    return this.coreService.findByOAuthProviderId(provider, providerId);
+  }
+
   async findUserByIdentifier(identifier: string, method: AuthMethod) {
     return this.coreService.findUserByIdentifier(identifier, method);
   }

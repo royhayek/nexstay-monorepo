@@ -2,8 +2,6 @@ import { INestApplication } from '@nestjs/common';
 import { Model, Document } from 'mongoose';
 import { getModelToken } from '@nestjs/mongoose';
 import { AppConfig, AppConfigDocument } from '../schemas/app-config.schema';
-import { EnumDisplay, EnumDisplayDocument } from '../schemas/enum-display.schema';
-import { AmenityCategory, AmenityCategoryDocument } from '../schemas/amenity-category.schema';
 import { BedType, BedTypeDocument } from '../schemas/bed-type.schema';
 import { PropertyType, PropertyTypeDocument } from '../schemas/property-type.schema';
 import { RoomType, RoomTypeDocument } from '../schemas/room-type.schema';
@@ -15,13 +13,10 @@ import { Currency, CurrencyDocument } from '../schemas/currency.schema';
 import { NotificationType, NotificationTypeDocument } from '../schemas/notification-type.schema';
 import { PaymentProvider, PaymentProviderDocument } from '../schemas/payment-provider.schema';
 import { CatalogVersion, CatalogVersionDocument } from '../schemas/catalog-version.schema';
-import { SystemEnumName, SYSTEM_ENUMS } from '../../common/enums/system.enums';
 import { LoggingUtil } from '../../common/utils/logging.util';
 
 interface MigrationContext {
   appConfigModel: Model<AppConfigDocument>;
-  enumDisplayModel: Model<EnumDisplayDocument>;
-  amenityCategoryModel: Model<AmenityCategoryDocument>;
   bedTypeModel: Model<BedTypeDocument>;
   propertyTypeModel: Model<PropertyTypeDocument>;
   roomTypeModel: Model<RoomTypeDocument>;
@@ -40,8 +35,6 @@ export async function migrateDynamicConfig(appContext: INestApplication): Promis
 
   const ctx: MigrationContext = {
     appConfigModel: appContext.get(getModelToken(AppConfig.name)),
-    enumDisplayModel: appContext.get(getModelToken(EnumDisplay.name)),
-    amenityCategoryModel: appContext.get(getModelToken(AmenityCategory.name)),
     bedTypeModel: appContext.get(getModelToken(BedType.name)),
     propertyTypeModel: appContext.get(getModelToken(PropertyType.name)),
     roomTypeModel: appContext.get(getModelToken(RoomType.name)),
@@ -63,7 +56,6 @@ export async function migrateDynamicConfig(appContext: INestApplication): Promis
     }
 
     // Migrate each category
-    await migrateSystemEnumDisplays(ctx, configs);
     await migrateCatalogItems(ctx, configs);
 
     // Initialize catalog version
@@ -79,73 +71,6 @@ export async function migrateDynamicConfig(appContext: INestApplication): Promis
   }
 }
 
-async function migrateSystemEnumDisplays(
-  ctx: MigrationContext,
-  configs: AppConfigDocument[],
-): Promise<void> {
-  LoggingUtil.migrationLog('🔄 Migrating system enum displays...');
-
-  // System enums that might have been stored as dynamic config
-  const systemEnumConfigs = configs.filter((config) =>
-    [
-      'BOOKING_STATUS',
-      'PAYMENT_STATUS',
-      'INVOICE_STATUS',
-      'REVIEW_TYPE',
-      'NOTIFICATION_STATUS',
-      'NOTIFICATION_PRIORITY',
-      'DEVICE_PLATFORM',
-      'NOTIFICATION_CHANNEL',
-      'PAYMENT_METHOD_TYPE',
-    ].some((prefix) => config.key.startsWith(prefix)),
-  );
-
-  for (const config of systemEnumConfigs) {
-    try {
-      // Extract enum name and key from the config key
-      const enumInfo = extractEnumInfo(config.key);
-      if (!enumInfo) continue;
-
-      const { enumName, enumKey } = enumInfo;
-
-      // Validate that this is a valid system enum
-      if (!SYSTEM_ENUMS[enumName as SystemEnumName]) continue;
-
-      const enumValues = Object.values(SYSTEM_ENUMS[enumName as SystemEnumName]);
-      if (!enumValues.includes(enumKey as never)) continue;
-
-      // Check if enum display already exists
-      const existing = await ctx.enumDisplayModel
-        .findOne({ enumName: enumName as SystemEnumName, key: enumKey })
-        .exec();
-
-      if (existing) {
-        LoggingUtil.migrationLog(`⏩ Enum display ${enumName}.${enumKey} already exists, skipping`);
-        continue;
-      }
-
-      // Create enum display
-      const enumDisplay = new ctx.enumDisplayModel({
-        enumName: enumName as SystemEnumName,
-        key: enumKey,
-        label: { en: config.title || config.value },
-        sortOrder: config.sortOrder || 0,
-        isVisible: true,
-        createdBy: 'migration',
-        updatedBy: 'migration',
-      });
-
-      await enumDisplay.save();
-      LoggingUtil.migrationSuccess(`✅ Created enum display: ${enumName}.${enumKey}`);
-    } catch (error) {
-      LoggingUtil.migrationError(
-        `❌ Failed to migrate enum display for ${config.key}:`,
-        error instanceof Error ? error : new Error(String(error)),
-      );
-    }
-  }
-}
-
 async function migrateCatalogItems(
   ctx: MigrationContext,
   configs: AppConfigDocument[],
@@ -154,11 +79,6 @@ async function migrateCatalogItems(
 
   // Map config keys to catalog types
   const catalogMappings = [
-    {
-      prefix: 'AMENITY_CATEGORY_',
-      model: ctx.amenityCategoryModel,
-      name: 'amenity categories',
-    },
     {
       prefix: 'BED_TYPE_',
       model: ctx.bedTypeModel,
@@ -286,34 +206,6 @@ async function initializeCatalogVersion(ctx: MigrationContext): Promise<void> {
 
   await versionDoc.save();
   LoggingUtil.migrationSuccess('✅ Initialized catalog version to 1');
-}
-
-function extractEnumInfo(configKey: string): { enumName: string; enumKey: string } | null {
-  // Map config key patterns to enum names
-  const enumMappings = [
-    { pattern: /^BOOKING_STATUS_(.+)$/, enumName: 'BookingStatus' },
-    { pattern: /^PAYMENT_STATUS_(.+)$/, enumName: 'PaymentStatus' },
-    { pattern: /^PAYMENT_TRANSACTION_STATUS_(.+)$/, enumName: 'PaymentTransactionStatus' },
-    { pattern: /^INVOICE_STATUS_(.+)$/, enumName: 'InvoiceStatus' },
-    { pattern: /^REVIEW_TYPE_(.+)$/, enumName: 'ReviewType' },
-    { pattern: /^NOTIFICATION_STATUS_(.+)$/, enumName: 'NotificationStatus' },
-    { pattern: /^NOTIFICATION_PRIORITY_(.+)$/, enumName: 'NotificationPriority' },
-    { pattern: /^DEVICE_PLATFORM_(.+)$/, enumName: 'DevicePlatform' },
-    { pattern: /^NOTIFICATION_CHANNEL_(.+)$/, enumName: 'NotificationChannel' },
-    { pattern: /^PAYMENT_METHOD_TYPE_(.+)$/, enumName: 'PaymentMethodType' },
-  ];
-
-  for (const mapping of enumMappings) {
-    const match = configKey.match(mapping.pattern);
-    if (match) {
-      return {
-        enumName: mapping.enumName,
-        enumKey: match[1].toLowerCase(),
-      };
-    }
-  }
-
-  return null;
 }
 
 function getCurrencySymbol(isoCode: string): string {

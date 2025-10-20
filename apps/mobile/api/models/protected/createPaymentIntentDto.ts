@@ -20,11 +20,11 @@ export interface CreatePaymentIntentDto {
   customerId?: string;
   /** Booking ID for payment intent linked to a booking */
   bookingId?: string;
-  /** Payment method ID */
+  /** Payment method ID from payment provider */
   paymentMethodId?: string;
-  /** Return URL after successful payment */
+  /** Return URL after successful payment (supports deep links for mobile apps) */
   returnUrl?: string;
-  /** Cancel URL if payment is cancelled */
+  /** Cancel URL if payment is cancelled (supports deep links for mobile apps) */
   cancelUrl?: string;
   /** Additional metadata */
   metadata?: CreatePaymentIntentDtoMetadata;

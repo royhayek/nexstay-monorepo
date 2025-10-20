@@ -1,10 +1,11 @@
 import type { PropertyResponseDto } from "@/api/models/public/propertyResponseDto";
 import { IconButton, Text } from "@/components/atoms";
 import { useSharedTransition } from "@/hooks/use-shared-transition";
+import { useFavorite } from "@/hooks/use-favorite";
 import { ms, mvs } from "@/utils/scaling";
 import { HeartIcon, StarIcon } from "phosphor-react-native";
 import React from "react";
-import { TouchableOpacity, View } from "react-native";
+import { TouchableOpacity, View, ActivityIndicator } from "react-native";
 import Animated, { useAnimatedRef, useAnimatedStyle, useSharedValue, withSpring } from "react-native-reanimated";
 import { StyleSheet } from "react-native-unistyles";
 
@@ -15,6 +16,7 @@ interface PropertyCardProps {
   width?: number;
   imageHeight?: number;
   titleVariant?: "bodySmallSemiBold" | "bodyMediumSemiBold" | "bodyLargeSemiBold";
+  showFavorite?: boolean;
 }
 
 const CARD_WIDTH = ms(160);
@@ -23,7 +25,15 @@ const DEFAULT_TOTAL_CARD_HEIGHT = mvs(230); // Default total height
 
 const AnimatedTouchable = Animated.createAnimatedComponent(TouchableOpacity);
 
-export function PropertyCard({ property, onPress, onFavoritePress, width, imageHeight, titleVariant }: PropertyCardProps) {
+export function PropertyCard({
+  property,
+  onPress,
+  onFavoritePress,
+  width,
+  imageHeight,
+  titleVariant,
+  showFavorite = true
+}: PropertyCardProps) {
   const styles = propertyCardStyles;
   const cardWidth = width || CARD_WIDTH;
   const cardImageHeight = imageHeight || DEFAULT_IMAGE_HEIGHT;
@@ -32,6 +42,9 @@ export function PropertyCard({ property, onPress, onFavoritePress, width, imageH
   const scale = useSharedValue(1);
   const cardRef = useAnimatedRef<View>();
   const { setTransitionData } = useSharedTransition();
+
+  // Favorite functionality
+  const { isFavorite, isLoading: isFavoriteLoading, toggleFavorite } = useFavorite(property._id);
 
   // Get the first image or use a placeholder
   const imageUrl = property?.images?.[0]?.url || property?.pictureUrl || property?.xlPictureUrl;
@@ -117,9 +130,26 @@ export function PropertyCard({ property, onPress, onFavoritePress, width, imageH
         )}
 
         {/* Favorite button */}
-        <IconButton style={styles.favoriteButton} onPress={onFavoritePress}>
-          <HeartIcon size={20} color="#fff" weight="regular" />
-        </IconButton>
+        {showFavorite && (
+          <IconButton
+            style={styles.favoriteButton}
+            onPress={() => {
+              toggleFavorite();
+              onFavoritePress?.();
+            }}
+            disabled={isFavoriteLoading}
+          >
+            {isFavoriteLoading ? (
+              <ActivityIndicator size="small" color="#fff" />
+            ) : (
+              <HeartIcon
+                size={20}
+                color={isFavorite ? "#EF4444" : "#fff"}
+                weight={isFavorite ? "fill" : "regular"}
+              />
+            )}
+          </IconButton>
+        )}
       </AnimatedTouchable>
 
       {/* Content Container Completely Below Image */}

@@ -32,7 +32,7 @@ import {
   DOCUMENT_TYPE_CONFIG,
 } from '../../../common/enums/identity-verification.enums';
 
-@Controller('identity-verification')
+@Controller('app/identity-verification')
 @ApiTags('Identity Verification')
 @ApiExtraModels(
   IdentityVerificationDto,

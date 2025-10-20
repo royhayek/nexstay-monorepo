@@ -16,11 +16,11 @@ export type CoHostAdminControllerListAllCoHostsParams = {
  */
 propertyId?: string;
 /**
- * Valid values: [object Object], false, Filter by status, accepted
+ * Valid values: 'INVALID_ENUM', false, Filter by status, accepted
  */
 status?: CoHostAdminControllerListAllCoHostsStatus;
 /**
- * Valid values: [object Object], false, Filter by access level, full
+ * Valid values: 'INVALID_ENUM', false, Filter by access level, full
  */
 accessLevel?: CoHostAdminControllerListAllCoHostsAccessLevel;
 /**

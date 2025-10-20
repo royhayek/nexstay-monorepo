@@ -48,6 +48,7 @@ import {
 import { AuditLogQueryDto } from '../dto/audit-log-query.dto';
 import { AuditLogListResponseDto, AuditLogEntryDto } from '../dto/audit-log-response.dto';
 import { AuditLogService } from '../services/audit-log.service';
+import { OAuthSignInDto } from '../dto/oauth-signin.dto';
 
 /**
  * Public Controller for Authentication
@@ -331,6 +332,31 @@ export class AuthPublicController extends BaseController {
       'Sign-in Completed',
       'Device verification successful, sign-in completed',
       'Device verification failed',
+    ) as Promise<SigninCompleteResponseDto>;
+  }
+
+  @Post('oauth/signin')
+  @HttpCode(HttpStatus.OK)
+  @IpThrottle(IpThrottlePresets.AUTH_LOGIN)
+  @AuditLog({
+    action: AuditLogAction.LOGIN_SUCCESS,
+    severity: AuditLogSeverity.MEDIUM,
+    description: 'User signed in via OAuth provider',
+  })
+  @PublicEndpoint(
+    'OAuth Sign-In',
+    'Sign in or create account using OAuth provider (Google, Facebook, Apple)',
+    SigninCompleteResponseDto,
+  )
+  async oauthSignIn(@Body() dto: OAuthSignInDto): Promise<SigninCompleteResponseDto> {
+    return this.executeWithErrorHandlingAndMessage(
+      async () => {
+        return await this.authService.oauthSignIn(dto);
+      },
+      'OAuth sign-in',
+      'Sign-In Successful',
+      'Successfully signed in with OAuth provider',
+      'OAuth sign-in failed',
     ) as Promise<SigninCompleteResponseDto>;
   }
 

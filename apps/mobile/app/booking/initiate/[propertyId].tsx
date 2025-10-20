@@ -5,17 +5,35 @@ import { GuestSelector } from "@/components/organisms/guest-selector";
 import { useBooking } from "@/contexts";
 import { router, useLocalSearchParams } from "expo-router";
 import { BedIcon, BathtubIcon, UsersIcon, StarIcon, MapPinIcon } from "phosphor-react-native";
-import React, { useState } from "react";
-import { Alert, Image, ScrollView, View } from "react-native";
+import React, { useState, useEffect } from "react";
+import { Alert, Image, ScrollView, View, ActivityIndicator } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { StyleSheet } from "react-native-unistyles";
 import { ms } from "@/utils/scaling";
 import { ModalHeader } from "@/components";
+import { usePropertiesPublicControllerFindOne } from "@/api/queries/public/properties-public/properties-public";
 
 export default function BookingInitiateScreen() {
   const { propertyId } = useLocalSearchParams<{ propertyId: string }>();
   const insets = useSafeAreaInsets();
-  const { bookingDraft, updateDates, updateGuests } = useBooking();
+  const { bookingDraft, updateDates, updateGuests, updateProperty } = useBooking();
+
+  // Fetch property if booking draft doesn't exist
+  const { data: propertyData, isLoading: isLoadingProperty } = usePropertiesPublicControllerFindOne(
+    propertyId as string,
+    {
+      query: {
+        enabled: !bookingDraft?.propertyDetails && !!propertyId,
+      },
+    }
+  );
+
+  // Initialize booking draft with property data if it's missing
+  useEffect(() => {
+    if (propertyData?.data && !bookingDraft?.propertyDetails) {
+      updateProperty(propertyData.data);
+    }
+  }, [propertyData, bookingDraft, updateProperty]);
 
   const [checkIn, setCheckIn] = useState<Date | null>(bookingDraft?.checkIn || null);
   const [checkOut, setCheckOut] = useState<Date | null>(bookingDraft?.checkOut || null);
@@ -51,6 +69,13 @@ export default function BookingInitiateScreen() {
   };
 
   const validateAndContinue = () => {
+    // Check if booking draft exists
+    if (!bookingDraft) {
+      Alert.alert("Error", "Booking information is missing. Please try again.");
+      router.back();
+      return;
+    }
+
     // Validation
     if (!checkIn || !checkOut) {
       Alert.alert("Invalid Dates", "Please select both check-in and check-out dates.");
@@ -87,6 +112,18 @@ export default function BookingInitiateScreen() {
 
   const nights = calculateNights();
   const canContinue = checkIn && checkOut && nights > 0 && guests.totalGuests <= maxCapacity;
+
+  // Show loading state while fetching property
+  if (isLoadingProperty) {
+    return (
+      <View style={[styles.container, styles.centerContainer]}>
+        <ActivityIndicator size="large" />
+        <Text variant="bodyLargeRegular" style={{ marginTop: 16 }}>
+          Loading property details...
+        </Text>
+      </View>
+    );
+  }
 
   return (
     <View style={[styles.container]}>
@@ -257,6 +294,10 @@ const styles = StyleSheet.create((theme) => ({
   container: {
     flex: 1,
     backgroundColor: theme.colors.background,
+  },
+  centerContainer: {
+    justifyContent: "center",
+    alignItems: "center",
   },
   propertyCard: {
     width: "100%",

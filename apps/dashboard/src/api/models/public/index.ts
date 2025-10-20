@@ -34,6 +34,7 @@ export * from './badRequestResponseDto';
 export * from './badRequestResponseDtoDetails';
 export * from './badRequestResponseDtoStatus';
 export * from './catalogFilterOptionDto';
+export * from './catalogFilterOptionDtoDescription';
 export * from './catalogFilterOptionDtoLabel';
 export * from './catalogPublicControllerGetCatalogsParams';
 export * from './catalogsResponseDto';

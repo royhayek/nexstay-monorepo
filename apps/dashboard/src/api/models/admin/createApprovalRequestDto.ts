@@ -13,7 +13,7 @@ import type { CreateApprovalRequestDtoPriority } from './createApprovalRequestDt
 import type { CreateApprovalRequestDtoMetadata } from './createApprovalRequestDtoMetadata';
 
 export interface CreateApprovalRequestDto {
-  /** Valid values: [object Object], true, Type of action requiring approval, user_permanent_deletion */
+  /** Valid values: 'INVALID_ENUM', true, Type of action requiring approval, user_permanent_deletion */
   actionType?: CreateApprovalRequestDtoActionType;
   /** Action payload containing operation details */
   actionPayload: CreateApprovalRequestDtoActionPayload;
@@ -23,7 +23,7 @@ export interface CreateApprovalRequestDto {
    * @maxLength 2000
    */
   requestReason: string;
-  /** Valid values: [object Object], false, Priority level of this approval request, high */
+  /** Valid values: 'INVALID_ENUM', false, Priority level of this approval request, high */
   priority?: CreateApprovalRequestDtoPriority;
   /** Assign to specific admin for review */
   assignedTo?: string;

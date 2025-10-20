@@ -9,14 +9,14 @@
  */
 
 /**
- * Valid values: [object Object], true, New access level for co-host, full
+ * Valid values: 'INVALID_ENUM', true, New access level for co-host, full
  */
 export type UpdateCoHostPermissionsDtoAccessLevel = typeof UpdateCoHostPermissionsDtoAccessLevel[keyof typeof UpdateCoHostPermissionsDtoAccessLevel];
 
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const UpdateCoHostPermissionsDtoAccessLevel = {
-  '[object_Object]': [object Object],
+  '[object_Object]': 'INVALID_ENUM',
   true: true,
   'New_access_level_for_co-host': 'New access level for co-host',
   full: 'full',

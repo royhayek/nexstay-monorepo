@@ -13,7 +13,7 @@ export type ComplianceAdminControllerGetVerificationQueueDocumentType = typeof C
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const ComplianceAdminControllerGetVerificationQueueDocumentType = {
-  'passport,national_id,drivers_license,residence_permit': passport,national_id,drivers_license,residence_permit,
+
   false: false,
   Filter_by_document_type: 'Filter by document type',
   passport: 'passport',

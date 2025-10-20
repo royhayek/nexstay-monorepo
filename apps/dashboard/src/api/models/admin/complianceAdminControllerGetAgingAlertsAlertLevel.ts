@@ -13,8 +13,7 @@ export type ComplianceAdminControllerGetAgingAlertsAlertLevel = typeof Complianc
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const ComplianceAdminControllerGetAgingAlertsAlertLevel = {
-  'warning,urgent,critical': warning,urgent,critical,
-  false: false,
-  Filter_by_alert_level: 'Filter by alert level',
+  warning: 'warning',
+  urgent: 'urgent',
   critical: 'critical',
 } as const;

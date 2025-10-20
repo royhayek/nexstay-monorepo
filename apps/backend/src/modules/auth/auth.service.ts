@@ -39,10 +39,11 @@ import {
   SigninCompleteDataDto,
 } from './dto/signin-response.dto';
 import { UserDataDto } from '../users/dto/user-response.dto';
-import { RegistrationState } from '../../database/schemas/user.schema';
+import { RegistrationState, UserRole } from '../../database/schemas/user.schema';
 import { CodeDeliveryMethod } from './dto/login.dto';
 import { AddSecondaryContactDto } from './dto/add-secondary-contact.dto';
 import { AddSecondaryContactDataDto } from './dto/add-secondary-contact-response.dto';
+import { OAuthSignInDto, OAuthProvider } from './dto/oauth-signin.dto';
 import { CryptoUtil } from '../../common/utils/crypto.utils';
 import { OtpUtil } from '../../common/utils/otp.util';
 import { DateUtils } from '../../common/utils/date.utils';
@@ -1633,5 +1634,97 @@ export class AuthService {
     }
 
     return { message: 'Session terminated successfully' };
+  }
+
+  /**
+   * OAuth Sign-In
+   * Mobile app handles OAuth flow and sends token to backend
+   * Backend creates/finds user and returns JWT tokens
+   */
+  async oauthSignIn(dto: OAuthSignInDto): Promise<SigninCompleteDataDto> {
+    // For MVP, we'll trust the data from mobile
+    // TODO: In production, verify the access token with the OAuth provider's API
+    // - Google: Verify idToken with https://www.googleapis.com/oauth2/v3/tokeninfo
+    // - Apple: Verify identityToken using Apple's public keys
+    // - Facebook: Verify token with Facebook Graph API
+
+    // Try to find user by email first, then by provider ID
+    let user: any = null;
+
+    if (dto.email) {
+      user = await this.usersService.findByEmail(dto.email);
+    }
+
+    // If no user found by email, try by provider ID (important for Apple repeat sign-ins)
+    if (!user && dto.providerId) {
+      user = await this.usersService.findByOAuthProviderId(dto.provider, dto.providerId);
+    }
+
+    // Email is required for new user creation
+    if (!user && !dto.email) {
+      throw new BadRequestException(
+        'Email is required for new account creation. Please ensure your OAuth provider shares email access.',
+      );
+    }
+
+    if (!user) {
+      // Create new user with OAuth data
+      const createUserData: any = {
+        email: dto.email,
+        firstName: dto.firstName || 'User',
+        lastName: dto.lastName || '',
+        roles: [UserRole.GUEST],
+        registrationState: RegistrationState.FULLY_REGISTERED, // OAuth users are fully registered
+        avatarUrl: dto.photoUrl,
+        isEmailVerified: true, // OAuth email is already verified by provider
+        status: 'active', // Set user as active
+      };
+
+      // Add provider-specific ID
+      if (dto.provider === OAuthProvider.GOOGLE && dto.providerId) {
+        (createUserData as any).googleId = dto.providerId;
+      } else if (dto.provider === OAuthProvider.FACEBOOK && dto.providerId) {
+        (createUserData as any).facebookId = dto.providerId;
+      } else if (dto.provider === OAuthProvider.APPLE && dto.providerId) {
+        (createUserData as any).appleId = dto.providerId;
+      }
+
+      user = await this.usersService.create(createUserData);
+
+      LoggingUtil.log(`User created via OAuth (${dto.provider}):`, String(user._id));
+    } else {
+      // Update existing user's OAuth info if they signed in with OAuth
+      if (dto.photoUrl && !user.avatarUrl) {
+        user.avatarUrl = dto.photoUrl;
+      }
+
+      // Link OAuth provider ID if not already linked
+      if (dto.provider === OAuthProvider.GOOGLE && dto.providerId && !user.googleId) {
+        user.googleId = dto.providerId;
+      } else if (dto.provider === OAuthProvider.FACEBOOK && dto.providerId && !user.facebookId) {
+        user.facebookId = dto.providerId;
+      } else if (dto.provider === OAuthProvider.APPLE && dto.providerId && !user.appleId) {
+        user.appleId = dto.providerId;
+      }
+
+      await user.save();
+
+      LoggingUtil.log(`User signed in via OAuth (${dto.provider}):`, String(user._id));
+    }
+
+    // Check if user can perform signin action
+    if (!canUserPerformAction(user.status, 'canLogin')) {
+      throw new UnauthorizedException(`Account is ${user.status} and cannot login`);
+    }
+
+    // Generate tokens
+    const tokens = await this.generateTokens(String(user._id), user.email!, user.roles);
+    const userData = plainToInstance(UserDataDto, user.toObject());
+
+    return {
+      accessToken: tokens.accessToken,
+      refreshToken: tokens.refreshToken,
+      user: userData,
+    };
   }
 }

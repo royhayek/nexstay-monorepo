@@ -3,10 +3,11 @@ import { useAuth } from "@/hooks/use-auth";
 import { ms, mvs } from "@/utils/scaling";
 import { router } from "expo-router";
 import { EnvelopeSimpleIcon, PhoneIcon } from "phosphor-react-native";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { Alert, View } from "react-native";
 import { StyleSheet } from "react-native-unistyles";
+import { oauthService } from "@/services/oauth.service";
 
 type LoginMethod = "email" | "phone";
 
@@ -18,6 +19,7 @@ interface LoginForm {
 export default function LoginScreen() {
   const styles = loginStyles;
   const [isLoading, setIsLoading] = useState(false);
+  const [isAppleSignInAvailable, setIsAppleSignInAvailable] = useState(false);
 
   const { control, handleSubmit, watch, setValue } = useForm<LoginForm>({
     defaultValues: {
@@ -28,7 +30,16 @@ export default function LoginScreen() {
 
   const selectedMethod = watch("selectedMethod");
 
-  const { checkIdentifier, signinInitiate, signupVerifyContact } = useAuth();
+  const { checkIdentifier, signinInitiate, signupVerifyContact, signInWithGoogle, signInWithApple } = useAuth();
+
+  // Check if Apple Sign-In is available (iOS 13+ with paid developer account)
+  useEffect(() => {
+    const checkAppleAvailability = async () => {
+      const available = await oauthService.isAppleSignInAvailable();
+      setIsAppleSignInAvailable(available);
+    };
+    checkAppleAvailability();
+  }, []);
 
   const handleClose = () => {
     router.back();
@@ -128,8 +139,35 @@ export default function LoginScreen() {
     }
   };
 
-  const handleSocialLogin = (provider: string) => {
-    Alert.alert("Coming Soon", `${provider} login will be available soon!`);
+  const handleSocialLogin = async (provider: string) => {
+    try {
+      setIsLoading(true);
+
+      if (provider === "Google") {
+        await signInWithGoogle();
+        // Navigate to main app after successful login
+        router.replace("/(tabs)");
+      } else if (provider === "Apple") {
+        await signInWithApple();
+        // Navigate to main app after successful login
+        router.replace("/(tabs)");
+      } else {
+        Alert.alert("Coming Soon", `${provider} login will be available soon!`);
+      }
+    } catch (error: any) {
+      console.error(`${provider} login failed:`, error);
+
+      // Don't show error if user cancelled
+      if (!error?.message?.includes("cancelled")) {
+        Alert.alert(
+          "Sign-In Failed",
+          error?.message || `Failed to sign in with ${provider}. Please try again.`,
+          [{ text: "OK" }]
+        );
+      }
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -209,7 +247,9 @@ export default function LoginScreen() {
 
       {/* Social Login Buttons */}
       <View style={styles.socialSection}>
-        <SocialButton provider="apple" onPress={() => handleSocialLogin("Apple")} />
+        {isAppleSignInAvailable && (
+          <SocialButton provider="apple" onPress={() => handleSocialLogin("Apple")} />
+        )}
         <SocialButton provider="facebook" onPress={() => handleSocialLogin("Facebook")} />
         <SocialButton provider="google" onPress={() => handleSocialLogin("Google")} />
       </View>

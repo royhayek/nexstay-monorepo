@@ -9,6 +9,6 @@
  */
 
 export interface ConfirmPaymentIntentDto {
-  /** Payment method ID */
+  /** Payment method ID from payment provider */
   paymentMethodId?: string;
 }

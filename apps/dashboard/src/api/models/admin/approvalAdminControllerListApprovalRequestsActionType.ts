@@ -13,7 +13,7 @@ export type ApprovalAdminControllerListApprovalRequestsActionType = typeof Appro
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const ApprovalAdminControllerListApprovalRequestsActionType = {
-  '[object_Object]': [object Object],
+  '[object_Object]': 'INVALID_ENUM',
   false: false,
   Filter_by_action_type: 'Filter by action type',
   user_permanent_deletion: 'user_permanent_deletion',

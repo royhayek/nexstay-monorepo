@@ -58,13 +58,13 @@ export class CreateCatalogItemDto {
   description?: Record<string, string>;
 
   @ApiProperty({
-    description: 'Icon name from Iconsax library with optional variant (format: iconName or iconName:variant)',
-    example: 'wifi:Bold',
+    description: 'Icon componentName from Iconsax library with optional variant (format: ComponentName or ComponentName:variant)',
+    example: 'Wifi:Linear',
   })
   @IsOptional()
   @IsString()
-  @Matches(/^[a-z0-9_-]+(?::(Linear|Outline|Bold|Bulk|Broken|TwoTone))?$/, {
-    message: 'Icon must be in format "iconName" or "iconName:variant" where iconName is lowercase alphanumeric with hyphens/underscores and variant is one of: Linear, Outline, Bold, Bulk, Broken, TwoTone',
+  @Matches(/^[A-Z][a-zA-Z0-9]*(?::(Linear|Outline|Bold|Bulk|Broken|TwoTone))?$/, {
+    message: 'Icon must be in format "ComponentName" or "ComponentName:variant" where ComponentName is PascalCase (e.g., Wifi, MonitorMobbile) and variant is one of: Linear, Outline, Bold, Bulk, Broken, TwoTone',
   })
   icon?: string;
 

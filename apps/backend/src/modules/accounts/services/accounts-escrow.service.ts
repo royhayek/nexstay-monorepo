@@ -31,6 +31,7 @@ export class AccountsEscrowService {
    */
   async createEscrowDepositFromExternalPayment(
     guestId: string,
+    hostId: string,
     amount: number,
     bookingId: string,
     checkInDate: Date,
@@ -76,6 +77,7 @@ export class AccountsEscrowService {
         metadata: {
           bookingId: new Types.ObjectId(bookingId),
           guestId: new Types.ObjectId(guestId),
+          hostId: new Types.ObjectId(hostId),
           platformFeeRate,
           escrowReleaseDate: releaseDate,
           externalPayment: true, // Flag to indicate external payment source
@@ -122,6 +124,7 @@ export class AccountsEscrowService {
    */
   async createEscrowHold(
     guestWalletId: string,
+    hostId: string,
     amount: number,
     bookingId: string,
     checkInDate: Date,
@@ -163,6 +166,7 @@ export class AccountsEscrowService {
         },
         metadata: {
           bookingId: new Types.ObjectId(bookingId),
+          hostId: new Types.ObjectId(hostId),
           platformFeeRate,
           escrowReleaseDate: releaseDate,
         },
@@ -237,7 +241,7 @@ export class AccountsEscrowService {
         throw new Error('NOT_FOUND');
       }
 
-      if (!escrowTransaction.canBeProcessed()) {
+      if (!escrowTransaction.canBeReleased()) {
         throw new Error('VALIDATION_FAILED');
       }
 

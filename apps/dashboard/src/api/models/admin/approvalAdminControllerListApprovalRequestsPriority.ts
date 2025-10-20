@@ -13,7 +13,7 @@ export type ApprovalAdminControllerListApprovalRequestsPriority = typeof Approva
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const ApprovalAdminControllerListApprovalRequestsPriority = {
-  '[object_Object]': [object Object],
+  '[object_Object]': 'INVALID_ENUM',
   false: false,
   Filter_by_priority: 'Filter by priority',
   high: 'high',

@@ -5,6 +5,7 @@ export interface TransactionDocument extends Transaction, Document {
   isProcessable(): boolean;
   isEscrowRelease(): boolean;
   canBeProcessed(): boolean;
+  canBeReleased(): boolean;
 }
 
 export enum TransactionType {
@@ -206,6 +207,15 @@ TransactionSchema.methods.canBeProcessed = function (this: TransactionDocument):
   if (this.status !== TransactionStatus.PENDING) return false;
   if (!this.scheduledReleaseAt) return true; // Process immediately
   return Date.now() >= this.scheduledReleaseAt.getTime(); // Process after scheduled time
+};
+
+TransactionSchema.methods.canBeReleased = function (this: TransactionDocument): boolean {
+  // For escrow release: transaction must be COMPLETED (money in escrow) and release time must have passed
+  if (this.status !== TransactionStatus.COMPLETED) return false;
+  if (this.type !== TransactionType.BOOKING_PAYMENT) return false;
+  if (!this.scheduledReleaseAt) return false; // Must have a scheduled release date
+  if (!this.metadata?.hostId) return false; // Must have a host to release to
+  return Date.now() >= this.scheduledReleaseAt.getTime(); // Release time must have passed
 };
 
 // Pre-save validation

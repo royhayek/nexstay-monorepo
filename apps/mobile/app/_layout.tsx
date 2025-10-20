@@ -25,6 +25,7 @@ import { BottomSheetProvider } from "@/hooks/use-bottom-sheet";
 import { NetworkProvider } from "@/hooks/use-network";
 import { SharedTransitionProvider } from "@/hooks/use-shared-transition";
 import { ThemePreferenceProvider, useThemePreference } from "@/hooks/use-theme-preference";
+import { I18nProvider } from "@/i18n";
 import "@/unistyles";
 
 // Initialize axios refresh function to avoid circular dependency
@@ -124,7 +125,7 @@ function RootLayoutNav() {
           name="booking/details/[propertyId]"
           options={{
             headerShown: false,
-            presentation: "card",
+            presentation: "modal",
             animation: "slide_from_right",
             contentStyle: { backgroundColor },
           }}
@@ -133,7 +134,25 @@ function RootLayoutNav() {
           name="booking/review/[propertyId]"
           options={{
             headerShown: false,
-            presentation: "card",
+            presentation: "modal",
+            animation: "slide_from_right",
+            contentStyle: { backgroundColor },
+          }}
+        />
+        <Stack.Screen
+          name="booking/payment/[propertyId]"
+          options={{
+            headerShown: false,
+            presentation: "modal",
+            animation: "slide_from_right",
+            contentStyle: { backgroundColor },
+          }}
+        />
+        <Stack.Screen
+          name="booking/payment/add-card/[propertyId]"
+          options={{
+            headerShown: false,
+            presentation: "modal",
             animation: "slide_from_right",
             contentStyle: { backgroundColor },
           }}
@@ -142,7 +161,7 @@ function RootLayoutNav() {
           name="booking/success/[bookingId]"
           options={{
             headerShown: false,
-            presentation: "card",
+            presentation: "modal",
             gestureEnabled: false,
             contentStyle: { backgroundColor },
           }}
@@ -187,27 +206,29 @@ export default function RootLayout() {
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaProvider>
         <QueryClientProvider client={queryClient}>
-          <AppProvider>
-            <ThemePreferenceProvider>
-              <NetworkProvider>
-                <AuthProvider>
-                  <RoleProvider>
-                    <BookingProvider>
-                      <BottomSheetModalProvider>
-                        <BottomSheetProvider>
-                          <SharedTransitionProvider>
-                            <RootLayoutNav />
-                            <AuthModalHandler />
-                            <OfflineIndicator />
-                          </SharedTransitionProvider>
-                        </BottomSheetProvider>
-                      </BottomSheetModalProvider>
-                    </BookingProvider>
-                  </RoleProvider>
-                </AuthProvider>
-              </NetworkProvider>
-            </ThemePreferenceProvider>
-          </AppProvider>
+          <I18nProvider>
+            <AppProvider>
+              <ThemePreferenceProvider>
+                <NetworkProvider>
+                  <AuthProvider>
+                    <RoleProvider>
+                      <BookingProvider>
+                        <BottomSheetModalProvider>
+                          <BottomSheetProvider>
+                            <SharedTransitionProvider>
+                              <RootLayoutNav />
+                              <AuthModalHandler />
+                              <OfflineIndicator />
+                            </SharedTransitionProvider>
+                          </BottomSheetProvider>
+                        </BottomSheetModalProvider>
+                      </BookingProvider>
+                    </RoleProvider>
+                  </AuthProvider>
+                </NetworkProvider>
+              </ThemePreferenceProvider>
+            </AppProvider>
+          </I18nProvider>
         </QueryClientProvider>
       </SafeAreaProvider>
     </GestureHandlerRootView>

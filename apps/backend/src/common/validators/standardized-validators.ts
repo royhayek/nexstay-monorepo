@@ -227,14 +227,20 @@ export function IsUrlField(options?: {
   required?: boolean;
   example?: string;
   description?: string;
+  allowCustomSchemes?: boolean;
   validationOptions?: ValidationOptions;
 }) {
   const {
     required = false,
     example = 'https://example.com',
     description = 'URL address',
+    allowCustomSchemes = false,
     validationOptions = {},
   } = options || {};
+
+  const urlOptions = allowCustomSchemes
+    ? { require_protocol: true, require_tld: false, protocols: ['http', 'https', 'nexstay', 'app'] }
+    : { require_tld: false };
 
   const decorators = [
     required
@@ -248,13 +254,10 @@ export function IsUrlField(options?: {
           example,
           format: 'uri',
         }),
-    IsUrl(
-      { require_tld: false },
-      {
-        message: 'validation.INVALID_URL',
-        ...validationOptions,
-      },
-    ),
+    IsUrl(urlOptions, {
+      message: 'validation.INVALID_URL',
+      ...validationOptions,
+    }),
   ];
 
   if (!required) {
@@ -472,7 +475,7 @@ export function IsLanguageField(options?: {
 }
 
 export function IsEnumField<T extends Record<string, any>>(
-  enumObject: T,
+  enumObjectOrArray: T | any[],
   options?: {
     required?: boolean;
     isArray?: boolean;
@@ -485,26 +488,44 @@ export function IsEnumField<T extends Record<string, any>>(
   const required = opts.required ?? false;
   const isArray = opts.isArray ?? false;
   const example = opts.example;
-  const description = opts.description ?? `Valid values: ${Object.values(enumObject).join(', ')}`;
   const validationOptions = opts.validationOptions ?? {};
+
+  // Handle both arrays and enum objects
+  const isInputArray = Array.isArray(enumObjectOrArray);
+  let enumForValidator: T | Record<string, any>;
+  let enumValues: any[];
+
+  if (isInputArray) {
+    // Convert array ['warning', 'urgent', 'critical'] to object { warning: 'warning', urgent: 'urgent', critical: 'critical' }
+    enumForValidator = enumObjectOrArray.reduce((acc, value) => {
+      // Handle both primitive values and enum values
+      const key = typeof value === 'string' ? value : String(value);
+      acc[key] = value;
+      return acc;
+    }, {} as Record<string, any>);
+    enumValues = enumObjectOrArray;
+  } else {
+    enumForValidator = enumObjectOrArray;
+    enumValues = Object.values(enumObjectOrArray);
+  }
+
+  const description = opts.description ?? `Valid values: ${enumValues.join(', ')}`;
 
   const decorators = [
     required
       ? ApiProperty({
           description,
-          enum: enumObject,
+          enum: enumForValidator,
           isArray,
-          example:
-            example || (isArray ? [Object.values(enumObject)[0]] : Object.values(enumObject)[0]),
+          example: example || (isArray ? [enumValues[0]] : enumValues[0]),
         })
       : ApiPropertyOptional({
           description,
-          enum: enumObject,
+          enum: enumForValidator,
           isArray,
-          example:
-            example || (isArray ? [Object.values(enumObject)[0]] : Object.values(enumObject)[0]),
+          example: example || (isArray ? [enumValues[0]] : enumValues[0]),
         }),
-    IsEnum(enumObject, {
+    IsEnum(enumForValidator, {
       each: isArray,
       message: 'validation.INVALID_ENUM_VALUE',
       ...validationOptions,

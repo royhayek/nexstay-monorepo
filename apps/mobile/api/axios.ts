@@ -196,12 +196,21 @@ axiosInstance.interceptors.response.use(
       }
     }
 
-    // Log error in development
+    // Log error in development (skip expected 404s)
     if (__DEV__) {
-      console.error(
-        `❌ ${error.config?.method?.toUpperCase()} ${error.config?.url} - ${error.response?.status || "Network Error"}`,
-        error.response?.data || error.message
+      const is404 = error.response?.status === 404;
+      const isExpected404 = is404 && (
+        error.config?.url?.includes('/identity-verification/me') ||
+        error.config?.url?.includes('/user-profile/me')
       );
+
+      // Don't log expected 404s (user hasn't created the resource yet)
+      if (!isExpected404) {
+        console.error(
+          `❌ ${error.config?.method?.toUpperCase()} ${error.config?.url} - ${error.response?.status || "Network Error"}`,
+          error.response?.data || error.message
+        );
+      }
     }
 
     return Promise.reject(handleApiError(error));

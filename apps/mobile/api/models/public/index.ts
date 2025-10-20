@@ -71,6 +71,8 @@ export * from './logoutResponseDtoStatus';
 export * from './notFoundResponseDto';
 export * from './notFoundResponseDtoDetails';
 export * from './notFoundResponseDtoStatus';
+export * from './oAuthSignInDto';
+export * from './oAuthSignInDtoProvider';
 export * from './paginatedDto';
 export * from './paginatedDtoItemsItem';
 export * from './priceInfoResponseDto';

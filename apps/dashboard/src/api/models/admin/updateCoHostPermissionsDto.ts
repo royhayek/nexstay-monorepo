@@ -11,7 +11,7 @@ import type { UpdateCoHostPermissionsDtoAccessLevel } from './updateCoHostPermis
 import type { UpdateCoHostPermissionsDtoPermissionsItem } from './updateCoHostPermissionsDtoPermissionsItem';
 
 export interface UpdateCoHostPermissionsDto {
-  /** Valid values: [object Object], true, New access level for co-host, full */
+  /** Valid values: 'INVALID_ENUM', true, New access level for co-host, full */
   accessLevel?: UpdateCoHostPermissionsDtoAccessLevel;
   /** New specific permissions (required if accessLevel is CUSTOM) */
   permissions?: UpdateCoHostPermissionsDtoPermissionsItem[];

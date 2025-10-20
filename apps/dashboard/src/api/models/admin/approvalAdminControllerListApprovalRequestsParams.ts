@@ -13,15 +13,15 @@ import type { ApprovalAdminControllerListApprovalRequestsPriority } from './appr
 
 export type ApprovalAdminControllerListApprovalRequestsParams = {
 /**
- * Valid values: [object Object], false, Filter by status, pending
+ * Valid values: 'INVALID_ENUM', false, Filter by status, pending
  */
 status?: ApprovalAdminControllerListApprovalRequestsStatus;
 /**
- * Valid values: [object Object], false, Filter by action type, user_permanent_deletion
+ * Valid values: 'INVALID_ENUM', false, Filter by action type, user_permanent_deletion
  */
 actionType?: ApprovalAdminControllerListApprovalRequestsActionType;
 /**
- * Valid values: [object Object], false, Filter by priority, high
+ * Valid values: 'INVALID_ENUM', false, Filter by priority, high
  */
 priority?: ApprovalAdminControllerListApprovalRequestsPriority;
 /**

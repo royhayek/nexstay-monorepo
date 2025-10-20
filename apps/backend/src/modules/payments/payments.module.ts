@@ -41,6 +41,6 @@ import { NotificationsModule } from '../notifications/notifications.module';
   ],
   controllers: [PaymentsAppController, PaymentsAdminController],
   providers: [PaymentsService, PaymentAccountsIntegrationService, APSProvider],
-  exports: [PaymentsService],
+  exports: [PaymentsService, MongooseModule],
 })
 export class PaymentsModule {}

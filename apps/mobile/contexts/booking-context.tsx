@@ -63,7 +63,11 @@ export const BookingProvider: React.FC<{ children: ReactNode }> = ({ children })
 
   const updateDates = (checkIn: Date, checkOut: Date, nights: number) => {
     setBookingDraft((prev) => {
-      if (!prev) return null;
+      if (!prev) {
+        // If no booking draft exists, we can't update it safely
+        console.warn('updateDates called without an existing booking draft');
+        return prev;
+      }
       return {
         ...prev,
         checkIn,
@@ -75,7 +79,11 @@ export const BookingProvider: React.FC<{ children: ReactNode }> = ({ children })
 
   const updateGuests = (guests: GuestInfo) => {
     setBookingDraft((prev) => {
-      if (!prev) return null;
+      if (!prev) {
+        // If no booking draft exists, we can't update it safely
+        console.warn('updateGuests called without an existing booking draft');
+        return prev;
+      }
       return {
         ...prev,
         guests,

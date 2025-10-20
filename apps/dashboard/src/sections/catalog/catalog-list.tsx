@@ -101,13 +101,13 @@ const TABLE_COLUMNS: DynamicTableColumn<CatalogItemDataDto>[] = [
         );
       }
 
-      // Parse icon value format: "iconName:variant" (e.g., "home-2:Bold")
+      // Parse icon value format: "ComponentName:variant" (e.g., "Wifi:Linear")
       const iconParts = item.icon.split(':');
-      const iconName = iconParts[0];
+      const componentName = iconParts[0];
       const iconVariant = (iconParts[1] || 'Bold') as any; // Default to Bold if no variant specified
 
-      // Find the Iconsax icon by name
-      const iconsaxIcon = ICONSAX_ICONS.find((icon) => icon.name === iconName);
+      // Find the Iconsax icon by componentName
+      const iconsaxIcon = ICONSAX_ICONS.find((icon) => icon.componentName === componentName);
       if (iconsaxIcon) {
         const IconComponent = (IconsaxReact as any)[iconsaxIcon.componentName];
         if (IconComponent) {
@@ -120,7 +120,7 @@ const TABLE_COLUMNS: DynamicTableColumn<CatalogItemDataDto>[] = [
       }
 
       // Fallback to Iconify if not an Iconsax icon (legacy support)
-      return <Iconify icon={iconName} width={24} sx={{ color: 'primary.main' }} />;
+      return <Iconify icon={componentName} width={24} sx={{ color: 'primary.main' }} />;
     },
   },
   {

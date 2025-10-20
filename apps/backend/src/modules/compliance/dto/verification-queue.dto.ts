@@ -4,6 +4,15 @@ import { BaseResponseDto } from '../../../common/dto/base-response.dto';
 import { ApiProperty } from '@nestjs/swagger';
 
 /**
+ * Alert level enum for aging verification items
+ */
+export enum AlertLevel {
+  WARNING = 'warning',
+  URGENT = 'urgent',
+  CRITICAL = 'critical',
+}
+
+/**
  * Verification Queue Item DTO
  * Enhanced verification item with queue-specific metadata
  */
@@ -202,14 +211,13 @@ export class VerificationQueueQueryDto {
  * Query parameters for aging alerts
  */
 export class AgingAlertsQueryDto {
-  @IsEnumField({
-    enum: ['warning', 'urgent', 'critical'],
+  @IsEnumField(AlertLevel, {
     required: false,
     description: 'Filter by alert level',
-    example: 'critical',
+    example: AlertLevel.CRITICAL,
   })
   @IsOptional()
-  alertLevel?: 'warning' | 'urgent' | 'critical';
+  alertLevel?: AlertLevel;
 
   @IsNumberField({
     required: false,

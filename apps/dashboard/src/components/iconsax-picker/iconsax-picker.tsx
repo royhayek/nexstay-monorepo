@@ -48,7 +48,24 @@ export function IconsaxPicker({ value, onChange, helperText, error, ...other }: 
   }, []);
 
   const { iconName: selectedIconName, variant: currentVariant } = parseIconValue(value || '');
-  const selectedIcon = ICONSAX_ICONS.find((icon) => icon.name === selectedIconName);
+  const selectedIcon = ICONSAX_ICONS.find((icon) => icon.componentName === selectedIconName);
+
+  // Debug logging
+  console.log('[IconsaxPicker] Debug info:', {
+    rawValue: value,
+    selectedIconName,
+    currentVariant,
+    selectedIcon: selectedIcon ? { name: selectedIcon.name, componentName: selectedIcon.componentName } : 'NOT FOUND',
+    iconAvailable: selectedIconName ? selectedIconName in (IconsaxReact as any) : false,
+  });
+
+  if (value && !selectedIcon) {
+    console.warn('[IconsaxPicker] Could not find icon in ICONSAX_ICONS array:', {
+      value,
+      selectedIconName,
+      sampleIcons: ICONSAX_ICONS.slice(0, 3).map(i => ({ name: i.name, componentName: i.componentName }))
+    });
+  }
 
   // Sync selectedVariant with currentVariant when dialog is opened
   useEffect(() => {
@@ -129,9 +146,9 @@ export function IconsaxPicker({ value, onChange, helperText, error, ...other }: 
   }, []);
 
   const handleSelect = useCallback(
-    (iconName: string) => {
-      // Combine icon name and variant: "iconName:variant"
-      const fullValue = `${iconName}:${selectedVariant}`;
+    (componentName: string) => {
+      // Combine component name and variant: "componentName:variant" (e.g., "Wifi:Linear")
+      const fullValue = `${componentName}:${selectedVariant}`;
       onChange?.(fullValue);
       handleClose();
     },
@@ -142,17 +159,14 @@ export function IconsaxPicker({ value, onChange, helperText, error, ...other }: 
     onChange?.('');
   }, [onChange]);
 
-  // Dynamically get the icon component
-  const getIconComponent = (componentName: string) => {
-    const IconComponent = (IconsaxReact as any)[componentName];
-    return IconComponent;
-  };
-
+  // Dynamically render icon component
   const renderIconPreview = (componentName: string, variant: IconsaxVariant = 'Bold', size: number = 24) => {
     try {
-      const IconComponent = getIconComponent(componentName);
+      // Access the icon component directly from iconsax-react
+      const IconComponent = (IconsaxReact as any)[componentName];
+
       if (!IconComponent) {
-        console.warn(`Icon component not found: ${componentName}`);
+        console.warn(`[IconsaxPicker] Icon component not found: ${componentName}`);
         return (
           <Box sx={{ display: 'flex', alignItems: 'center', color: 'text.secondary' }}>
             <Iconify icon="solar:widget-2-bold" width={size} />
@@ -160,13 +174,14 @@ export function IconsaxPicker({ value, onChange, helperText, error, ...other }: 
         );
       }
 
+      // Render the icon component with the specified variant and size
       return (
         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'primary.main' }}>
           <IconComponent size={size} variant={variant} />
         </Box>
       );
     } catch (error) {
-      console.error('Error rendering icon:', error);
+      console.error('[IconsaxPicker] Error rendering icon:', componentName, error);
       return (
         <Box sx={{ display: 'flex', alignItems: 'center', color: 'error.main' }}>
           <Iconify icon="solar:danger-triangle-bold" width={size} />
@@ -179,7 +194,7 @@ export function IconsaxPicker({ value, onChange, helperText, error, ...other }: 
     <>
       <TextField
         {...other}
-        value={selectedIcon ? `${selectedIcon.name} (${currentVariant})` : ''}
+        value={selectedIcon ? `${selectedIcon.componentName} (${currentVariant})` : ''}
         onClick={handleOpen}
         error={error}
         helperText={helperText}
@@ -189,7 +204,17 @@ export function IconsaxPicker({ value, onChange, helperText, error, ...other }: 
             readOnly: true,
             startAdornment: selectedIcon ? (
               <InputAdornment position="start">
-                {renderIconPreview(selectedIcon.componentName, currentVariant, 24)}
+                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', mr: 0.5 }}>
+                  {(() => {
+                    // Directly access and render the icon component
+                    const IconComponent = (IconsaxReact as any)[selectedIcon.componentName];
+                    if (!IconComponent) {
+                      console.error('[IconsaxPicker] Icon not found for componentName:', selectedIcon.componentName);
+                      return <Iconify icon="solar:widget-2-bold" width={20} sx={{ color: 'text.secondary' }} />;
+                    }
+                    return <IconComponent size={20} variant={currentVariant} color="currentColor" />;
+                  })()}
+                </Box>
               </InputAdornment>
             ) : null,
             endAdornment: (
@@ -308,16 +333,17 @@ export function IconsaxPicker({ value, onChange, helperText, error, ...other }: 
             }}
           >
             {filteredIcons.map((icon) => {
-              const IconComponent = getIconComponent(icon.componentName);
+              // Access icon component directly from iconsax-react
+              const IconComponent = (IconsaxReact as any)[icon.componentName];
               if (!IconComponent) return null;
 
-              const isSelected = selectedIconName === icon.name;
+              const isSelected = selectedIconName === icon.componentName;
 
               return (
                 <Paper
                   key={icon.name}
                   ref={isSelected ? selectedIconRef : null}
-                  onClick={() => handleSelect(icon.name)}
+                  onClick={() => handleSelect(icon.componentName)}
                   sx={{
                     p: 2,
                     display: 'flex',

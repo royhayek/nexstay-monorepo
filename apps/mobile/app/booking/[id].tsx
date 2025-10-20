@@ -10,6 +10,7 @@ import {
   ChatCircleIcon,
   MapPinIcon,
   PhoneIcon,
+  StarIcon,
   UsersIcon,
 } from "phosphor-react-native";
 import React from "react";
@@ -128,6 +129,19 @@ export default function BookingDetailsViewScreen() {
     } catch (error) {
       console.error("Error sharing:", error);
     }
+  };
+
+  const handleWriteReview = () => {
+    if (!booking) return;
+
+    router.push({
+      pathname: `/review/write/${booking._id}`,
+      params: {
+        bookingId: booking._id,
+        propertyId: booking.property._id,
+        hostId: booking.property.host || '',
+      },
+    });
   };
 
   // Loading state
@@ -374,6 +388,20 @@ export default function BookingDetailsViewScreen() {
           </View>
         )}
 
+        {/* Write Review Button (only for completed bookings) */}
+        {(booking.status === "completed" || booking.status === "checked_out") && (
+          <View style={styles.reviewContainer}>
+            <Button variant="filled" size="medium" onPress={handleWriteReview} fullWidth>
+              <View style={styles.reviewButtonContent}>
+                <StarIcon size={20} color="#fff" weight="fill" />
+                <Text variant="bodyMediumSemiBold" style={styles.reviewButtonText}>
+                  Write a Review
+                </Text>
+              </View>
+            </Button>
+          </View>
+        )}
+
         {/* Bottom spacer */}
         <View style={styles.bottomSpacer} />
       </ScrollView>
@@ -519,6 +547,17 @@ const styles = StyleSheet.create((theme) => ({
   },
   cancelContainer: {
     paddingTop: theme.spacing.md,
+  },
+  reviewContainer: {
+    paddingTop: theme.spacing.md,
+  },
+  reviewButtonContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: ms(8),
+  },
+  reviewButtonText: {
+    color: '#FFFFFF',
   },
   bottomSpacer: {
     height: theme.spacing.lg,

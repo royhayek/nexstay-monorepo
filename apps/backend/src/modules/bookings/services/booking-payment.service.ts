@@ -86,6 +86,7 @@ export class BookingPaymentService {
 
       const escrowTransaction = await this.accountsFacade.createBookingEscrow(
         String(userAccounts.guestWallet._id),
+        booking!.hostId.toString(),
         booking!.pricing.totalAmount,
         bookingId,
         booking!.checkIn,

@@ -36,6 +36,7 @@ import { Alert } from "react-native";
 import { router } from "expo-router";
 import { useAppStateAuth } from "./use-app-state-auth";
 import { useNetwork } from "./use-network";
+import { oauthService } from "@/services/oauth.service";
 
 // Use generated API response types directly
 
@@ -76,6 +77,10 @@ interface AuthContextType {
 
   // Request Verification Code (General)
   requestVerify: (method: "email" | "phone", identifier: string) => Promise<RequestVerifyResponseDto>;
+
+  // OAuth/Social Sign-In
+  signInWithGoogle: () => Promise<void>;
+  signInWithApple: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -262,6 +267,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const logoutUser = async () => {
     try {
       await logout();
+
+      // Also sign out from OAuth providers
+      await oauthService.signOutGoogle();
+
       setIsAuthenticated(false);
       setUser(null);
       setShowLoginModal(true);
@@ -572,6 +581,77 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  // OAuth/Social Sign-In Methods
+  const signInWithGoogle = async (): Promise<void> => {
+    try {
+      checkNetworkOrThrow();
+
+      // Perform Google Sign-In and get backend response
+      const response = await oauthService.signInWithGoogle();
+
+      // Extract tokens and user data
+      const tokens = {
+        accessToken: response.data.accessToken,
+        refreshToken: response.data.refreshToken,
+      };
+
+      // Auto-login with tokens and user data
+      await login(tokens, response.data.user);
+
+      console.log("[Auth] Google sign-in completed successfully");
+    } catch (error: any) {
+      console.error("[Auth] Google sign-in failed:", error);
+
+      // Provide user-friendly error messages
+      let errorMessage = "Failed to sign in with Google. Please try again.";
+
+      if (error?.message?.includes("cancelled")) {
+        errorMessage = "Google sign-in was cancelled";
+      } else if (error?.message?.includes("Play Services")) {
+        errorMessage = "Google Play Services is not available on this device";
+      } else if (error?.message?.includes("network") || error?.message?.includes("internet")) {
+        errorMessage = "No internet connection. Please check your network and try again.";
+      }
+
+      throw new Error(errorMessage);
+    }
+  };
+
+  const signInWithApple = async (): Promise<void> => {
+    try {
+      checkNetworkOrThrow();
+
+      // Perform Apple Sign-In and get backend response
+      const response = await oauthService.signInWithApple();
+
+      // Extract tokens and user data
+      const tokens = {
+        accessToken: response.data.accessToken,
+        refreshToken: response.data.refreshToken,
+      };
+
+      // Auto-login with tokens and user data
+      await login(tokens, response.data.user);
+
+      console.log("[Auth] Apple sign-in completed successfully");
+    } catch (error: any) {
+      console.error("[Auth] Apple sign-in failed:", error);
+
+      // Provide user-friendly error messages
+      let errorMessage = "Failed to sign in with Apple. Please try again.";
+
+      if (error?.message?.includes("cancelled")) {
+        errorMessage = "Apple sign-in was cancelled";
+      } else if (error?.message?.includes("not available")) {
+        errorMessage = "Apple Sign-In is not available on this device";
+      } else if (error?.message?.includes("network") || error?.message?.includes("internet")) {
+        errorMessage = "No internet connection. Please check your network and try again.";
+      }
+
+      throw new Error(errorMessage);
+    }
+  };
+
   const value: AuthContextType = {
     isAuthenticated,
     isLoading,
@@ -605,6 +685,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     // Request Verification Code (General)
     requestVerify,
+
+    // OAuth/Social Sign-In
+    signInWithGoogle,
+    signInWithApple,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

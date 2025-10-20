@@ -13,7 +13,7 @@ export type CoHostAdminControllerListAllCoHostsStatus = typeof CoHostAdminContro
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const CoHostAdminControllerListAllCoHostsStatus = {
-  '[object_Object]': [object Object],
+  '[object_Object]': 'INVALID_ENUM',
   false: false,
   Filter_by_status: 'Filter by status',
   accepted: 'accepted',

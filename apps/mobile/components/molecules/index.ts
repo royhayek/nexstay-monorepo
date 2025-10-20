@@ -32,6 +32,8 @@ export { PropertyTypeSelector, RoomTypeSelector, BedTypeSelector } from "./prope
 export type { PropertyTypeSelectorProps, RoomTypeSelectorProps, BedTypeSelectorProps } from "./property-type-selector";
 export { RatingDisplay } from "./rating-display";
 export type { RatingDisplayProps } from "./rating-display";
+export { RatingInput } from "./rating-input";
+export type { RatingInputProps } from "./rating-input";
 export { RoleSwitcher, RoleSwitcherCompact, RoleBadge } from "./role-switcher";
 export { SearchBar } from "./search-bar";
 export { SectionHeader } from "./section-header";

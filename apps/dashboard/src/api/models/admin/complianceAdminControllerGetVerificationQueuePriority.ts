@@ -13,7 +13,7 @@ export type ComplianceAdminControllerGetVerificationQueuePriority = typeof Compl
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const ComplianceAdminControllerGetVerificationQueuePriority = {
-  'low,medium,high,critical': low,medium,high,critical,
+
   false: false,
   Filter_by_priority_level: 'Filter by priority level',
   high: 'high',

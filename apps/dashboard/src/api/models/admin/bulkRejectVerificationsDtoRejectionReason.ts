@@ -9,14 +9,14 @@
  */
 
 /**
- * Valid values: [object Object], true, Rejection reason (same for all), poor_image_quality
+ * Valid values: 'INVALID_ENUM', true, Rejection reason (same for all), poor_image_quality
  */
 export type BulkRejectVerificationsDtoRejectionReason = typeof BulkRejectVerificationsDtoRejectionReason[keyof typeof BulkRejectVerificationsDtoRejectionReason];
 
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const BulkRejectVerificationsDtoRejectionReason = {
-  '[object_Object]': [object Object],
+  '[object_Object]': 'INVALID_ENUM',
   true: true,
   'Rejection_reason_(same_for_all)': 'Rejection reason (same for all)',
   poor_image_quality: 'poor_image_quality',

@@ -200,6 +200,28 @@ export class UserCoreService {
     }
   }
 
+  /** Find by OAuth provider ID (for repeat OAuth sign-ins) */
+  async findByOAuthProviderId(
+    provider: 'google' | 'facebook' | 'apple',
+    providerId: string,
+  ): Promise<UserDocument | null> {
+    if (!providerId) {
+      throw new BadRequestException('Provider ID must be provided');
+    }
+    try {
+      const field = provider === 'google' ? 'googleId' : provider === 'facebook' ? 'facebookId' : 'appleId';
+      return await this.userModel.findOne({ [field]: providerId }).exec();
+    } catch (error) {
+      const dbError = error as Error;
+      LoggingUtil.error(
+        `findByOAuthProviderId: error for ${provider}:${providerId}`,
+        dbError.stack || String(dbError),
+        'UserCoreService',
+      );
+      throw new InternalServerErrorException('Failed to query by OAuth provider ID');
+    }
+  }
+
   /** Find user by identifier (email or phone) */
   async findUserByIdentifier(identifier: string, method: AuthMethod): Promise<UserDocument | null> {
     if (!identifier) {
