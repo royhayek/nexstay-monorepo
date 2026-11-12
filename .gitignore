@@ -8,3 +8,9 @@ build
 .env.local
 coverage
 *.log
+
+# Secrets and local logs
+.env.*
+!.env.example
+logs/
+*-service-account*.json
